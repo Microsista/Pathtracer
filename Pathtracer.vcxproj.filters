@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{2c40c396-e4d4-4aa4-8efa-daf36f7648e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{483e84dd-5de1-4e12-b139-c4776d232822}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{0d166577-e69f-4d84-b102-f0f52e7fc777}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Util">
+      <UniqueIdentifier>{d09480f9-e2d4-4d7b-9b83-8c902c573d60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Util\PerformanceTimers.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\Camera.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\DeviceResources.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\DXSample.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\Win32Application.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\AdvancedRoom.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\stdafx.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\Geometry.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Util\PerformanceTimers.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Camera.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\d3dx12.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\DeviceResources.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\DXSample.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\DXSampleHelper.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\HlslCompat.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Math.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\StepTimer.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Win32Application.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DirectXRaytracingHelper.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\RaytracingSceneDefines.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\AdvancedRoom.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\stdafx.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\SimpleGeometry.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Geometry.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Mesh.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\RayTracingHlslCompat.h">
+      <Filter>Shaders\Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ProceduralGeometry\AnalyticPrimitives.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Shaders\ProceduralGeometry\ProceduralPrimitivesLibrary.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Shaders\RaytracingShaderHelper.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Shaders\RandomNumberGenerator.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Shaders\BxDF.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Raytracing.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
