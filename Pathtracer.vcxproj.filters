@@ -13,6 +13,9 @@
     <Filter Include="Shaders\Util">
       <UniqueIdentifier>{d09480f9-e2d4-4d7b-9b83-8c902c573d60}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util\Denoising">
+      <UniqueIdentifier>{5890c188-1640-4649-a009-162f64f4c956}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Util\PerformanceTimers.cpp">
@@ -41,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="Util\Geometry.cpp">
       <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\Denoiser.cpp">
+      <Filter>Util\Denoising</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\RTEffectsGpuKernels.cpp">
+      <Filter>Util\Denoising</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +106,24 @@
     </ClInclude>
     <ClInclude Include="Shaders\RayTracingHlslCompat.h">
       <Filter>Shaders\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Pathtracer.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Composition.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\RTEffects.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Denoiser.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\RTEffectsGpuKernels.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\GpuResource.h">
+      <Filter>Util\Denoising</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

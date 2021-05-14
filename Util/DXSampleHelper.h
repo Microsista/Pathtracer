@@ -1,15 +1,7 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
 #pragma once
+
+#include "GpuResource.h"
+#include "../Core/stdafx.h"
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -348,3 +340,69 @@ public:
         return m_resource->GetGPUVirtualAddress() + instanceIndex * InstanceSize();
     }
 };
+
+namespace DX
+{
+    class DescriptorHeap
+    {
+        ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
+        UINT m_descriptorsAllocated;
+        UINT m_descriptorSize;
+
+    public:
+        DescriptorHeap(ID3D12Device5* device, UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type)
+        {
+            m_descriptorsAllocated = 0;
+
+            D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+            descriptorHeapDesc.NumDescriptors = numDescriptors;
+            descriptorHeapDesc.Type = type;
+            descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            descriptorHeapDesc.NodeMask = 0;
+            device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
+            NAME_D3D12_OBJECT(m_descriptorHeap);
+
+            m_descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        }
+
+        ID3D12DescriptorHeap* GetHeap() { return m_descriptorHeap.Get(); }
+        ID3D12DescriptorHeap** GetAddressOf() { return m_descriptorHeap.GetAddressOf(); }
+        UINT DescriptorSize() { return m_descriptorSize; }
+
+        // Allocate a descriptor and return its index. 
+        // Passing descriptorIndexToUse as UINT_MAX will allocate next available descriptor.
+        // Otherwise the descriptorIndexToUse will be used instead of allocating a new one.
+        UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX)
+        {
+            if (descriptorIndexToUse == UINT_MAX)
+            {
+                ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
+                descriptorIndexToUse = m_descriptorsAllocated++;
+            }
+            else
+            {
+                ThrowIfFalse(descriptorIndexToUse < m_descriptorHeap->GetDesc().NumDescriptors, L"Requested descriptor index is out of bounds!");
+                m_descriptorsAllocated = max(descriptorIndexToUse + 1, m_descriptorsAllocated);
+            }
+
+            auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+            *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
+            return descriptorIndexToUse;
+        }
+
+        // Allocate multiple descriptor indices and return an index of a first one. 
+        // Passing firstDescriptorIndexToUse as UINT_MAX will allocate next available descriptors.
+        // Otherwise the firstDescriptorIndexToUse will be used instead of allocating a new one.
+        UINT AllocateDescriptorIndices(UINT numDescriptors, UINT firstDescriptorIndexToUse = UINT_MAX)
+        {
+            auto handle = D3D12_CPU_DESCRIPTOR_HANDLE();
+            firstDescriptorIndexToUse = AllocateDescriptor(&handle, firstDescriptorIndexToUse);
+
+            for (UINT i = 1; i < numDescriptors; i++)
+            {
+                AllocateDescriptor(&handle, firstDescriptorIndexToUse + i);
+            }
+            return firstDescriptorIndexToUse;
+        }
+    };
+}

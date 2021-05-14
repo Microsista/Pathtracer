@@ -382,6 +382,8 @@ void Room::CreateDeviceDependentResources()
 
     // Create an output 2D texture to store the raytracing result to.
     CreateRaytracingOutputResource();
+
+    m_denoiser.Setup(m_deviceResources, m_cbvSrvUavHeap);
 }
 
 void Room::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
@@ -1601,6 +1603,9 @@ void Room::OnRender()
     }
 
     DoRaytracing();
+
+    m_denoiser.Run(m_pathtracer/*, m_RTEffects*/);
+
     CopyRaytracingOutputToBackbuffer();
 
     // End frame.

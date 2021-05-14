@@ -58,7 +58,7 @@ protected:
 
     // D3D device resources
     UINT m_adapterIDoverride;
-    std::unique_ptr<DX::DeviceResources> m_deviceResources;
+    std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
     // Camera
     Camera m_camera;

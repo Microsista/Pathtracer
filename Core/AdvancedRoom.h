@@ -6,6 +6,15 @@
 #include "DirectXRaytracingHelper.h"
 #include "../Util/PerformanceTimers.h"
 #include "../Util/Mesh.h"
+#include "../Util/Denoiser.h"
+
+#include "../Util/Pathtracer.h"
+#include "../Util/RTEffects.h"
+
+namespace App
+{
+    static const UINT FrameCount = 3;
+}
 
 class Room : public DXSample
 {
@@ -104,6 +113,13 @@ private:
     XMVECTOR m_up;
 
     POINT m_lastMousePosition = {};
+
+    // Components
+    Pathtracer m_pathtracer;
+    RTEffects m_RTEffects;
+    Denoiser m_denoiser;
+
+    std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
     void UpdateCameraMatrices();
     void UpdateAABBPrimitiveAttributes(float animationTime);

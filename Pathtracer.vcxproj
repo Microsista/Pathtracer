@@ -149,10 +149,12 @@
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\stdafx.cpp" />
     <ClCompile Include="Util\Camera.cpp" />
+    <ClCompile Include="Util\Denoiser.cpp" />
     <ClCompile Include="Util\DeviceResources.cpp" />
     <ClCompile Include="Util\DXSample.cpp" />
     <ClCompile Include="Util\Geometry.cpp" />
     <ClCompile Include="Util\PerformanceTimers.cpp" />
+    <ClCompile Include="Util\RTEffectsGpuKernels.cpp" />
     <ClCompile Include="Util\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,15 +164,21 @@
     <ClInclude Include="Core\stdafx.h" />
     <ClInclude Include="Shaders\RayTracingHlslCompat.h" />
     <ClInclude Include="Util\Camera.h" />
+    <ClInclude Include="Util\Composition.h" />
     <ClInclude Include="Util\d3dx12.h" />
+    <ClInclude Include="Util\Denoiser.h" />
     <ClInclude Include="Util\DeviceResources.h" />
     <ClInclude Include="Util\DXSample.h" />
     <ClInclude Include="Util\DXSampleHelper.h" />
     <ClInclude Include="Util\Geometry.h" />
+    <ClInclude Include="Util\GpuResource.h" />
     <ClInclude Include="Util\HlslCompat.h" />
     <ClInclude Include="Util\Math.h" />
     <ClInclude Include="Util\Mesh.h" />
+    <ClInclude Include="Util\Pathtracer.h" />
     <ClInclude Include="Util\PerformanceTimers.h" />
+    <ClInclude Include="Util\RTEffects.h" />
+    <ClInclude Include="Util\RTEffectsGpuKernels.h" />
     <ClInclude Include="Util\SimpleGeometry.h" />
     <ClInclude Include="Util\StepTimer.h" />
     <ClInclude Include="Util\Win32Application.h" />

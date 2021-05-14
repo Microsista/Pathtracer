@@ -22,6 +22,82 @@ typedef UINT16 Index;
 // as drivers may apply optimization strategies for low recursion depths.
 #define MAX_RAY_RECURSION_DEPTH 3    // ~ primary rays + reflections + shadow rays from reflected geometry.
 
+struct AtrousWaveletTransformFilterConstantBuffer
+{
+    XMUINT2 textureDim;
+    float depthWeightCutoff;
+    bool usingBilateralDownsampledBuffers;
+
+    BOOL useAdaptiveKernelSize;
+    float kernelRadiusLerfCoef;
+    UINT minKernelWidth;
+    UINT maxKernelWidth;
+
+    float rayHitDistanceToKernelWidthScale;
+    float rayHitDistanceToKernelSizeScaleExponent;
+    BOOL perspectiveCorrectDepthInterpolation;
+    float minVarianceToDenoise;
+
+    float valueSigma;
+    float depthSigma;
+    float normalSigma;
+    UINT DepthNumMantissaBits;
+};
+
+struct FilterConstantBuffer
+{
+    XMUINT2 textureDim;
+    UINT step;
+    float padding;
+};
+
+struct CalculateMeanVarianceConstantBuffer
+{
+    XMUINT2 textureDim;
+    UINT kernelWidth;
+    UINT kernelRadius;
+
+    BOOL doCheckerboardSampling;
+    BOOL areEvenPixelsActive;
+    UINT pixelStepY;
+    float padding;
+};
+
+struct TemporalSupersampling_ReverseReprojectConstantBuffer
+{
+    XMUINT2 textureDim;
+    XMFLOAT2 invTextureDim;
+
+    float depthSigma;
+    UINT DepthNumMantissaBits;      // Number of Mantissa Bits in the floating format of the input depth resources format.
+    BOOL usingBilateralDownsampledBuffers;
+    float padding;
+};
+
+struct TemporalSupersampling_BlendWithCurrentFrameConstantBuffer
+{
+    float stdDevGamma;
+    BOOL clampCachedValues;
+    float clamping_minStdDevTolerance;
+    float padding;
+
+    float clampDifferenceToTsppScale;
+    BOOL forceUseMinSmoothingFactor;
+    float minSmoothingFactor;
+    UINT minTsppToUseTemporalVariance;
+
+    UINT blurStrength_MaxTspp;
+    float blurDecayStrength;
+    BOOL checkerboard_enabled;
+    BOOL checkerboard_areEvenPixelsActive;
+};
+
+struct TextureDimConstantBuffer
+{
+    XMUINT2 textureDim;
+    XMFLOAT2 invTextureDim;
+};
+
 
 struct ProceduralPrimitiveAttributes
 {

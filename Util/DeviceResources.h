@@ -77,7 +77,7 @@ namespace DX
 
         // Direct3D Accessors.
         IDXGIAdapter1*              GetAdapter() const { return m_adapter.Get(); }
-        ID3D12Device*               GetD3DDevice() const { return m_d3dDevice.Get(); }
+        ID3D12Device5*              GetD3DDevice() const { return m_d3dDevice.Get(); }
         IDXGIFactory4*              GetDXGIFactory() const { return m_dxgiFactory.Get(); }
         IDXGISwapChain3*            GetSwapChain() const { return m_swapChain.Get(); }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const { return m_d3dFeatureLevel; }
@@ -119,7 +119,7 @@ namespace DX
         std::wstring                                        m_adapterDescription;
 
         // Direct3D objects.
-        Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;
+        Microsoft::WRL::ComPtr<ID3D12Device5>               m_d3dDevice;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   m_commandList;
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_commandAllocators[MAX_BACK_BUFFER_COUNT];
