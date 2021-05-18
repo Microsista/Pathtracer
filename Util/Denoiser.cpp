@@ -2,6 +2,7 @@
 #include "Denoiser.h"
 #include "Composition.h"
 #include "../Core/AdvancedRoom.h"
+#include "GpuResource.h"
 
 
 void Denoiser::Setup(std::shared_ptr<DX::DeviceResources> deviceResources, std::shared_ptr<DX::DescriptorHeap> descriptorHeap)
@@ -21,7 +22,6 @@ void Denoiser::Run(Pathtracer& pathtracer, DenoiseStage stage)
 {
 	auto commandList = m_deviceResources->GetCommandList();
 
-
 	if (stage & Denoise_Stage1_TemporalSupersamplingReverseReproject)
 	{
 		TemporalSupersamplingReverseReproject(pathtracer);
@@ -38,6 +38,20 @@ void Denoiser::TemporalSupersamplingReverseReproject(Pathtracer& pathtracer)
 	// Ping-pong input output indices across frames.
 	UINT temporalCachePreviousFrameResourceIndex = m_temporalCacheCurrentFrameResourceIndex;
 	m_temporalCacheCurrentFrameResourceIndex = (m_temporalCacheCurrentFrameResourceIndex + 1) % 2;
+
+	UINT temporalCachePreviousFrameTemporal;
+
+	//GpuResource (&GBufferResources)[GBufferResource::Count] = pathtracer.GBufferResources(RTEffects_Args::QuarterResEffects); // An array of function references
+
+	//m_temporalCacheReverseReprojectKernel.Run(
+	//	commandList,
+	//	m_denoisingWidth,
+	//	m_denoisingHeight,
+	//	m_cbvSrvUavHeap->GetHeap(),
+	//	GBufferResources[GBufferResource::SurfaceNormalDepth].gpuDescriptorReadAccess,
+	//	);
+
+
 }
 
 // Create resources that depend on the device.

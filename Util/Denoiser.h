@@ -24,6 +24,9 @@ private:
 	std::shared_ptr<DX::DeviceResources> m_deviceResources;
 	std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
+	UINT m_denoisingWidth = 0;
+	UINT m_denoisingHeight = 0;
+
 	UINT m_temporalCacheCurrentFrameResourceIndex = 0;
 
 	// RTEffectsGpuKernels

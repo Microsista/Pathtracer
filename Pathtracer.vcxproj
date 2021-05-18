@@ -152,7 +152,9 @@
     <ClCompile Include="Util\Denoiser.cpp" />
     <ClCompile Include="Util\DeviceResources.cpp" />
     <ClCompile Include="Util\DXSample.cpp" />
+    <ClCompile Include="Util\EngineTuning.cpp" />
     <ClCompile Include="Util\Geometry.cpp" />
+    <ClCompile Include="Util\Pathtracer.cpp" />
     <ClCompile Include="Util\PerformanceTimers.cpp" />
     <ClCompile Include="Util\RTEffectsGpuKernels.cpp" />
     <ClCompile Include="Util\Win32Application.cpp" />
@@ -170,6 +172,7 @@
     <ClInclude Include="Util\DeviceResources.h" />
     <ClInclude Include="Util\DXSample.h" />
     <ClInclude Include="Util\DXSampleHelper.h" />
+    <ClInclude Include="Util\EngineTuning.h" />
     <ClInclude Include="Util\Geometry.h" />
     <ClInclude Include="Util\GpuResource.h" />
     <ClInclude Include="Util\HlslCompat.h" />

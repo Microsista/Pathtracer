@@ -51,6 +51,12 @@
     <ClCompile Include="Util\RTEffectsGpuKernels.cpp">
       <Filter>Util\Denoising</Filter>
     </ClCompile>
+    <ClCompile Include="Util\Pathtracer.cpp">
+      <Filter>Util\Denoising</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\EngineTuning.cpp">
+      <Filter>Util\Denoising</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Util\PerformanceTimers.h">
@@ -123,6 +129,9 @@
       <Filter>Util\Denoising</Filter>
     </ClInclude>
     <ClInclude Include="Util\GpuResource.h">
+      <Filter>Util\Denoising</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\EngineTuning.h">
       <Filter>Util\Denoising</Filter>
     </ClInclude>
   </ItemGroup>

@@ -115,3 +115,16 @@ namespace IntersectionShaderType {
         AnalyticPrimitive::Count;
 }
 
+namespace GBufferResource {
+    enum Enum {
+        HitPosition = 0,	// 3D position of hit.
+        SurfaceNormalDepth,	// Encoded normal and linear depth.
+        Depth,          // Linear depth of the hit.
+        PartialDepthDerivatives,
+        MotionVector,
+        ReprojectedNormalDepth,
+        Color,
+        AOSurfaceAlbedo,
+        Count
+    };
+}
