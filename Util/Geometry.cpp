@@ -1,6 +1,7 @@
 #include "../Core/stdafx.h"
 #include "Geometry.h"
 #include <algorithm>
+#include "Math.h"
 
 using namespace DirectX;
 
@@ -96,6 +97,8 @@ GeometryGenerator::MeshData GeometryGenerator::CreateBox(float width, float heig
 
 	return meshData;
 }
+
+
 
 GeometryGenerator::MeshData GeometryGenerator::CreateRoom(float width, float height, float depth)
 {
@@ -193,6 +196,88 @@ GeometryGenerator::MeshData GeometryGenerator::CreateRoom(float width, float hei
 	meshData.Indices32.assign(&i[0], &i[54]);
 
 	return meshData;;
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateSkull(float width, float height, float depth)
+{
+	MeshData meshData;
+
+
+	std::ifstream fin("Models/skull.txt");
+
+	if (!fin)
+	{
+		MessageBox(0, L"Models/skull.txt not found.", 0, 0);
+		return meshData;
+	}
+
+	UINT vcount = 0;
+	UINT tcount = 0;
+	std::string ignore;
+
+	fin >> ignore >> vcount;
+	fin >> ignore >> tcount;
+	fin >> ignore >> ignore >> ignore >> ignore;
+
+	XMFLOAT3 vMinf3(+MathHelper::Infinity, +MathHelper::Infinity, +MathHelper::Infinity);
+	XMFLOAT3 vMaxf3(-MathHelper::Infinity, -MathHelper::Infinity, -MathHelper::Infinity);
+
+	XMVECTOR vMin = XMLoadFloat3(&vMinf3);
+	XMVECTOR vMax = XMLoadFloat3(&vMaxf3);
+
+	std::vector<Vertex> vertices(vcount);
+	for (UINT i = 0; i < vcount; ++i)
+	{
+		/*fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
+		fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;*/
+
+		fin >> vertices[i].Position.x >> vertices[i].Position.y >> vertices[i].Position.z;
+		fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
+
+		XMVECTOR P = XMLoadFloat3(&vertices[i].Position);
+
+		// Project point onto unit sphere and generate spherical texture coordinates.
+		//XMFLOAT3 spherePos;
+		//XMStoreFloat3(&spherePos, XMVector3Normalize(P));
+
+		//float theta = atan2f(spherePos.z, spherePos.x);
+
+		//// Put in [0, 2pi].
+		//if (theta < 0.0f)
+		//    theta += XM_2PI;
+
+		//float phi = acosf(spherePos.y);
+
+		//float u = theta / (2.0f * XM_PI);
+		//float v = phi / XM_PI;
+
+		//vertices[i].TexC = { u, v };
+
+		//vMin = XMVectorMin(vMin, P);
+		//vMax = XMVectorMax(vMax, P);
+	}
+
+	/*  BoundingBox bounds;
+	  XMStoreFloat3(&bounds.Center, 0.5f * (vMin + vMax));
+	  XMStoreFloat3(&bounds.Extents, 0.5f * (vMax - vMin));*/
+
+	fin >> ignore;
+	fin >> ignore;
+	fin >> ignore;
+
+	std::vector<std::uint32_t> indices(3 * tcount);
+	for (UINT i = 0; i < tcount; ++i)
+	{
+		fin >> indices[i * 3 + 0] >> indices[i * 3 + 1] >> indices[i * 3 + 2];
+	}
+
+	fin.close();
+
+	meshData.Vertices = vertices;
+	meshData.Indices32 = indices;
+	
+
+	return meshData;
 }
 
 GeometryGenerator::MeshData GeometryGenerator::CreateCoordinates(float width, float height, float depth)

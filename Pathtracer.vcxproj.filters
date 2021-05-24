@@ -57,6 +57,9 @@
     <ClCompile Include="Util\EngineTuning.cpp">
       <Filter>Util\Denoising</Filter>
     </ClCompile>
+    <ClCompile Include="Util\Math.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Util\PerformanceTimers.h">
@@ -134,14 +137,11 @@
     <ClInclude Include="Util\EngineTuning.h">
       <Filter>Util\Denoising</Filter>
     </ClInclude>
+    <ClInclude Include="Core\other.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\ProceduralGeometry\AnalyticPrimitives.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
-    <None Include="Shaders\ProceduralGeometry\ProceduralPrimitivesLibrary.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
     <None Include="Shaders\RaytracingShaderHelper.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>

@@ -154,6 +154,7 @@
     <ClCompile Include="Util\DXSample.cpp" />
     <ClCompile Include="Util\EngineTuning.cpp" />
     <ClCompile Include="Util\Geometry.cpp" />
+    <ClCompile Include="Util\Math.cpp" />
     <ClCompile Include="Util\Pathtracer.cpp" />
     <ClCompile Include="Util\PerformanceTimers.cpp" />
     <ClCompile Include="Util\RTEffectsGpuKernels.cpp" />
@@ -162,6 +163,7 @@
   <ItemGroup>
     <ClInclude Include="Core\AdvancedRoom.h" />
     <ClInclude Include="Core\DirectXRaytracingHelper.h" />
+    <ClInclude Include="Core\other.h" />
     <ClInclude Include="Core\RaytracingSceneDefines.h" />
     <ClInclude Include="Core\stdafx.h" />
     <ClInclude Include="Shaders\RayTracingHlslCompat.h" />
@@ -199,8 +201,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\BxDF.hlsli" />
-    <None Include="Shaders\ProceduralGeometry\AnalyticPrimitives.hlsli" />
-    <None Include="Shaders\ProceduralGeometry\ProceduralPrimitivesLibrary.hlsli" />
     <None Include="Shaders\RandomNumberGenerator.hlsli" />
     <None Include="Shaders\RaytracingShaderHelper.hlsli" />
   </ItemGroup>

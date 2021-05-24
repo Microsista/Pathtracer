@@ -136,7 +136,7 @@ void Camera::LookAt(DirectX::FXMVECTOR pos, DirectX::FXMVECTOR target, DirectX::
     XMStoreFloat3(&mRight, R);
     XMStoreFloat3(&mUp, U);
 
-    mViewDirty = true;
+    //mViewDirty = true;
 }
 
 void Camera::LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up)
@@ -152,7 +152,7 @@ void Camera::LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& targe
 
 DirectX::XMMATRIX Camera::GetView() const
 {
-    assert(!mViewDirty);
+    //assert(!mViewDirty);
     return XMLoadFloat4x4(&mView);
 }
 
@@ -163,7 +163,7 @@ DirectX::XMMATRIX Camera::GetProj() const
 
 DirectX::XMFLOAT4X4 Camera::GetView4x4f() const
 {
-    assert(!mViewDirty);
+    //assert(!mViewDirty);
     return mView;
 }
 

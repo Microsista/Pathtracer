@@ -63,5 +63,6 @@ public:
 			1.0f);
 	}
 
+	static const float Infinity;
 	
 };

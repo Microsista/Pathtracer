@@ -19,8 +19,6 @@ namespace GlobalRootSignature {
             OutputView = 0,
             AccelerationStructure,
             SceneConstant,
-            AABBattributeBuffer,
-            VertexBuffers,
             TriangleAttributeBuffer,
             Count
         };
@@ -31,7 +29,6 @@ namespace LocalRootSignature {
     namespace Type {
         enum Enum {
             Triangle = 0,
-            AABB,
             Count
         };
     }
@@ -43,28 +40,20 @@ namespace LocalRootSignature {
             enum Enum {
                 MaterialConstant = 0,
                 GeometryIndex,
+                IndexBuffer,
+                VertexBuffer,
                 Count
             };
         }
         struct RootArguments {
             PrimitiveConstantBuffer materialCb;
             PrimitiveInstanceConstantBuffer triangleCB;
-        };
-    }
-}
-
-namespace LocalRootSignature {
-    namespace AABB {
-        namespace Slot {
-            enum Enum {
-                MaterialConstant = 0,
-                GeometryIndex,
-                Count
-            };
-        }
-        struct RootArguments {
-            PrimitiveConstantBuffer materialCb;
-            PrimitiveInstanceConstantBuffer aabbCB;
+            // Bind each resource via a descriptor.
+        // This design was picked for simplicity, but one could optimize for shader record size by:
+        //    1) Binding multiple descriptors via a range descriptor instead.
+        //    2) Storing 4 Byte indices (instead of 8 Byte descriptors) to a global pool resources.
+            D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
+            D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
         };
     }
 }
@@ -72,14 +61,13 @@ namespace LocalRootSignature {
 namespace LocalRootSignature {
     inline UINT MaxRootArgumentsSize()
     {
-        return max(sizeof(Triangle::RootArguments), sizeof(AABB::RootArguments));
+        return sizeof(Triangle::RootArguments);
     }
 }
 
 namespace GeometryType {
     enum Enum {
         Triangle = 0,
-        AABB,       // Procedural geometry with an application provided AABB.
         Count
     };
 }
@@ -96,24 +84,6 @@ namespace GpuTimers {
 // Mixing of geometry types within a BLAS is not supported.
 namespace BottomLevelASType = GeometryType;
 
-
-namespace IntersectionShaderType {
-    enum Enum {
-        AnalyticPrimitive = 0,
-        Count
-    };
-    inline UINT PerPrimitiveTypeCount(Enum type)
-    {
-        switch (type)
-        {
-        case AnalyticPrimitive: return AnalyticPrimitive::Count;
-        }
-        return 0;
-    }
-    static const UINT MaxPerPrimitiveTypeCount = AnalyticPrimitive::Count;
-    static const UINT TotalPrimitiveCount =
-        AnalyticPrimitive::Count;
-}
 
 namespace GBufferResource {
     enum Enum {

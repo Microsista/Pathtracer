@@ -54,3 +54,5 @@
 #include "../Util/DXSampleHelper.h"
 #include "../Util/DeviceResources.h"
 
+#include <iostream>
+#include <fstream>

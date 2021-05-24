@@ -66,13 +66,12 @@ private:
 
     // Root constants
     PrimitiveConstantBuffer m_triangleMaterialCB[TriangleGeometry::Count];
-    PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
 
     // Geometry
     std::vector<Vertex> m_vertices;
     std::vector<Index> m_indices;
-    D3DBuffer m_indexBuffer;
-    D3DBuffer m_vertexBuffer;
+    D3DBuffer m_indexBuffer[TriangleGeometry::Count];
+    D3DBuffer m_vertexBuffer[TriangleGeometry::Count];
     //D3DBuffer m_coordinateSystemIndexBuffer;
     //D3DBuffer m_coordinateSystemVertexBuffer;
     D3DBuffer m_aabbBuffer;
@@ -89,9 +88,7 @@ private:
 
     // Shader tables
     static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
-    static const wchar_t* c_hitGroupNames_AABBGeometry[IntersectionShaderType::Count][RayType::Count];
     static const wchar_t* c_raygenShaderName;
-    static const wchar_t* c_intersectionShaderNames[IntersectionShaderType::Count];
     static const wchar_t* c_closestHitShaderNames[GeometryType::Count];
     static const wchar_t* c_missShaderNames[RayType::Count];
 
@@ -111,6 +108,7 @@ private:
     XMVECTOR m_eye;
     XMVECTOR m_at;
     XMVECTOR m_up;
+    bool m_orbitalCamera = false;
 
     POINT m_lastMousePosition = {};
 
@@ -122,13 +120,11 @@ private:
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
     void UpdateCameraMatrices();
-    void UpdateAABBPrimitiveAttributes(float animationTime);
     void UpdateTrianglePrimitiveAttributes(float animationTime);
     void InitializeScene();
     void RecreateD3D();
     void DoRaytracing();
     void CreateConstantBuffers();
-    void CreateAABBPrimitiveAttributesBuffers();
     void CreateTrianglePrimitiveAttributesBuffers();
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
@@ -144,9 +140,7 @@ private:
     void CreateAuxilaryDeviceResources();
     void CreateDescriptorHeap();
     void CreateRaytracingOutputResource();
-    void BuildProceduralGeometryAABBs();
     void BuildGeometry();
-    void BuildTriangleGeometry();
     void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs);
     template <class InstanceDescType, class BLASPtrType>
     void BuildBottomLevelASInstanceDescs(BLASPtrType *bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource);

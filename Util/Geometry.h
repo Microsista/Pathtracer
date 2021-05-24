@@ -69,6 +69,9 @@ public:
 	// Creates a room centered at the origin with the given dimensions.
 	MeshData CreateRoom(float width, float height, float depth);
 
+	// Creates a room centered at the origin with the given dimensions.
+	MeshData CreateSkull(float width, float height, float depth);
+
 	// Creates coordinates centered at the origin with the given dimensions.
 	MeshData CreateCoordinates(float width, float height, float depth);
 

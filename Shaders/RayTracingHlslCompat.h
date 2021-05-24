@@ -11,11 +11,12 @@
 
 #ifdef HLSL
 #include "../Util/HlslCompat.h"
+typedef UINT Index;
 #else
 using namespace DirectX;
 
 // Shader will use byte encoding to access vertex indices.
-typedef UINT16 Index;
+typedef UINT Index;
 #endif
 
 // PERFORMANCE TIP: Set max recursion depth as low as needed
@@ -154,7 +155,6 @@ namespace MaterialType {
 struct PrimitiveInstanceConstantBuffer
 {
     UINT instanceIndex;  
-    UINT primitiveType; // Procedural primitive type
 };
 
 // Dynamic attributes per primitive instance.
@@ -210,16 +210,7 @@ namespace TriangleGeometry {
     enum Enum {
         Room = 0,
         Coordinates,
-        Count
-    };
-}
-
-namespace AnalyticPrimitive {
-    enum Enum {
-        AABB = 0,
-        Spheres = 1,
-        Sun = 2,
-        Ball = 3,
+        Skull,
         Count
     };
 }

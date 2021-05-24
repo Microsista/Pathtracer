@@ -3,32 +3,23 @@
 
 #define HLSL
 #include "RaytracingHlslCompat.h"
-#include "ProceduralGeometry/ProceduralPrimitivesLibrary.hlsli"
 #include "RaytracingShaderHelper.hlsli"
 #include "RandomNumberGenerator.hlsli"
 #include "BxDF.hlsli"
 
-//***************************************************************************
-//*****------ Shader resources bound via root signatures -------*************
-//***************************************************************************
+static const float LIGHT_SIZE = 0.6f;
 
-// Scene wide resources.
-//  g_* - bound via a global root signature.
-//  l_* - bound via a local root signature.
-RaytracingAccelerationStructure g_scene : register(t0, space0);
+//
+// Resources
+//
+
+RaytracingAccelerationStructure g_scene : register(t0);
 RWTexture2D<float3> g_renderTarget : register(u0);
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
-// Triangle resources
-ByteAddressBuffer g_indices : register(t1, space0);
-StructuredBuffer<Vertex> g_vertices : register(t2, space0);
-
-// Procedural geometry resources
-StructuredBuffer<PrimitiveInstancePerFrameBuffer> g_AABBPrimitiveAttributes : register(t3, space0);
-StructuredBuffer<PrimitiveInstancePerFrameBuffer> g_trianglePrimitiveAttributes : register(t4, space0);
+StructuredBuffer<Index> l_indices : register(t1);
+StructuredBuffer<Vertex> l_vertices : register(t2);
 ConstantBuffer<PrimitiveConstantBuffer> l_materialCB : register(b1);
-ConstantBuffer<PrimitiveInstanceConstantBuffer> l_aabbCB: register(b2);
-ConstantBuffer<PrimitiveInstanceConstantBuffer> l_triangleCB: register(b3);
 
 //***************************************************************************
 //*****------ TraceRay wrappers for radiance and shadow rays. -------********
@@ -232,12 +223,7 @@ float3 Shade(
         }
     }
 
-    // Calculate final color.
-    float3 color = l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
-
-    // Apply visibility falloff.
-    float t = RayTCurrent();
-    return lerp(color, BackgroundColor, 1.0 - exp(-0.000002 * t * t * t));
+    return l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
 }
 
 //***************************************************************************
@@ -265,62 +251,21 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // Get the base index of the triangle's first 16 bit index.
-    uint indexSizeInBytes = 2;
-    uint indicesPerTriangle = 3;
-    uint triangleIndexStride = indicesPerTriangle * indexSizeInBytes;
-    uint baseIndex = PrimitiveIndex() * triangleIndexStride;
-
-    // Load up three 16 bit indices for the triangle.
-    const uint3 indices = Load3x16BitIndices(baseIndex, g_indices);
+    uint startIndex = PrimitiveIndex() * 3;
+    const uint3 indices = { l_indices[startIndex], l_indices[startIndex + 1], l_indices[startIndex + 2] };
 
     // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 triangleNormal = g_vertices[indices[0]].normal;
+    float3 vertexNormals[3] = {
+        l_vertices[indices[0]].normal,
+        l_vertices[indices[1]].normal,
+        l_vertices[indices[2]].normal
+    };
 
-    // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
-    // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
+    float3 triangleNormal = HitAttribute(vertexNormals, attr);
 
     float3 hitPosition = HitWorldPosition();
 
     rayPayload.color = Shade(hitPosition, rayPayload, triangleNormal);
-}
-
-[shader("closesthit")]
-void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
-{
-    // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
-    // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
-
-    // Shadow component.
-    // Trace a shadow ray.
-    float3 hitPosition = HitWorldPosition();
-    //float3 z = g_sceneCB.lightPosition.xyz - hitPosition;
-    //Ray shadowRay = { hitPosition, z };
-    //bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
-
-    //// Reflected component.
-    //float3 reflectedColor = float4(0, 0, 0, 0);
-    //if (l_materialCB.reflectanceCoef > 0.001)
-    //{
-    //    // Trace a reflection ray.
-    //    Ray reflectionRay = { HitWorldPosition(), reflect(WorldRayDirection(), attr.normal) };
-    //    float3 reflectionColor = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
-
-    //    float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), attr.normal, l_materialCB.albedo.xyz);
-    //    reflectedColor = l_materialCB.reflectanceCoef * fresnelR * reflectionColor;
-    //}
-
-    //// Calculate final color.
-    //float3 toLight = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-    //float3 toEye = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
-    //float3 phongColor = BxDF::DirectLighting::Shade(l_materialCB.albedo, attr.normal, toLight, toEye, shadowRayHit, g_sceneCB, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
-    //float3 color = l_materialCB.shaded == 1.0f ?phongColor + reflectedColor : l_materialCB.albedo;
-
-    //// Apply visibility falloff.
-    //float t = RayTCurrent();
-    //color = lerp(color, BackgroundColor, 1.0 - exp(-0.000002*t*t*t));
-
-    rayPayload.color = Shade(hitPosition, rayPayload, attr.normal);
 }
 
 //***************************************************************************
@@ -338,44 +283,6 @@ void MyMissShader(inout RayPayload rayPayload)
 void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
 {
     rayPayload.hit = false;
-}
-
-//***************************************************************************
-//*****************------ Intersection shaders-------************************
-//***************************************************************************
-
-// Get ray in AABB's local space.
-Ray GetRayInAABBPrimitiveLocalSpace()
-{
-    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
-
-    // Retrieve a ray origin position and direction in bottom level AS space 
-    // and transform them into the AABB primitive's local space.
-    Ray ray;
-    ray.origin = mul(float4(ObjectRayOrigin(), 1), attr.bottomLevelASToLocalSpace).xyz;
-    ray.direction = mul(ObjectRayDirection(), (float3x3) attr.bottomLevelASToLocalSpace);
-    return ray;
-}
-
-[shader("intersection")]
-void MyIntersectionShader_AnalyticPrimitive()
-{
-    Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    // Which actual geometry we hit.
-    AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) l_aabbCB.primitiveType;
-
-    float thit;
-    // normal
-    ProceduralPrimitiveAttributes attr = (ProceduralPrimitiveAttributes)0;
-    if (RayAnalyticGeometryIntersectionTest(localRay, primitiveType, thit, attr))
-    {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
-        attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
-        attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
-
-        // return normal at the intersection
-        ReportHit(thit, /*hitKind*/ 0, attr);
-    }
 }
 
 #endif // RAYTRACING_HLSL
