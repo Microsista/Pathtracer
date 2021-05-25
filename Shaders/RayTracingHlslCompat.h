@@ -22,6 +22,7 @@ typedef UINT Index;
 // PERFORMANCE TIP: Set max recursion depth as low as needed
 // as drivers may apply optimization strategies for low recursion depths.
 #define MAX_RAY_RECURSION_DEPTH 3    // ~ primary rays + reflections + shadow rays from reflected geometry.
+#define SAMPLER_FILTER D3D12_FILTER_ANISOTROPIC
 
 struct AtrousWaveletTransformFilterConstantBuffer
 {
@@ -142,6 +143,22 @@ struct PrimitiveConstantBuffer
     XMFLOAT2 padding;
 };
 
+struct PrimitiveMaterialBuffer
+{
+    XMFLOAT3 Kd; // diffuse coefficient
+    XMFLOAT3 Ks; // specular coefficient
+    XMFLOAT3 Kr; // reflectance coefficient
+    XMFLOAT3 Kt; // transparency coefficient
+    XMFLOAT3 opacity; // opacity
+    XMFLOAT3 eta; // n1/n2
+    float roughness; // roughness
+    BOOL hasDiffuseTexture;
+    BOOL hasNormalTexture;
+    BOOL hasPerVertexTangents;
+    //MaterialType::Type type;
+    float padding;
+};
+
 namespace MaterialType {
     enum Type {
         Default,
@@ -168,6 +185,14 @@ struct Vertex
 {
     XMFLOAT3 position;
     XMFLOAT3 normal;
+};
+
+struct VertexPositionNormalTextureTangent
+{
+    XMFLOAT3 position;
+    XMFLOAT3 normal;
+    XMFLOAT2 textureCoordinate;
+    XMFLOAT3 tangent;
 };
 
 

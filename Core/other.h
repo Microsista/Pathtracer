@@ -4,6 +4,7 @@
 #include "../Obj/Debug/CompiledShaders/Raytracing.hlsl.h"
 #include "../Util/SimpleGeometry.h"
 #include "../Util/Geometry.h"
+#include "../Util/Texture.h"
 
 using namespace std;
 using namespace DX;
@@ -380,6 +381,7 @@ void Room::CreateDeviceDependentResources()
     // Create raytracing interfaces: raytracing device and commandlist.
     CreateRaytracingInterfaces();
 
+
     // Create root signatures for the shaders.
     CreateRootSignatures();
 
@@ -410,14 +412,22 @@ void Room::CreateDeviceDependentResources()
     m_denoiser.Setup(m_deviceResources, m_cbvSrvUavHeap);
 }
 
-void Room::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
+void Room::SerializeAndCreateRaytracingRootSignature(
+    ID3D12Device5* device,
+    D3D12_ROOT_SIGNATURE_DESC& desc,
+    ComPtr<ID3D12RootSignature>* rootSig,
+    LPCWSTR resourceName = nullptr)
 {
-    auto device = m_deviceResources->GetD3DDevice();
     ComPtr<ID3DBlob> blob;
     ComPtr<ID3DBlob> error;
 
     ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
     ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig))));
+
+    if (resourceName)
+    {
+        (*rootSig)->SetName(resourceName);
+    }
 }
 
 // Create raytracing device and command list.
@@ -488,7 +498,7 @@ void Room::CreateRaytracingOutputResource()
     D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
     UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
     device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-    m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap.GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
 }
 
 // Update the application state with the new resolution.
@@ -548,7 +558,7 @@ void Room::ReleaseDeviceDependentResources()
     m_raytracingGlobalRootSignature.Reset();
     ResetComPtrArray(&m_raytracingLocalRootSignature);
 
-    m_descriptorHeap.Reset();
+    //m_descriptorHeap.Reset();
     m_descriptorsAllocated = 0;
     m_sceneCB.Release();
 
@@ -685,10 +695,10 @@ void Room::OnSizeChanged(UINT width, UINT height, bool minimized)
 // If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
 UINT Room::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
 {
-    auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-    if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
+    auto descriptorHeapCpuBase = m_descriptorHeap.GetCPUDescriptorHandleForHeapStart();
+    if (descriptorIndexToUse >= m_descriptorHeap.GetDesc().NumDescriptors)
     {
-        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
+        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap.GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
         descriptorIndexToUse = m_descriptorsAllocated++;
     }
     *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
@@ -719,7 +729,7 @@ UINT Room::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize
     }
     UINT descriptorIndex = AllocateDescriptor(&buffer->cpuDescriptorHandle);
     device->CreateShaderResourceView(buffer->resource.Get(), &srvDesc, buffer->cpuDescriptorHandle);
-    buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
+    buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap.GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
     return descriptorIndex;
 }
 

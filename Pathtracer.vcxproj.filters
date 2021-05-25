@@ -60,6 +60,9 @@
     <ClCompile Include="Util\Math.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Core\DDSTextureLoader12.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Util\PerformanceTimers.h">
@@ -138,6 +141,18 @@
       <Filter>Util\Denoising</Filter>
     </ClInclude>
     <ClInclude Include="Core\other.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Texture.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\GraphicsMemory.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\WicTextureLoader.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DDSTextureLoader12.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

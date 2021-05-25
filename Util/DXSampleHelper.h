@@ -1,7 +1,9 @@
 #pragma once
 
 #include "GpuResource.h"
-#include "../Core/stdafx.h"
+//#include "../Core/stdafx.h"
+//#include "WicTextureLoader.h"
+#include "../Core/DDSTextureLoader12.h"
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -75,7 +77,23 @@ inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
     }
 }
 
-inline HRESULT ReadDataFromFile(LPCWSTR filename, byte** data, UINT* size)
+//// Loads a WIC texture
+//inline void LoadWICTexture(
+//    ID3D12Device5* device,
+//    ResourceUploadBatch* resourceUpload,
+//    const wchar_t* filename,
+//    DX::DescriptorHeap* descriptorHeap,
+//    ID3D12Resource** ppResource,
+//    UINT* descriptorHeapIndex,
+//    D3D12_CPU_DESCRIPTOR_HANDLE* cpuHandle,
+//    D3D12_GPU_DESCRIPTOR_HANDLE* gpuHandle,
+//    bool loadMipmaps = true)
+//{
+//    ThrowIfFailed(CreateWICTextureFromFile(device, *resourceUpload, filename, ppResource, loadMipmaps));
+//    CreateTextureSRV(device, *ppResource, descriptorHeap, descriptorHeapIndex, cpuHandle, gpuHandle);
+//}
+
+inline HRESULT ReadDataFromFile(LPCWSTR filename, BYTE** data, UINT* size)
 {
     using namespace Microsoft::WRL;
 
@@ -104,7 +122,7 @@ inline HRESULT ReadDataFromFile(LPCWSTR filename, byte** data, UINT* size)
         throw std::exception();
     }
 
-    *data = reinterpret_cast<byte*>(malloc(fileInfo.EndOfFile.LowPart));
+    *data = reinterpret_cast<BYTE*>(malloc(fileInfo.EndOfFile.LowPart));
     *size = fileInfo.EndOfFile.LowPart;
 
     if (!ReadFile(file.Get(), *data, fileInfo.EndOfFile.LowPart, nullptr, nullptr))
@@ -254,6 +272,17 @@ struct D3DBuffer
     D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle;
 };
 
+struct D3DTexture
+{
+    ComPtr<ID3D12Resource> resource;
+    ComPtr<ID3D12Resource> upload;      // TODO: release after initialization
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle;
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle;
+    UINT heapIndex = UINT_MAX;
+};
+
+
+
 // Helper class to create and update a constant buffer with proper constant buffer alignments.
 // Usage: 
 //    ConstantBuffer<...> cb;
@@ -350,6 +379,20 @@ namespace DX
         UINT m_descriptorSize;
 
     public:
+        D3D12_DESCRIPTOR_HEAP_DESC GetDesc() {
+            return m_descriptorHeap->GetDesc();
+        }
+        D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandleForHeapStart()
+        {
+            return m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        }
+        D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandleForHeapStart()
+        {
+            return m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        }
+
+        DescriptorHeap(){}
+
         DescriptorHeap(ID3D12Device5* device, UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type)
         {
             m_descriptorsAllocated = 0;
@@ -405,4 +448,75 @@ namespace DX
             return firstDescriptorIndexToUse;
         }
     };
+}
+
+inline void CreateTextureSRV(
+    ID3D12Device5* device,
+    ID3D12Resource* resource,
+    DX::DescriptorHeap* descriptorHeap,
+    UINT* descriptorHeapIndex,
+    D3D12_CPU_DESCRIPTOR_HANDLE* cpuHandle,
+    D3D12_GPU_DESCRIPTOR_HANDLE* gpuHandle,
+    D3D12_SRV_DIMENSION srvDimension = D3D12_SRV_DIMENSION_TEXTURE2D)
+{
+    // Describe and create an SRV.
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension = srvDimension;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = resource->GetDesc().Format;
+    srvDesc.Texture2D.MipLevels = resource->GetDesc().MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+    *descriptorHeapIndex = descriptorHeap->AllocateDescriptor(cpuHandle, *descriptorHeapIndex);
+    device->CreateShaderResourceView(resource, &srvDesc, *cpuHandle);
+    *gpuHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetHeap()->GetGPUDescriptorHandleForHeapStart(),
+        *descriptorHeapIndex, descriptorHeap->DescriptorSize());
+};
+
+// Loads a DDS texture and issues upload on the commandlist. 
+// The caller is expected to execute the commandList.
+inline void LoadDDSTexture(
+    ID3D12Device5* device,
+    ID3D12GraphicsCommandList4* commandList,
+    const wchar_t* filename,
+    DX::DescriptorHeap* descriptorHeap,
+    ID3D12Resource** ppResource,
+    ID3D12Resource** ppUpload,
+    UINT* descriptorHeapIndex,
+    D3D12_CPU_DESCRIPTOR_HANDLE* cpuHandle,
+    D3D12_GPU_DESCRIPTOR_HANDLE* gpuHandle,
+    D3D12_SRV_DIMENSION srvDimension = D3D12_SRV_DIMENSION_TEXTURE2D)
+{
+    std::unique_ptr<uint8_t[]> ddsData;
+    std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+    ThrowIfFailed(DirectX::LoadDDSTextureFromFile(device, filename, ppResource, ddsData, subresources));
+
+    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(*ppResource, 0, static_cast<UINT>(subresources.size()));
+
+    // Create the GPU upload buffer.
+    ThrowIfFailed(
+        device->CreateCommittedResource(
+            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+            D3D12_HEAP_FLAG_NONE,
+            &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(ppUpload)));
+
+    UpdateSubresources(commandList, *ppResource, *ppUpload, 0, 0, static_cast<UINT>(subresources.size()), subresources.data());
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(*ppResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+
+    CreateTextureSRV(device, *ppResource, descriptorHeap, descriptorHeapIndex, cpuHandle, gpuHandle, srvDimension);
+}
+
+inline void LoadDDSTexture(
+    ID3D12Device5* device,
+    ID3D12GraphicsCommandList4* commandList,
+    const wchar_t* filename,
+    DX::DescriptorHeap* descriptorHeap,
+    D3DTexture* tex,
+    D3D12_SRV_DIMENSION srvDimension = D3D12_SRV_DIMENSION_TEXTURE2D)
+{
+    LoadDDSTexture(device, commandList, filename, descriptorHeap, &tex->resource, &tex->upload, &tex->heapIndex, &tex->cpuDescriptorHandle, &tex->gpuDescriptorHandle, srvDimension);
 }

@@ -87,6 +87,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -119,14 +122,26 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>Default</ConformanceMode>
+      <LanguageStandard>Default</LanguageStandard>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d2d1.lib;dwrite.lib;d3d12.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>d3d12.dll</DelayLoadDLLs>
     </Link>
+    <CustomBuildStep>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuildStep>
+    <FxCompile>
+      <EntryPointName />
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -146,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\AdvancedRoom.cpp" />
+    <ClCompile Include="Core\DDSTextureLoader12.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\stdafx.cpp" />
     <ClCompile Include="Util\Camera.cpp" />
@@ -162,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\AdvancedRoom.h" />
+    <ClInclude Include="Core\DDSTextureLoader12.h" />
     <ClInclude Include="Core\DirectXRaytracingHelper.h" />
     <ClInclude Include="Core\other.h" />
     <ClInclude Include="Core\RaytracingSceneDefines.h" />
@@ -177,6 +194,7 @@
     <ClInclude Include="Util\EngineTuning.h" />
     <ClInclude Include="Util\Geometry.h" />
     <ClInclude Include="Util\GpuResource.h" />
+    <ClInclude Include="Util\GraphicsMemory.h" />
     <ClInclude Include="Util\HlslCompat.h" />
     <ClInclude Include="Util\Math.h" />
     <ClInclude Include="Util\Mesh.h" />
@@ -186,6 +204,8 @@
     <ClInclude Include="Util\RTEffectsGpuKernels.h" />
     <ClInclude Include="Util\SimpleGeometry.h" />
     <ClInclude Include="Util\StepTimer.h" />
+    <ClInclude Include="Util\Texture.h" />
+    <ClInclude Include="Util\WicTextureLoader.h" />
     <ClInclude Include="Util\Win32Application.h" />
   </ItemGroup>
   <ItemGroup>

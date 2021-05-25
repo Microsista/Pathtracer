@@ -1,5 +1,6 @@
 #include "../Core/stdafx.h"
 #include "other.h"
+#include "DDSTextureLoader12.h"
 
 void Room::CreateRootSignatures()
 {
@@ -17,8 +18,15 @@ void Room::CreateRootSignatures()
         rootParameters[GlobalRootSignature::Slot::SceneConstant].InitAsConstantBufferView(0);
         //rootParameters[GlobalRootSignature::Slot::VertexBuffers].InitAsDescriptorTable(1, &ranges[1]);
         rootParameters[GlobalRootSignature::Slot::TriangleAttributeBuffer].InitAsShaderResourceView(4);
-        CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-        SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
+
+        CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] =
+        {
+            // LinearWrapSampler
+            CD3DX12_STATIC_SAMPLER_DESC(0, SAMPLER_FILTER),
+        };
+
+        CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers);
+        SerializeAndCreateRaytracingRootSignature(device, globalRootSignatureDesc, &m_raytracingGlobalRootSignature, L"Global root signature");
     }
 
     using namespace LocalRootSignature::Triangle;
@@ -26,6 +34,7 @@ void Room::CreateRootSignatures()
     CD3DX12_DESCRIPTOR_RANGE ranges[Slot::Count] = {}; // Perfomance TIP: Order from most frequent to least frequent.
     ranges[Slot::IndexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     ranges[Slot::VertexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
+    ranges[Slot::DiffuseTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
     //ranges[Slot::MaterialConstant].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1); 
     //ranges[Slot::GeometryIndex].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1); 
     
@@ -37,9 +46,10 @@ void Room::CreateRootSignatures()
     rootParameters[RootSignatureSlots::GeometryIndex].InitAsConstants(SizeOfInUint32(PrimitiveInstanceConstantBuffer), 3);
     rootParameters[RootSignatureSlots::IndexBuffer].InitAsDescriptorTable(1, &ranges[Slot::IndexBuffer]);
     rootParameters[RootSignatureSlots::VertexBuffer].InitAsDescriptorTable(1, &ranges[Slot::VertexBuffer]);
+    rootParameters[RootSignatureSlots::DiffuseTexture].InitAsDescriptorTable(1, &ranges[Slot::DiffuseTexture]);
     CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-    SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &m_raytracingLocalRootSignature[LocalRootSignature::Type::Triangle]);
+    SerializeAndCreateRaytracingRootSignature(device, localRootSignatureDesc, &m_raytracingLocalRootSignature[LocalRootSignature::Type::Triangle], L"Local root signature");
 
 }
 
@@ -116,17 +126,20 @@ void Room::CreateDescriptorHeap()
 {
     auto device = m_deviceResources->GetD3DDevice();
 
-    D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
-    // Allocate a heap for 3 descriptors:
-    // 1 - raytracing output texture SRV
-    descriptorHeapDesc.NumDescriptors = 100;
-    descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    descriptorHeapDesc.NodeMask = 0;
-    device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
-    NAME_D3D12_OBJECT(m_descriptorHeap);
+    m_descriptorHeap =  DX::DescriptorHeap(device, 8, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    m_descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    //D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+    //// Allocate a heap for 3 descriptors:
+    //// 1 - raytracing output texture SRV
+    //descriptorHeapDesc.NumDescriptors = 7;
+    //descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    //descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    //descriptorHeapDesc.NodeMask = 0;
+    //auto heap = m_descriptorHeap.GetHeap();
+    //device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&heap));
+    //NAME_D3D12_OBJECT(m_descriptorHeap.);
+
+    m_descriptorSize = m_descriptorHeap.DescriptorSize();//device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 // make sure vertex and index buffers are seperate
@@ -194,28 +207,34 @@ void Room::BuildGeometry()
 
    // auto totalVertexCount = room.Vertices.size() + coordinateSystem.Vertices.size() + skull.Vertices.size();
 
-    std::vector<Vertex> roomVertices(room.Vertices.size());
+    std::vector<VertexPositionNormalTextureTangent> roomVertices(room.Vertices.size());
     UINT k = 0;
     for (size_t i = 0; i < room.Vertices.size(); ++i, ++k)
     {
         roomVertices[k].position = room.Vertices[i].Position;
         roomVertices[k].normal = room.Vertices[i].Normal;
+        roomVertices[k].textureCoordinate = room.Vertices[i].TexC;
+        roomVertices[k].tangent = room.Vertices[i].TangentU;
     }
 
-    std::vector<Vertex> coordinatesVertices(coordinateSystem.Vertices.size());
+    std::vector<VertexPositionNormalTextureTangent> coordinatesVertices(coordinateSystem.Vertices.size());
     k = 0;
     for (size_t i = 0; i < coordinateSystem.Vertices.size(); ++i, ++k)
     {
         coordinatesVertices[k].position = coordinateSystem.Vertices[i].Position;
         coordinatesVertices[k].normal = coordinateSystem.Vertices[i].Normal;
+        coordinatesVertices[k].textureCoordinate = coordinateSystem.Vertices[i].TexC;
+        coordinatesVertices[k].tangent = coordinateSystem.Vertices[i].TangentU;
     }
 
-    std::vector<Vertex> skullVertices(skull.Vertices.size());
+    std::vector<VertexPositionNormalTextureTangent> skullVertices(skull.Vertices.size());
     k = 0;
     for (size_t i = 0; i < skull.Vertices.size(); ++i, ++k)
     {
         skullVertices[k].position = skull.Vertices[i].Position;
         skullVertices[k].normal = skull.Vertices[i].Normal;
+        skullVertices[k].textureCoordinate = skull.Vertices[i].TexC;
+        skullVertices[k].tangent = skull.Vertices[i].TangentU;
     }
 
     std::vector<std::uint32_t> roomIndices;
@@ -229,13 +248,13 @@ void Room::BuildGeometry()
 
 
     const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
-    const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(Vertex);
+    const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
 
     const UINT csibByteSize = (UINT)coordinateSystemIndices.size() * sizeof(std::uint32_t);
-    const UINT csvbByteSize = (UINT)coordinatesVertices.size() * sizeof(Vertex);
+    const UINT csvbByteSize = (UINT)coordinatesVertices.size() * sizeof(VertexPositionNormalTextureTangent);
 
     const UINT skullibByteSize = (UINT)skullIndices.size() * sizeof(std::uint32_t);
-    const UINT skullvbByteSize = (UINT)skullVertices.size() * sizeof(Vertex);
+    const UINT skullvbByteSize = (UINT)skullVertices.size() * sizeof(VertexPositionNormalTextureTangent);
 
     AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[TriangleGeometry::Room].resource);
     AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[TriangleGeometry::Room].resource);
@@ -273,9 +292,9 @@ void Room::BuildGeometry()
     skullGeo->VertexBufferGPU = m_vertexBuffer[TriangleGeometry::Skull].resource;
     skullGeo->IndexBufferGPU = m_indexBuffer[TriangleGeometry::Skull].resource;
 
-    roomGeo->VertexByteStride = sizeof(Vertex);
-    csGeo->VertexByteStride = sizeof(Vertex);
-    skullGeo->VertexByteStride = sizeof(Vertex);
+    roomGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+    csGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+    skullGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
 
     roomGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
     csGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
@@ -309,7 +328,7 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
     triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;        
     triangleDescTemplate.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
     triangleDescTemplate.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-    triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
+    triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
     triangleDescTemplate.Flags = geometryFlags;
 
     geometryDescs[BottomLevelASType::Triangle].resize(TriangleGeometry::Count, triangleDescTemplate);
@@ -428,8 +447,10 @@ void Room::BuildShaderTables()
                 rootArgs.triangleCB.instanceIndex = instanceIndex;
                 auto ib = m_indexBuffer[instanceIndex].gpuDescriptorHandle;
                 auto vb = m_vertexBuffer[instanceIndex].gpuDescriptorHandle;
+                auto texture = m_textureBuffer.gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
+                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(texture));
 
                 // Ray types
                 for (UINT r = 0; r < RayType::Count; r++)
@@ -499,4 +520,76 @@ void Room::DoRaytracing()
     DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc);
 }
 
+void Room::LoadTextures()
+{
+    auto device = m_deviceResources->GetD3DDevice();
+    auto commandList = m_deviceResources->GetCommandList();
+    //auto commandQueue = m_deviceResources->GetCommandQueue();
+
+    ////ResourceUploadBatch resourceUpload(device);
+    ////resourceUpload.Begin();
+
+
+    //auto& textures = m_textures;
+
+    //auto stoneTex = std::make_unique<Texture>();
+    //stoneTex->Name = "stoneTex";
+    //stoneTex->Filename = L"Textures/stone.dds";
+    //ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(device,
+    //    commandList, stoneTex->Filename.c_str(),
+    //    stoneTex->Resource, stoneTex->UploadHeap));
+
+    //m_textures[stoneTex->Name] = std::move(stoneTex);
+
+    //// Upload the resources to the GPU.
+    //auto finish = resourceUpload.End(commandQueue);
+
+    //// Wait for the upload thread to terminate
+    //finish.wait();
+
+    /*LoadDDSTexture(
+        device,
+        commandList,
+        L"Textures/stone.dds",
+        m_descriptorHeap.Get(),
+        m_textureBuffer.resource);*/
+
+    UINT k = 7;
+    UINT* ind = &k;
+    LoadDDSTexture(
+        device,
+        commandList,
+        L"Textures/stone.dds",
+        &m_descriptorHeap,
+        m_textureBuffer.resource.GetAddressOf(),
+        m_textureBuffer.upload.GetAddressOf(),
+        ind,
+        &m_textureBuffer.cpuDescriptorHandle,
+        &m_textureBuffer.gpuDescriptorHandle);
+
+
+   /* AllocateUploadBuffer(device, stoneTex->Resource.GetAddressOf(), sizeof(stoneTex->Resource), &m_textureBuffer);
+    CreateBufferSRV(&,, );*/
+
+    //D3DTexture* diffuseTexture = nullptr;
+
+    //ResourceUploadBatch resourceUpload(device);
+    //resourceUpload.Begin();
+
+    //auto LoadTexture = [&](auto** ppOutTexture, const wchar_t* textureFilename)
+    //{
+    //    D3DTexture texture;
+    //    LoadWICTexture(device, &resourceUpload, textureFilename, m_cbvSrvUavHeap.get(), &texture.resource, &texture.heapIndex, &texture.cpuDescriptorHandle, &texture.gpuDescriptorHandle, false);
+    //    textures["green"] = texture;
+
+    //    *ppOutTexture = &textures["green"];
+    //};
+    //LoadTexture(&diffuseTexture, L"textures/green.jpg");
+
+    //// Upload the resources to the GPU.
+    //auto finish = resourceUpload.End(commandQueue);
+
+    //// Wait for the upload thread to terminate
+    //finish.wait();
+}
 

@@ -13,13 +13,18 @@ static const float LIGHT_SIZE = 0.6f;
 // Resources
 //
 
+// Global
 RaytracingAccelerationStructure g_scene : register(t0);
 RWTexture2D<float3> g_renderTarget : register(u0);
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
+SamplerState LinearWrapSampler : register(s0);
+
+// Local
 StructuredBuffer<Index> l_indices : register(t1);
-StructuredBuffer<Vertex> l_vertices : register(t2);
+StructuredBuffer<VertexPositionNormalTextureTangent> l_vertices : register(t2);
 ConstantBuffer<PrimitiveConstantBuffer> l_materialCB : register(b1);
+Texture2D<float3> l_texDiffuse : register(t3);
 
 //***************************************************************************
 //*****------ TraceRay wrappers for radiance and shadow rays. -------********
@@ -107,17 +112,18 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
 float3 Shade(
     float3 hitPosition,
     RayPayload rayPayload,
-    float3 N)
+    float3 N,
+    in PrimitiveMaterialBuffer material)
 {
     float3 V = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
     float3 indirectContribution = 0;
     float3 L = 0;
   
-    const float3 Kd = l_materialCB.diffuseCoef;
-    const float3 Ks = l_materialCB.specularCoef;
-    const float3 Kr = l_materialCB.reflectanceCoef;
+    const float3 Kd = material.Kd;
+    const float3 Ks = material.Ks;
+    const float3 Kr = material.Kr;
     /*const float3 Kt = material.Kt;*/
-    const float roughness = l_materialCB.specularPower;
+    const float roughness = material.roughness;
 
     //
     // DIRECT ILLUMINATION
@@ -251,21 +257,35 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    PrimitiveMaterialBuffer material;
+    material.Kd = l_materialCB.diffuseCoef;
+    material.Ks = l_materialCB.specularCoef;
+    material.Kr = l_materialCB.reflectanceCoef;
+    /*const float3 Kt = material.Kt;*/
+    material.roughness = l_materialCB.specularPower;
+
     uint startIndex = PrimitiveIndex() * 3;
     const uint3 indices = { l_indices[startIndex], l_indices[startIndex + 1], l_indices[startIndex + 2] };
 
     // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 vertexNormals[3] = {
-        l_vertices[indices[0]].normal,
-        l_vertices[indices[1]].normal,
-        l_vertices[indices[2]].normal
+    VertexPositionNormalTextureTangent vertices[3] = {
+        l_vertices[indices[0]],
+        l_vertices[indices[1]],
+        l_vertices[indices[2]]
     };
 
-    float3 triangleNormal = HitAttribute(vertexNormals, attr);
+    float3 normals[3] = { vertices[0].normal, vertices[1].normal, vertices[2].normal };
+    float3 localNormal = HitAttribute(normals, attr);
+
+    float2 vertexTexCoords[3] = { vertices[0].textureCoordinate, vertices[1].textureCoordinate, vertices[2].textureCoordinate };
+    float2 texCoord = HitAttribute(vertexTexCoords, attr);
+
+    float3 texSample = l_texDiffuse.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
+    material.Kd = texSample;
 
     float3 hitPosition = HitWorldPosition();
 
-    rayPayload.color = Shade(hitPosition, rayPayload, triangleNormal);
+    rayPayload.color = Shade(hitPosition, rayPayload, localNormal, material);
 }
 
 //***************************************************************************

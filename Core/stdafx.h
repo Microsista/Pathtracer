@@ -56,3 +56,8 @@
 
 #include <iostream>
 #include <fstream>
+
+//#include <WICTextureLoader.h>
+#include "DDSTextureLoader12.h"
+#include <wrl/event.h>
+#include "../Util/ResourceUploadBatch.h"

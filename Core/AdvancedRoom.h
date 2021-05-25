@@ -10,6 +10,7 @@
 
 #include "../Util/Pathtracer.h"
 #include "../Util/RTEffects.h"
+#include "../Util/Texture.h"
 
 namespace App
 {
@@ -54,7 +55,8 @@ private:
     ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
 
     // Descriptors
-    ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
+    //ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
+    DX::DescriptorHeap m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
@@ -76,6 +78,7 @@ private:
     //D3DBuffer m_coordinateSystemVertexBuffer;
     D3DBuffer m_aabbBuffer;
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
+    //std::map<std::wstring, BottomLevelAccelerationStructureGeometry> m_bottomLevelASGeometries;
 
     // Acceleration structure
     ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
@@ -119,6 +122,9 @@ private:
 
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
+    std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
+    D3DTexture m_textureBuffer;
+
     void UpdateCameraMatrices();
     void UpdateTrianglePrimitiveAttributes(float animationTime);
     void InitializeScene();
@@ -131,7 +137,7 @@ private:
     void ReleaseDeviceDependentResources();
     void ReleaseWindowSizeDependentResources();
     void CreateRaytracingInterfaces();
-    void SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig);
+    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName);
     void CreateRootSignatures();
     void CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
     void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
@@ -153,4 +159,5 @@ private:
     void CalculateFrameStats();
     UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
     UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
+    void LoadTextures();
 };
