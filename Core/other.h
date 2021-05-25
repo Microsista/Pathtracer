@@ -391,6 +391,8 @@ void Room::CreateDeviceDependentResources()
     // Create a heap for descriptors.
     CreateDescriptorHeap();
 
+    LoadTextures();
+
     // Build geometry to be used in the sample.
     BuildGeometry();
 
@@ -498,7 +500,7 @@ void Room::CreateRaytracingOutputResource()
     D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
     UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
     device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-    m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap.GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
 }
 
 // Update the application state with the new resolution.
@@ -558,7 +560,7 @@ void Room::ReleaseDeviceDependentResources()
     m_raytracingGlobalRootSignature.Reset();
     ResetComPtrArray(&m_raytracingLocalRootSignature);
 
-    //m_descriptorHeap.Reset();
+    m_descriptorHeap.reset();
     m_descriptorsAllocated = 0;
     m_sceneCB.Release();
 
@@ -695,10 +697,10 @@ void Room::OnSizeChanged(UINT width, UINT height, bool minimized)
 // If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
 UINT Room::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
 {
-    auto descriptorHeapCpuBase = m_descriptorHeap.GetCPUDescriptorHandleForHeapStart();
-    if (descriptorIndexToUse >= m_descriptorHeap.GetDesc().NumDescriptors)
+    auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
     {
-        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap.GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
+        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
         descriptorIndexToUse = m_descriptorsAllocated++;
     }
     *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
@@ -729,7 +731,44 @@ UINT Room::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize
     }
     UINT descriptorIndex = AllocateDescriptor(&buffer->cpuDescriptorHandle);
     device->CreateShaderResourceView(buffer->resource.Get(), &srvDesc, buffer->cpuDescriptorHandle);
-    buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap.GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
+    buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
+    return descriptorIndex;
+}
+
+// Create a SRV for a texture.
+UINT Room::CreateTextureSRV(D3DTexture* texture, UINT numElements, UINT elementSize)
+{
+    auto device = m_deviceResources->GetD3DDevice();
+
+    auto srvDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 512, 512, 1, 1, 1, 0);
+
+   
+  
+
+    auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    ThrowIfFailed(device->CreateCommittedResource(
+        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &srvDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&texture->resource)));
+    //NAME_D3D12_OBJECT(m_stoneTexture);
+
+   /* D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;*/
+    //device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
+    //m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
+     // SRV
+    D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    SRVDesc.Texture2D.MostDetailedMip = 0;
+    SRVDesc.Texture2D.MipLevels = 1;
+    SRVDesc.Texture2D.PlaneSlice = 0;
+    SRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+   
+    UINT descriptorIndex = AllocateDescriptor(&texture->cpuDescriptorHandle);
+    device->CreateShaderResourceView(texture->resource.Get(), &SRVDesc, texture->cpuDescriptorHandle);
+    texture->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
     return descriptorIndex;
 }
 

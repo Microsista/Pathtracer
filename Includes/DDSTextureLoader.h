@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------
-// File: DDSTextureLoader12.h
+// File: DDSTextureLoader.h
 //
 // Functions for loading a DDS texture and creating a Direct3D runtime resource for it
 //
@@ -10,34 +10,29 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 //
-// http://go.microsoft.com/fwlink/?LinkId=248926
 // http://go.microsoft.com/fwlink/?LinkID=615561
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
-#if defined(WIN32) || defined(_WIN32)
-#include <d3d12.h>
+#ifdef _GAMING_XBOX_SCARLETT
+#include <d3d12_xs.h>
+#elif (defined(_XBOX_ONE) && defined(_TITLE)) || defined(_GAMING_XBOX)
+#include <d3d12_x.h>
 #else
-#include <wsl/winadapter.h>
-#include <wsl/wrladapter.h>
-#include <directx/d3d12.h>
+#include <d3d12.h>
 #endif
 
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <new>
-#include "../Util/d3dx12.h"
-#pragma warning(disable : 4062)
 
 
 namespace DirectX
 {
+    class ResourceUploadBatch;
+
 #ifndef DDS_ALPHA_MODE_DEFINED
 #define DDS_ALPHA_MODE_DEFINED
     enum DDS_ALPHA_MODE : uint32_t
@@ -50,11 +45,12 @@ namespace DirectX
     };
 #endif
 
-    enum DDS_LOADER_FLAGS
+    enum DDS_LOADER_FLAGS : uint32_t
     {
         DDS_LOADER_DEFAULT      = 0,
         DDS_LOADER_FORCE_SRGB   = 0x1,
-        DDS_LOADER_MIP_RESERVE  = 0x8,
+        DDS_LOADER_MIP_AUTOGEN  = 0x8,
+        DDS_LOADER_MIP_RESERVE  = 0x10,
     };
 
     // Standard version
@@ -78,6 +74,28 @@ namespace DirectX
         _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
         _Out_opt_ bool* isCubeMap = nullptr);
 
+    // Standard version with resource upload
+    HRESULT __cdecl CreateDDSTextureFromMemory(
+        _In_ ID3D12Device* device,
+        ResourceUploadBatch& resourceUpload,
+        _In_reads_bytes_(ddsDataSize) const uint8_t* ddsData,
+        size_t ddsDataSize,
+        _Outptr_ ID3D12Resource** texture,
+        bool generateMipsIfMissing = false,
+        size_t maxsize = 0,
+        _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
+        _Out_opt_ bool* isCubeMap = nullptr);
+
+    HRESULT __cdecl CreateDDSTextureFromFile(
+        _In_ ID3D12Device* device,
+        ResourceUploadBatch& resourceUpload,
+        _In_z_ const wchar_t* szFileName,
+        _Outptr_ ID3D12Resource** texture,
+        bool generateMipsIfMissing = false,
+        size_t maxsize = 0,
+        _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
+        _Out_opt_ bool* isCubeMap = nullptr);
+
     // Extended version
     HRESULT __cdecl LoadDDSTextureFromMemoryEx(
         _In_ ID3D12Device* d3dDevice,
@@ -85,7 +103,7 @@ namespace DirectX
         size_t ddsDataSize,
         size_t maxsize,
         D3D12_RESOURCE_FLAGS resFlags,
-        unsigned int loadFlags,
+        DDS_LOADER_FLAGS loadFlags,
         _Outptr_ ID3D12Resource** texture,
         std::vector<D3D12_SUBRESOURCE_DATA>& subresources,
         _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
@@ -96,10 +114,45 @@ namespace DirectX
         _In_z_ const wchar_t* szFileName,
         size_t maxsize,
         D3D12_RESOURCE_FLAGS resFlags,
-        unsigned int loadFlags,
+        DDS_LOADER_FLAGS loadFlags,
         _Outptr_ ID3D12Resource** texture,
         std::unique_ptr<uint8_t[]>& ddsData,
         std::vector<D3D12_SUBRESOURCE_DATA>& subresources,
         _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
         _Out_opt_ bool* isCubeMap = nullptr);
+
+    // Extended version with resource upload
+    HRESULT __cdecl CreateDDSTextureFromMemoryEx(
+        _In_ ID3D12Device* device,
+        ResourceUploadBatch& resourceUpload,
+        _In_reads_bytes_(ddsDataSize) const uint8_t* ddsData,
+        size_t ddsDataSize,
+        size_t maxsize,
+        D3D12_RESOURCE_FLAGS resFlags,
+        DDS_LOADER_FLAGS loadFlags,
+        _Outptr_ ID3D12Resource** texture,
+        _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
+        _Out_opt_ bool* isCubeMap = nullptr);
+
+    HRESULT __cdecl CreateDDSTextureFromFileEx(
+        _In_ ID3D12Device* device,
+        ResourceUploadBatch& resourceUpload,
+        _In_z_ const wchar_t* szFileName,
+        size_t maxsize,
+        D3D12_RESOURCE_FLAGS resFlags,
+        DDS_LOADER_FLAGS loadFlags,
+        _Outptr_ ID3D12Resource** texture,
+        _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr,
+        _Out_opt_ bool* isCubeMap = nullptr);
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-dynamic-exception-spec"
+#endif
+
+    DEFINE_ENUM_FLAG_OPERATORS(DDS_LOADER_FLAGS);
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 }

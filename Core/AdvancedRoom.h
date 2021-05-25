@@ -56,7 +56,7 @@ private:
 
     // Descriptors
     //ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
-    DX::DescriptorHeap m_descriptorHeap;
+    std::shared_ptr<DX::DescriptorHeap> m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
@@ -123,7 +123,9 @@ private:
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
-    D3DTexture m_textureBuffer;
+    /*D3DTexture* m_textureBuffer;*/
+    //D3DBuffer* m_textureBuffer;
+    D3DTexture m_stoneTexture;
 
     void UpdateCameraMatrices();
     void UpdateTrianglePrimitiveAttributes(float animationTime);
@@ -159,5 +161,6 @@ private:
     void CalculateFrameStats();
     UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
     UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
+    UINT CreateTextureSRV(D3DTexture* buffer, UINT numElements, UINT elementSize);
     void LoadTextures();
 };

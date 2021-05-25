@@ -1,5 +1,6 @@
 #include "../Core/stdafx.h"
 #include "AdvancedRoom.h"
+#pragma comment(lib, "DirectXTK12.lib")
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)

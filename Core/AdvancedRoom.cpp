@@ -1,6 +1,6 @@
 #include "../Core/stdafx.h"
 #include "other.h"
-#include "DDSTextureLoader12.h"
+#include "../Util/DDSTextureLoader.h"
 
 void Room::CreateRootSignatures()
 {
@@ -126,7 +126,7 @@ void Room::CreateDescriptorHeap()
 {
     auto device = m_deviceResources->GetD3DDevice();
 
-    m_descriptorHeap =  DX::DescriptorHeap(device, 8, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_descriptorHeap = std::make_shared<DX::DescriptorHeap>(device, 100, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     //D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
     //// Allocate a heap for 3 descriptors:
@@ -139,7 +139,7 @@ void Room::CreateDescriptorHeap()
     //device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&heap));
     //NAME_D3D12_OBJECT(m_descriptorHeap.);
 
-    m_descriptorSize = m_descriptorHeap.DescriptorSize();//device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_descriptorSize = m_descriptorHeap->DescriptorSize();//device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 // make sure vertex and index buffers are seperate
@@ -447,7 +447,7 @@ void Room::BuildShaderTables()
                 rootArgs.triangleCB.instanceIndex = instanceIndex;
                 auto ib = m_indexBuffer[instanceIndex].gpuDescriptorHandle;
                 auto vb = m_vertexBuffer[instanceIndex].gpuDescriptorHandle;
-                auto texture = m_textureBuffer.gpuDescriptorHandle;
+                auto texture = m_stoneTexture.gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                 memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(texture));
@@ -496,7 +496,7 @@ void Room::DoRaytracing()
 
     auto SetCommonPipelineState = [&](auto* descriptorSetCommandList)
     {
-        descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
         // Set index and successive vertex buffer decriptor tables.
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::VertexBuffers, m_indexBuffer.gpuDescriptorHandle);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
@@ -524,72 +524,27 @@ void Room::LoadTextures()
 {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
-    //auto commandQueue = m_deviceResources->GetCommandQueue();
+    auto commandQueue = m_deviceResources->GetCommandQueue();
 
-    ////ResourceUploadBatch resourceUpload(device);
-    ////resourceUpload.Begin();
+    commandList->Reset(m_deviceResources->GetCommandAllocator(), nullptr);
 
+    auto stoneTex = std::make_unique<Texture>();
+    stoneTex->Name = "stoneTex";
+    stoneTex->Filename = L"Textures/stone.dds";
+    ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(device,
+        commandList, stoneTex->Filename.c_str(),
+        stoneTex->Resource, stoneTex->UploadHeap));
 
-    //auto& textures = m_textures;
+    AllocateUploadBuffer(device, stoneTex->Resource.Get(), sizeof(stoneTex->Resource), &m_stoneTexture.resource);
 
-    //auto stoneTex = std::make_unique<Texture>();
-    //stoneTex->Name = "stoneTex";
-    //stoneTex->Filename = L"Textures/stone.dds";
-    //ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(device,
-    //    commandList, stoneTex->Filename.c_str(),
-    //    stoneTex->Resource, stoneTex->UploadHeap));
+    CreateTextureSRV(&m_stoneTexture, 1, sizeof(stoneTex->Resource));
 
     //m_textures[stoneTex->Name] = std::move(stoneTex);
 
-    //// Upload the resources to the GPU.
-    //auto finish = resourceUpload.End(commandQueue);
+    commandList->Close();
+    ID3D12CommandList* cmdsLists[] = { commandList };
+    commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
-    //// Wait for the upload thread to terminate
-    //finish.wait();
-
-    /*LoadDDSTexture(
-        device,
-        commandList,
-        L"Textures/stone.dds",
-        m_descriptorHeap.Get(),
-        m_textureBuffer.resource);*/
-
-    UINT k = 7;
-    UINT* ind = &k;
-    LoadDDSTexture(
-        device,
-        commandList,
-        L"Textures/stone.dds",
-        &m_descriptorHeap,
-        m_textureBuffer.resource.GetAddressOf(),
-        m_textureBuffer.upload.GetAddressOf(),
-        ind,
-        &m_textureBuffer.cpuDescriptorHandle,
-        &m_textureBuffer.gpuDescriptorHandle);
-
-
-   /* AllocateUploadBuffer(device, stoneTex->Resource.GetAddressOf(), sizeof(stoneTex->Resource), &m_textureBuffer);
-    CreateBufferSRV(&,, );*/
-
-    //D3DTexture* diffuseTexture = nullptr;
-
-    //ResourceUploadBatch resourceUpload(device);
-    //resourceUpload.Begin();
-
-    //auto LoadTexture = [&](auto** ppOutTexture, const wchar_t* textureFilename)
-    //{
-    //    D3DTexture texture;
-    //    LoadWICTexture(device, &resourceUpload, textureFilename, m_cbvSrvUavHeap.get(), &texture.resource, &texture.heapIndex, &texture.cpuDescriptorHandle, &texture.gpuDescriptorHandle, false);
-    //    textures["green"] = texture;
-
-    //    *ppOutTexture = &textures["green"];
-    //};
-    //LoadTexture(&diffuseTexture, L"textures/green.jpg");
-
-    //// Upload the resources to the GPU.
-    //auto finish = resourceUpload.End(commandQueue);
-
-    //// Wait for the upload thread to terminate
-    //finish.wait();
+    m_deviceResources->WaitForGpu();
 }
 

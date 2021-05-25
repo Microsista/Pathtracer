@@ -83,6 +83,8 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>Bin/$(Configuration)</OutDir>
     <IntDir>Obj/$(Configuration)</IntDir>
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Libs\Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -161,10 +163,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\AdvancedRoom.cpp" />
-    <ClCompile Include="Core\DDSTextureLoader12.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\stdafx.cpp" />
     <ClCompile Include="Util\Camera.cpp" />
+    <ClCompile Include="Util\DDSTextureLoader.cpp" />
     <ClCompile Include="Util\Denoiser.cpp" />
     <ClCompile Include="Util\DeviceResources.cpp" />
     <ClCompile Include="Util\DXSample.cpp" />
@@ -178,7 +180,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\AdvancedRoom.h" />
-    <ClInclude Include="Core\DDSTextureLoader12.h" />
     <ClInclude Include="Core\DirectXRaytracingHelper.h" />
     <ClInclude Include="Core\other.h" />
     <ClInclude Include="Core\RaytracingSceneDefines.h" />
@@ -187,6 +188,7 @@
     <ClInclude Include="Util\Camera.h" />
     <ClInclude Include="Util\Composition.h" />
     <ClInclude Include="Util\d3dx12.h" />
+    <ClInclude Include="Util\DDSTextureLoader.h" />
     <ClInclude Include="Util\Denoiser.h" />
     <ClInclude Include="Util\DeviceResources.h" />
     <ClInclude Include="Util\DXSample.h" />

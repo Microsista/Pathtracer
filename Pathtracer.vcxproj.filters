@@ -60,8 +60,8 @@
     <ClCompile Include="Util\Math.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Core\DDSTextureLoader12.cpp">
-      <Filter>Core</Filter>
+    <ClCompile Include="Util\DDSTextureLoader.cpp">
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -152,8 +152,8 @@
     <ClInclude Include="Util\WicTextureLoader.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Core\DDSTextureLoader12.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Util\DDSTextureLoader.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

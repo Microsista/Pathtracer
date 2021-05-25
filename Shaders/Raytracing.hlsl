@@ -128,7 +128,7 @@ float3 Shade(
     //
     // DIRECT ILLUMINATION
     // 
-    if (!BxDF::IsBlack(l_materialCB.diffuseCoef) || !BxDF::IsBlack(l_materialCB.specularCoef))
+    if (!BxDF::IsBlack(Kd) || !BxDF::IsBlack(Ks))
     {
         //
         // Shadow component
@@ -144,7 +144,7 @@ float3 Shade(
         //
         float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
         
-        L += BxDF::DirectLighting::Shade(l_materialCB.albedo, N, wi, V, shadowRayHit, g_sceneCB, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
+        L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
     }
     //
     // INDIRECT ILLUMINATION
@@ -208,8 +208,8 @@ float3 Shade(
 
                 RayPayload reflectedRayPayLoad = rayPayload;
                 // Ref: eq 24.4, [Ray-tracing from the Ground Up]
-                Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, l_materialCB.specularPower, 10, objectToWorld)) };
-                float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, l_materialCB.albedo.xyz);
+                Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
+                float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Kd.xyz);
                 // Trace a reflection ray.
                 L += Fr * TraceRadianceRay(reflectionRay, rayPayload.recursionDepth); // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
                 //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
@@ -229,7 +229,7 @@ float3 Shade(
         }
     }
 
-    return l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
+    return l_materialCB.shaded == 1.0f ? L : Kd;
 }
 
 //***************************************************************************
