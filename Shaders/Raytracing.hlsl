@@ -144,7 +144,7 @@ float3 Shade(
         //
         float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
         
-        L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
+        L += BxDF::DirectLighting::Shade(l_materialCB.albedo, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
     //}
     //
     // INDIRECT ILLUMINATION
@@ -258,7 +258,7 @@ void MyRaygenShader()
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     PrimitiveMaterialBuffer material;
-    material.Kd = l_materialCB.diffuseCoef;
+    material.Kd = l_materialCB.albedo;
     material.Ks = l_materialCB.specularCoef;
     material.Kr = l_materialCB.reflectanceCoef;
     /*const float3 Kt = material.Kt;*/

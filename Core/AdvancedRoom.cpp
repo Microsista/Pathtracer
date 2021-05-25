@@ -151,8 +151,8 @@ void Room::BuildGeometry()
     GeometryGenerator geoGen;
     GeometryGenerator::MeshData room = geoGen.CreateRoom(10.0f, 5.0f, 10.0f);
     GeometryGenerator::MeshData coordinateSystem = geoGen.CreateCoordinates(20.0f, 0.01f, 0.01f);
-    //GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
-    GeometryGenerator::MeshData skull = geoGen.CreateSphere(2.0f, 5, 5);
+    GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
+    //GeometryGenerator::MeshData skull = geoGen.CreateSphere(2.0f, 5, 5);
 
     //
     // We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -444,10 +444,11 @@ void Room::BuildShaderTables()
                 rootArgs.triangleCB.instanceIndex = instanceIndex;
                 auto ib = m_indexBuffer[instanceIndex].gpuDescriptorHandle;
                 auto vb = m_vertexBuffer[instanceIndex].gpuDescriptorHandle;
-                auto texture = m_stoneTexture.gpuDescriptorHandle;
+                //auto texture = m_stoneTexture.gpuDescriptorHandle;
+                auto texture = m_textures["stoneTex"]->gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(texture));
+                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
 
                 // Ray types
                 for (UINT r = 0; r < RayType::Count; r++)
@@ -532,11 +533,16 @@ void Room::LoadTextures()
         commandList, stoneTex->Filename.c_str(),
         stoneTex->Resource, stoneTex->UploadHeap));
 
-    AllocateUploadBuffer(device, stoneTex->Resource.Get(), sizeof(stoneTex->Resource), &m_stoneTexture.resource);
+    m_textures[stoneTex->Name] = std::move(stoneTex);
 
-    CreateTextureSRV(&m_stoneTexture, 1, sizeof(stoneTex->Resource));
+    m_textures["stoneTex"]->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetHeap()->GetGPUDescriptorHandleForHeapStart(),
+        0, m_descriptorHeap->DescriptorSize());
 
-    //m_textures[stoneTex->Name] = std::move(stoneTex);
+    AllocateUploadBuffer(device, m_textures["stoneTex"]->Resource.Get(), sizeof(m_textures["stoneTex"]->Resource), m_textures["stoneTex"]->Resource.GetAddressOf());
+
+    CreateTextureSRV(1, sizeof(m_textures["stoneTex"]->Resource));
+
+    
 
     commandList->Close();
     ID3D12CommandList* cmdsLists[] = { commandList };

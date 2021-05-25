@@ -161,6 +161,6 @@ private:
     void CalculateFrameStats();
     UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
     UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
-    UINT CreateTextureSRV(D3DTexture* buffer, UINT numElements, UINT elementSize);
+    UINT CreateTextureSRV(UINT numElements, UINT elementSize);
     void LoadTextures();
 };
