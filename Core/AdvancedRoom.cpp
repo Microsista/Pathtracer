@@ -151,8 +151,8 @@ void Room::BuildGeometry()
     GeometryGenerator geoGen;
     GeometryGenerator::MeshData room = geoGen.CreateRoom(10.0f, 5.0f, 10.0f);
     GeometryGenerator::MeshData coordinateSystem = geoGen.CreateCoordinates(20.0f, 0.01f, 0.01f);
-    GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
-    //GeometryGenerator::MeshData skull = geoGen.CreateSphere(2.0f, 5, 5);
+    //GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
+    GeometryGenerator::MeshData skull = geoGen.CreateSphere(2.0f, 5, 5);
 
     //
     // We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -361,9 +361,6 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
         }
     }  
 }
-
-
-
 
 // This encapsulates all shader records - shaders and the arguments for their local root signatures.
 void Room::BuildShaderTables()

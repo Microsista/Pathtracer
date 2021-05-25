@@ -128,8 +128,8 @@ float3 Shade(
     //
     // DIRECT ILLUMINATION
     // 
-    if (!BxDF::IsBlack(Kd) || !BxDF::IsBlack(Ks))
-    {
+    //if (!BxDF::IsBlack(Kd) || !BxDF::IsBlack(Ks))
+    //{
         //
         // Shadow component
         //
@@ -145,7 +145,7 @@ float3 Shade(
         float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
         
         L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
-    }
+    //}
     //
     // INDIRECT ILLUMINATION
     //
@@ -229,7 +229,7 @@ float3 Shade(
         }
     }
 
-    return l_materialCB.shaded == 1.0f ? L : Kd;
+    return l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
 }
 
 //***************************************************************************
