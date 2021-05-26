@@ -60,9 +60,6 @@
     <ClCompile Include="Util\Math.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Util\DDSTextureLoader.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Util\PerformanceTimers.h">
@@ -150,9 +147,6 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="Util\WicTextureLoader.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\DDSTextureLoader.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>

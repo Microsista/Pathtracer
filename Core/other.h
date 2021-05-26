@@ -310,7 +310,7 @@ void Room::InitializeScene()
         XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 
-        SetAttributes2(TriangleGeometry::Room, XMFLOAT4(1.000f, 0.766f, 0.336f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
+        SetAttributes2(TriangleGeometry::Room, XMFLOAT4(1.000f, 0.766f, 0.336f, 1.000f), 0.3f, 1.0f, 0.3f, 0.1f, 1.0f, 1.0f);
         SetAttributes2(TriangleGeometry::Coordinates, red, 0, 0.9, 0.7, 1.0, 1.0f, 0.0f);
         SetAttributes2(TriangleGeometry::Skull, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
     }
@@ -319,7 +319,7 @@ void Room::InitializeScene()
     {
         m_camera.SetPosition(0.0f, 2.0f, -15.0f);
         // Initialize the view and projection inverse matrices.
-        m_eye = { 0.0f, 1.6f, -5.0f, 1.0f };
+        m_eye = { 0.0f, 1.6f, -10.0f, 1.0f };
         //m_at = m_eye + XMVECTOR{ 0.0f, 0.0f, 1.0f, 0.0f };
         m_at = { 0.0f, 0.0f, 0.0f, 1.0f };
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
@@ -866,6 +866,13 @@ void Room::BuildAccelerationStructures()
 
     // Build top-level AS.
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
+
+    m_stoneTexture[0].heapIndex = 7;
+    LoadDDSTexture(device, commandList, L"Textures/stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
+    m_stoneTexture[1].heapIndex = 8;
+    LoadDDSTexture(device, commandList, L"Textures/stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
+    m_stoneTexture[2].heapIndex = 9;
+    LoadDDSTexture(device, commandList, L"Textures/stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
 
     // Kick off acceleration structure construction.
     m_deviceResources->ExecuteCommandList();

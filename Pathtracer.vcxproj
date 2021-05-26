@@ -83,11 +83,15 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>Bin/$(Configuration)</OutDir>
     <IntDir>Obj/$(Configuration)</IntDir>
-    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libs\Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>Bin/$(Configuration)</OutDir>
+    <IntDir>Obj/$(Configuration)</IntDir>
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)Libs\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
@@ -143,6 +147,10 @@
     <FxCompile>
       <EntryPointName />
       <ObjectFileOutput />
+      <ShaderModel>6.5</ShaderModel>
+      <ShaderType>Library</ShaderType>
+      <VariableName>g_p%(Filename)</VariableName>
+      <HeaderFileOutput>$(IntDir)CompiledShaders\%(Filename).hlsl.h</HeaderFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,22 +159,35 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>Default</ConformanceMode>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK12.lib;d3d11.lib;;d3d12.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>d3d12.dll</DelayLoadDLLs>
     </Link>
+    <CustomBuildStep>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuildStep>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>6.3</ShaderModel>
+      <ShaderType>Library</ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\AdvancedRoom.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\stdafx.cpp" />
     <ClCompile Include="Util\Camera.cpp" />
-    <ClCompile Include="Util\DDSTextureLoader.cpp" />
     <ClCompile Include="Util\Denoiser.cpp" />
     <ClCompile Include="Util\DeviceResources.cpp" />
     <ClCompile Include="Util\DXSample.cpp" />
@@ -188,7 +209,6 @@
     <ClInclude Include="Util\Camera.h" />
     <ClInclude Include="Util\Composition.h" />
     <ClInclude Include="Util\d3dx12.h" />
-    <ClInclude Include="Util\DDSTextureLoader.h" />
     <ClInclude Include="Util\Denoiser.h" />
     <ClInclude Include="Util\DeviceResources.h" />
     <ClInclude Include="Util\DXSample.h" />
@@ -219,6 +239,9 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)CompiledShaders\%(Filename).hlsl.h</HeaderFileOutput>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zpr %(AdditionalOptions)</AdditionalOptions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)CompiledShaders\%(Filename).hlsl.h</HeaderFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

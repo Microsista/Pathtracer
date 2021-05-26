@@ -125,7 +125,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
     /*D3DTexture* m_textureBuffer;*/
     //D3DBuffer* m_textureBuffer;
-    D3DTexture m_stoneTexture;
+    D3DTexture m_stoneTexture[3];
 
     void UpdateCameraMatrices();
     void UpdateTrianglePrimitiveAttributes(float animationTime);
