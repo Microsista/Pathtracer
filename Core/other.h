@@ -868,11 +868,11 @@ void Room::BuildAccelerationStructures()
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
 
     m_stoneTexture[0].heapIndex = 7;
-    LoadDDSTexture(device, commandList, L"Textures/stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
+    LoadDDSTexture(device, commandList, L".\\Bin\\Debug\\Textures\\stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
     m_stoneTexture[1].heapIndex = 8;
-    LoadDDSTexture(device, commandList, L"Textures/stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
+    LoadDDSTexture(device, commandList, L".\\Bin\\Debug\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
     m_stoneTexture[2].heapIndex = 9;
-    LoadDDSTexture(device, commandList, L"Textures/stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
+    LoadDDSTexture(device, commandList, L".\\Bin\\Debug\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
 
     // Kick off acceleration structure construction.
     m_deviceResources->ExecuteCommandList();
