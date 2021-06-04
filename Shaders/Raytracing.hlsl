@@ -20,6 +20,8 @@ ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
 SamplerState LinearWrapSampler : register(s0);
 
+//RWTexture2D<float3> GBUFFER_POSITION : register(u1);
+
 // Local
 StructuredBuffer<Index> l_indices : register(t1);
 StructuredBuffer<VertexPositionNormalTextureTangent> l_vertices : register(t2);
@@ -239,6 +241,7 @@ float3 Shade(
 [shader("raygeneration")]
 void MyRaygenShader()
 {
+    uint2 DTID = DispatchRaysIndex().xy;
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
  
@@ -246,8 +249,9 @@ void MyRaygenShader()
     UINT currentRecursionDepth = 0;
     float3 color = TraceRadianceRay(ray, currentRecursionDepth);
 
-    // Write the raytraced color to the output texture.
-    g_renderTarget[DispatchRaysIndex().xy] = color;
+    // OUTPUT
+    g_renderTarget[DTID] = color;
+    //GBUFFER_POSITION[DTID] = 1 - color;
 }
 
 //***************************************************************************

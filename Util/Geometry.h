@@ -4,6 +4,11 @@
 #include <DirectXMath.h>
 #include <vector>
 
+// assimp includes
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 class GeometryGenerator
 {
 public:
@@ -44,6 +49,13 @@ public:
 		std::vector<Vertex> Vertices;
 		std::vector<uint32> Indices32;
 
+		MeshData(){}
+
+		MeshData(std::vector<Vertex> vert, std::vector<uint32> ind) {
+			Vertices = vert;
+			Indices32 = ind;
+		}
+
 		std::vector<uint16>& GetIndices16()
 		{
 			if (mIndices16.empty())
@@ -59,6 +71,16 @@ public:
 	private:
 		std::vector<uint16> mIndices16;
 	};
+
+	MeshData processMesh(aiMesh* mesh, const aiScene* scene);
+
+	void processNode(aiNode* node, const aiScene* scene);
+
+	void loadModel(std::string path);
+
+	std::vector<GeometryGenerator::MeshData> LoadModel(std::string path);
+
+	std::vector<MeshData> meshes;
 
 	///<summary>
 	/// Creates a box centered at the origin with the given dimensions, where each

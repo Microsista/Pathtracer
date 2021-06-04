@@ -4,17 +4,11 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{2c40c396-e4d4-4aa4-8efa-daf36f7648e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{483e84dd-5de1-4e12-b139-c4776d232822}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Util">
       <UniqueIdentifier>{0d166577-e69f-4d84-b102-f0f52e7fc777}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Util">
       <UniqueIdentifier>{d09480f9-e2d4-4d7b-9b83-8c902c573d60}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Util\Denoising">
-      <UniqueIdentifier>{5890c188-1640-4649-a009-162f64f4c956}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -33,31 +27,29 @@
     <ClCompile Include="Util\Win32Application.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Main.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\AdvancedRoom.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\stdafx.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Util\Geometry.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Util\Math.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\AdvancedRoom.cpp" />
+    <ClCompile Include="Core\stdafx.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
     <ClCompile Include="Util\Denoiser.cpp">
-      <Filter>Util\Denoising</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\RTEffectsGpuKernels.cpp">
-      <Filter>Util\Denoising</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Pathtracer.cpp">
-      <Filter>Util\Denoising</Filter>
+      <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="Util\EngineTuning.cpp">
-      <Filter>Util\Denoising</Filter>
+      <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Util\Math.cpp">
+    <ClCompile Include="Util\Pathtracer.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\RTEffectsGpuKernels.cpp">
       <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,18 +84,6 @@
     <ClInclude Include="Util\Win32Application.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Core\DirectXRaytracingHelper.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\RaytracingSceneDefines.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\AdvancedRoom.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\stdafx.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Util\SimpleGeometry.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -113,33 +93,6 @@
     <ClInclude Include="Util\Mesh.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\RayTracingHlslCompat.h">
-      <Filter>Shaders\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Pathtracer.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Composition.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\RTEffects.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Denoiser.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\RTEffectsGpuKernels.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\GpuResource.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\EngineTuning.h">
-      <Filter>Util\Denoising</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\other.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Util\Texture.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -147,6 +100,40 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="Util\WicTextureLoader.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\AdvancedRoom.h" />
+    <ClInclude Include="Core\stdafx.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\RaytracingSceneDefines.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\RayTracingHlslCompat.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DirectXRaytracingHelper.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Composition.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Denoiser.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\EngineTuning.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\GpuResource.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Pathtracer.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\RTEffects.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\RTEffectsGpuKernels.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>

@@ -236,6 +236,18 @@ namespace TriangleGeometry {
         Room = 0,
         Coordinates,
         Skull,
+        ModelMesh1,
+        ModelMesh2,
+        ModelMesh3,
+        ModelMesh4,
+        LampMesh1,
+        LampMesh2,
+        LampMesh3,
+        LampMesh4,
+        LampMesh5,
+        LampMesh6,
+        LampMesh7,
+        LampMesh8,
         Count
     };
 }

@@ -7,26 +7,26 @@
 #include "../Util/PerformanceTimers.h"
 #include "../Util/Mesh.h"
 #include "../Util/Denoiser.h"
-
 #include "../Util/Pathtracer.h"
 #include "../Util/RTEffects.h"
 #include "../Util/Texture.h"
 
-namespace App
-{
+// assimp includes
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+namespace App {
     static const UINT FrameCount = 3;
 }
 
-class Room : public DXSample
-{
+class Room : public DXSample {
 public:
     Room(UINT width, UINT height, std::wstring name);
 
-    // IDeviceNotify
     virtual void OnDeviceLost() override;
     virtual void OnDeviceRestored() override;
 
-    // Messages
     virtual void OnInit();
     virtual void OnKeyDown(UINT8 key);
     virtual void OnMouseMove(int x, int y) override;
@@ -38,6 +38,42 @@ public:
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
 
 private:
+    void UpdateCameraMatrices();
+    void UpdateTrianglePrimitiveAttributes(float animationTime);
+    void InitializeScene();
+    void RecreateD3D();
+    void DoRaytracing();
+    void CreateConstantBuffers();
+    void CreateTrianglePrimitiveAttributesBuffers();
+    void CreateDeviceDependentResources();
+    void CreateWindowSizeDependentResources();
+    void ReleaseDeviceDependentResources();
+    void ReleaseWindowSizeDependentResources();
+    void CreateRaytracingInterfaces();
+    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName);
+    void CreateRootSignatures();
+    void CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
+    void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
+    void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
+    void CreateRaytracingPipelineStateObject();
+    void CreateAuxilaryDeviceResources();
+    void CreateDescriptorHeap();
+    void CreateRaytracingOutputResource();
+    void BuildGeometry();
+    void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs);
+    template <class InstanceDescType, class BLASPtrType>
+    void BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource);
+    AccelerationStructureBuffers BuildBottomLevelAS(const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDesc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
+    AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
+    void BuildAccelerationStructures();
+    void BuildShaderTables();
+    void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
+    void CopyRaytracingOutputToBackbuffer();
+    void CalculateFrameStats();
+    UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
+    UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
+    UINT CreateTextureSRV(UINT numElements, UINT elementSize);
+
     static const UINT FrameCount = 3;
 
     // Constants.
@@ -126,41 +162,4 @@ private:
     /*D3DTexture* m_textureBuffer;*/
     //D3DBuffer* m_textureBuffer;
     D3DTexture m_stoneTexture[3];
-
-    void UpdateCameraMatrices();
-    void UpdateTrianglePrimitiveAttributes(float animationTime);
-    void InitializeScene();
-    void RecreateD3D();
-    void DoRaytracing();
-    void CreateConstantBuffers();
-    void CreateTrianglePrimitiveAttributesBuffers();
-    void CreateDeviceDependentResources();
-    void CreateWindowSizeDependentResources();
-    void ReleaseDeviceDependentResources();
-    void ReleaseWindowSizeDependentResources();
-    void CreateRaytracingInterfaces();
-    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName);
-    void CreateRootSignatures();
-    void CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-    void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-    void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-    void CreateRaytracingPipelineStateObject();
-    void CreateAuxilaryDeviceResources();
-    void CreateDescriptorHeap();
-    void CreateRaytracingOutputResource();
-    void BuildGeometry();
-    void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs);
-    template <class InstanceDescType, class BLASPtrType>
-    void BuildBottomLevelASInstanceDescs(BLASPtrType *bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource);
-    AccelerationStructureBuffers BuildBottomLevelAS(const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDesc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
-    AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
-    void BuildAccelerationStructures();
-    void BuildShaderTables();
-    void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
-    void CopyRaytracingOutputToBackbuffer();
-    void CalculateFrameStats();
-    UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
-    UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
-    UINT CreateTextureSRV(UINT numElements, UINT elementSize);
-    void LoadTextures();
 };
