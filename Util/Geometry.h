@@ -76,9 +76,9 @@ public:
 
 	void processNode(aiNode* node, const aiScene* scene);
 
-	void loadModel(std::string path);
+	void loadModel(std::string path, unsigned int flags);
 
-	std::vector<GeometryGenerator::MeshData> LoadModel(std::string path);
+	std::vector<GeometryGenerator::MeshData> LoadModel(std::string path, unsigned int flags);
 
 	std::vector<MeshData> meshes;
 

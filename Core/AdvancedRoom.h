@@ -77,7 +77,7 @@ private:
     static const UINT FrameCount = 3;
 
     // Constants.
-    const UINT NUM_BLAS = 2;          // Triangle + AABB bottom-level AS.
+    const UINT NUM_BLAS = 50;          // Triangle + AABB bottom-level AS.
     const float c_aabbWidth = 2;      // AABB width.
     const float c_aabbDistance = 2;   // Distance between AABBs.
     
@@ -103,13 +103,13 @@ private:
     std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
 
     // Root constants
-    PrimitiveConstantBuffer m_triangleMaterialCB[TriangleGeometry::Count];
+    PrimitiveConstantBuffer m_triangleMaterialCB[AllGeometry::Count];
 
     // Geometry
     std::vector<Vertex> m_vertices;
     std::vector<Index> m_indices;
-    D3DBuffer m_indexBuffer[TriangleGeometry::Count];
-    D3DBuffer m_vertexBuffer[TriangleGeometry::Count];
+    D3DBuffer m_indexBuffer[AllGeometry::Count];
+    D3DBuffer m_vertexBuffer[AllGeometry::Count];
     //D3DBuffer m_coordinateSystemIndexBuffer;
     //D3DBuffer m_coordinateSystemVertexBuffer;
     D3DBuffer m_aabbBuffer;

@@ -281,6 +281,9 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     float3 normals[3] = { vertices[0].normal, vertices[1].normal, vertices[2].normal };
     float3 localNormal = HitAttribute(normals, attr);
 
+    float orientation = HitKind() == HIT_KIND_TRIANGLE_FRONT_FACE ? 1 : -1;
+    localNormal *= orientation;
+
     float2 vertexTexCoords[3] = { vertices[0].textureCoordinate, vertices[1].textureCoordinate, vertices[2].textureCoordinate };
     float2 texCoord = HitAttribute(vertexTexCoords, attr);
 

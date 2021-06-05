@@ -77,10 +77,10 @@ void GeometryGenerator::processNode(aiNode* node, const aiScene* scene)
 	}
 }
 
-void GeometryGenerator::loadModel(std::string path)
+void GeometryGenerator::loadModel(std::string path, unsigned int flags)
 {
 	Assimp::Importer import;
-	const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = import.ReadFile(path, flags);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -92,8 +92,8 @@ void GeometryGenerator::loadModel(std::string path)
 	processNode(scene->mRootNode, scene);
 }
 
-std::vector<GeometryGenerator::MeshData> GeometryGenerator::LoadModel(std::string path) {
-	loadModel(path);
+std::vector<GeometryGenerator::MeshData> GeometryGenerator::LoadModel(std::string path, unsigned int flags) {
+	loadModel(path, flags);
 
 	return meshes;
 }

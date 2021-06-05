@@ -59,6 +59,11 @@ namespace LocalRootSignature {
 namespace GeometryType {
     enum Enum {
         Triangle = 0,
+        Coordinates,
+        Skull,
+        Table,
+        Lamps,
+        House,
         Count
     };
 }
