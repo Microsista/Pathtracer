@@ -134,8 +134,8 @@ struct PrimitiveConstantBuffer
     XMFLOAT4 albedo;
     float reflectanceCoef;
     float diffuseCoef;
-    float specularCoef;
-    float specularPower;
+    float metalness;
+    float roughness;
     float stepScale;                      // Step scale for ray marching of signed distance primitives. 
                                           // - Some object transformations don't preserve the distances and 
                                           //   thus require shorter steps.
@@ -231,6 +231,125 @@ static const XMFLOAT4 ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0
 static const XMFLOAT4 BackgroundColor = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
 static const float InShadowRadiance = 0.35f;
 
+//namespace TriangleGeometry {
+//    enum Enum {
+//        Room = 0,
+//        Count
+//    };
+//}
+//
+//namespace CoordinateGeometry {
+//    enum Enum {
+//        Coordinates = 0,
+//        Count
+//    };
+//}
+//
+//
+//namespace SkullGeometry {
+//    enum Enum {
+//        Skull = 0,
+//        Count
+//    };
+//}
+//
+//namespace TableGeometry {
+//    enum Enum {
+//        ModelMesh1 = 0,
+//        ModelMesh2,
+//        ModelMesh3,
+//        ModelMesh4,
+//        Count
+//    };
+//}
+//
+//namespace LampsGeometry {
+//    enum Enum {
+//        LampMesh1 = 0,
+//        LampMesh2,
+//        LampMesh3,
+//        LampMesh4,
+//        Count
+//    };
+//}
+//
+//namespace HouseGeometry {
+//    enum Enum {
+//        HouseMesh1 = 0,
+//        HouseMesh2,
+//        HouseMesh3,
+//        HouseMesh4,
+//        HouseMesh5,
+//        HouseMesh6,
+//        HouseMesh7,
+//        HouseMesh8,
+//        HouseMesh9,
+//        HouseMesh10,
+//        HouseMesh11,
+//        HouseMesh12,
+//        HouseMesh13,
+//        HouseMesh14,
+//        HouseMesh15,
+//        HouseMesh16,
+//        HouseMesh17,
+//        HouseMesh18,
+//        HouseMesh19,
+//        HouseMesh20,
+//        HouseMesh21,
+//        HouseMesh22,
+//        HouseMesh23,
+//        HouseMesh24,
+//        HouseMesh25,
+//        HouseMesh26,
+//        HouseMesh27,
+//        Count
+//    };
+//}
+//
+//namespace AllGeometry {
+//    enum Enum {
+//        Room = 0,
+//        Coordinates,
+//        Skull,
+//        ModelMesh1,
+//        ModelMesh2,
+//        ModelMesh3,
+//        ModelMesh4,
+//        LampMesh1,
+//        LampMesh2,
+//        LampMesh3,
+//        LampMesh4,
+//        HouseMesh1,
+//        HouseMesh2,
+//        HouseMesh3,
+//        HouseMesh4,
+//        HouseMesh5,
+//        HouseMesh6,
+//        HouseMesh7,
+//        HouseMesh8,
+//        HouseMesh9,
+//        HouseMesh10,
+//        HouseMesh11,
+//        HouseMesh12,
+//        HouseMesh13,
+//        HouseMesh14,
+//        HouseMesh15,
+//        HouseMesh16,
+//        HouseMesh17,
+//        HouseMesh18,
+//        HouseMesh19,
+//        HouseMesh20,
+//        HouseMesh21,
+//        HouseMesh22,
+//        HouseMesh23,
+//        HouseMesh24,
+//        HouseMesh25,
+//        HouseMesh26,
+//        HouseMesh27,
+//        Count
+//    };
+//   
+//}
 namespace TriangleGeometry {
     enum Enum {
         Room = 0,
@@ -269,10 +388,6 @@ namespace LampsGeometry {
         LampMesh2,
         LampMesh3,
         LampMesh4,
-        LampMesh5,
-        LampMesh6,
-        LampMesh7,
-        LampMesh8,
         Count
     };
 }
@@ -306,14 +421,7 @@ namespace HouseGeometry {
         HouseMesh25,
         HouseMesh26,
         HouseMesh27,
-        HouseMesh28,
-        HouseMesh29,
-        HouseMesh30,
-        HouseMesh31,
-        HouseMesh32,
-        HouseMesh33,
-        HouseMesh34,
-        HouseMesh35,
+
         Count
     };
 }
@@ -331,10 +439,6 @@ namespace AllGeometry {
         LampMesh2,
         LampMesh3,
         LampMesh4,
-        LampMesh5,
-        LampMesh6,
-        LampMesh7,
-        LampMesh8,
         HouseMesh1,
         HouseMesh2,
         HouseMesh3,
@@ -362,19 +466,11 @@ namespace AllGeometry {
         HouseMesh25,
         HouseMesh26,
         HouseMesh27,
-        HouseMesh28,
-        HouseMesh29,
-        HouseMesh30,
-        HouseMesh31,
-        HouseMesh32,
-        HouseMesh33,
-        HouseMesh34,
-        HouseMesh35,
+    
         Count
     };
-   
-}
 
+}
 
 
 #endif // RAYTRACINGHLSLCOMPAT_H

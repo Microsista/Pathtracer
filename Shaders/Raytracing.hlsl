@@ -263,10 +263,10 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 {
     PrimitiveMaterialBuffer material;
     material.Kd = l_materialCB.albedo;
-    material.Ks = l_materialCB.specularCoef;
+    material.Ks = l_materialCB.metalness;
     material.Kr = l_materialCB.reflectanceCoef;
     /*const float3 Kt = material.Kt;*/
-    material.roughness = l_materialCB.specularPower;
+    material.roughness = l_materialCB.roughness;
 
     uint startIndex = PrimitiveIndex() * 3;
     const uint3 indices = { l_indices[startIndex], l_indices[startIndex + 1], l_indices[startIndex + 2] };

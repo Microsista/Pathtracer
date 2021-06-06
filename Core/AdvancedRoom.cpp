@@ -139,35 +139,236 @@ void Room::CreateDescriptorHeap()
     m_descriptorSize = m_descriptorHeap->DescriptorSize();
 }
 
-void Room::BuildGeometry()
-{
+void Room::BuildModel(string path, UINT flags, bool usesTextures = false) {
     auto device = m_deviceResources->GetD3DDevice();
 
-    string path = ".\\Models\\table.obj";
-    string path2 = ".\\Models\\lamp.obj";
-    string path3 = ".\\Models\\room.obj";
+    GeometryGenerator geoGen;
+    vector<GeometryGenerator::MeshData> meshes = geoGen.LoadModel(path, flags);
+
+    for (auto j = 0; j < meshes.size(); j++) {
+        MeshGeometry::Submesh submesh{};
+        submesh.IndexCount = meshes[j].Indices32.size();
+        submesh.VertexCount = meshes[j].Vertices.size();
+    
+        vector<VertexPositionNormalTextureTangent> vertices(meshes[j].Vertices.size());
+        for (size_t i = 0; i < meshes[j].Vertices.size(); ++i) {
+            vertices[i].position = meshes[j].Vertices[i].Position;
+            vertices[i].normal = meshes[j].Vertices[i].Normal;
+            vertices[i].textureCoordinate = usesTextures ? meshes[j].Vertices[i].TexC : XMFLOAT2{0.0f, 0.0f};
+            vertices[i].tangent = usesTextures ? meshes[j].Vertices[i].TangentU : XMFLOAT3{1.0f, 0.0f, 0.0f};
+        }
+    
+        vector<Index> indices;
+        indices.insert(indices.end(), begin(meshes[j].Indices32), end(meshes[j].Indices32));
+
+        AllocateUploadBuffer(device, &indices[0], indices.size() * sizeof(Index), &m_indexBuffer[j + m_geoOffset].resource);
+        AllocateUploadBuffer(device, &vertices[0], vertices.size() * sizeof(VertexPositionNormalTextureTangent), &m_vertexBuffer[j + m_geoOffset].resource);
+  
+        CreateBufferSRV(&m_indexBuffer[j + m_geoOffset], indices.size(), sizeof(Index));
+        CreateBufferSRV(&m_vertexBuffer[j + m_geoOffset], vertices.size(), sizeof(VertexPositionNormalTextureTangent));
+
+        unique_ptr<MeshGeometry> geo = make_unique<MeshGeometry>();
+        string tmp = "geo" + to_string(j + m_geoOffset);
+        geo->Name = tmp;
+        geo->VertexBufferGPU = m_vertexBuffer[j + m_geoOffset].resource;
+        geo->IndexBufferGPU = m_indexBuffer[j + m_geoOffset].resource;
+        geo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+        geo->IndexFormat = DXGI_FORMAT_R32_UINT;
+        geo->VertexBufferByteSize = vertices.size() * sizeof(VertexPositionNormalTextureTangent);
+        geo->IndexBufferByteSize = indices.size() * sizeof(Index);
+        tmp = "mesh" + to_string(j + m_geoOffset);
+        geo->DrawArgs[tmp] = submesh;
+        m_geometries[geo->Name] = move(geo);
+    }
+
+    m_geoOffset += meshes.size();
+}
+
+void Room::BuildGeometry()
+{
+    //auto device = m_deviceResources->GetD3DDevice();
+    //GeometryGenerator geoGen;
+    //GeometryGenerator::MeshData room = geoGen.CreateRoom(30.0f, 15.0f, 30.0f);
+    //GeometryGenerator::MeshData coordinateSystem = geoGen.CreateCoordinates(20.0f, 0.01f, 0.01f);
+    //GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
+
+
+    //MeshGeometry::Submesh roomSubmesh{};
+    //roomSubmesh.IndexCount = (UINT)room.Indices32.size();
+
+    //roomSubmesh.VertexCount = (UINT)room.Vertices.size();
+
+
+    //MeshGeometry::Submesh coordinateSystemSubmesh{};
+    //coordinateSystemSubmesh.IndexCount = (UINT)coordinateSystem.Indices32.size();
+
+    //coordinateSystemSubmesh.VertexCount = (UINT)coordinateSystem.Vertices.size();
+
+
+    //MeshGeometry::Submesh skullSubmesh{};
+    //skullSubmesh.IndexCount = (UINT)skull.Indices32.size();
+
+    //skullSubmesh.VertexCount = (UINT)skull.Vertices.size();
+
+
+
+
+    //std::vector<VertexPositionNormalTextureTangent> roomVertices(room.Vertices.size());
+    //UINT k = 0;
+    //for (size_t i = 0; i < room.Vertices.size(); ++i, ++k)
+    //{
+    //    roomVertices[k].position = room.Vertices[i].Position;
+    //    roomVertices[k].normal = room.Vertices[i].Normal;
+    //    roomVertices[k].textureCoordinate = room.Vertices[i].TexC;
+    //    roomVertices[k].tangent = room.Vertices[i].TangentU;
+    //}
+
+    //std::vector<VertexPositionNormalTextureTangent> coordinatesVertices(coordinateSystem.Vertices.size());
+    //k = 0;
+    //for (size_t i = 0; i < coordinateSystem.Vertices.size(); ++i, ++k)
+    //{
+    //    coordinatesVertices[k].position = coordinateSystem.Vertices[i].Position;
+    //    coordinatesVertices[k].normal = coordinateSystem.Vertices[i].Normal;
+    //    coordinatesVertices[k].textureCoordinate = coordinateSystem.Vertices[i].TexC;
+    //    coordinatesVertices[k].tangent = coordinateSystem.Vertices[i].TangentU;
+    //}
+
+    //std::vector<VertexPositionNormalTextureTangent> skullVertices(skull.Vertices.size());
+    //k = 0;
+    //for (size_t i = 0; i < skull.Vertices.size(); ++i, ++k)
+    //{
+    //    skullVertices[k].position = skull.Vertices[i].Position;
+    //    skullVertices[k].normal = skull.Vertices[i].Normal;
+    //    skullVertices[k].textureCoordinate = { 0.0f, 0.0f };// skull.Vertices[i].TexC;
+    //    skullVertices[k].tangent = { 1.0f, 0.0f, 0.0f };//skull.Vertices[i].TangentU;
+    //}
+
+
+
+    //std::vector<std::uint32_t> roomIndices;
+    //roomIndices.insert(roomIndices.end(), begin(room.Indices32), end(room.Indices32));
+
+    //std::vector<std::uint32_t> coordinateSystemIndices;
+    //coordinateSystemIndices.insert(coordinateSystemIndices.end(), begin(coordinateSystem.Indices32), end(coordinateSystem.Indices32));
+
+    //std::vector<std::uint32_t> skullIndices;
+    //skullIndices.insert(skullIndices.end(), begin(skull.Indices32), end(skull.Indices32));
+
+
+
+    //const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(Index);
+    //const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
+
+    //const UINT csibByteSize = (UINT)coordinateSystemIndices.size() * sizeof(Index);
+    //const UINT csvbByteSize = (UINT)coordinatesVertices.size() * sizeof(VertexPositionNormalTextureTangent);
+
+    //const UINT skullibByteSize = (UINT)skullIndices.size() * sizeof(Index);
+    //const UINT skullvbByteSize = (UINT)skullVertices.size() * sizeof(VertexPositionNormalTextureTangent);
+
+
+    //
+    //AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[TriangleGeometry::Room].resource);
+    //AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[TriangleGeometry::Room].resource);
+
+    //AllocateUploadBuffer(device, &coordinateSystemIndices[0], csibByteSize, &m_indexBuffer[CoordinateGeometry::Coordinates + TriangleGeometry::Count].resource);
+    //AllocateUploadBuffer(device, &coordinatesVertices[0], csvbByteSize, &m_vertexBuffer[CoordinateGeometry::Coordinates + TriangleGeometry::Count].resource);
+
+    //AllocateUploadBuffer(device, &skullIndices[0], skullibByteSize, &m_indexBuffer[SkullGeometry::Skull + 2].resource);
+    //AllocateUploadBuffer(device, &skullVertices[0], skullvbByteSize, &m_vertexBuffer[SkullGeometry::Skull + 2].resource);
+
+
+
+    //// Vertex buffer is passed to the shader along with index buffer as a descriptor range.
+    //CreateBufferSRV(&m_indexBuffer[TriangleGeometry::Room], roomIndices.size(), sizeof(uint32_t));
+    //CreateBufferSRV(&m_vertexBuffer[TriangleGeometry::Room], roomVertices.size(), sizeof(roomVertices[0]));
+
+    //CreateBufferSRV(&m_indexBuffer[CoordinateGeometry::Coordinates+1], coordinateSystemIndices.size(), sizeof(uint32_t));
+    //CreateBufferSRV(&m_vertexBuffer[CoordinateGeometry::Coordinates+1], coordinatesVertices.size(), sizeof(coordinatesVertices[0]));
+
+    //CreateBufferSRV(&m_indexBuffer[SkullGeometry::Skull+2], skullIndices.size(), sizeof(uint32_t));
+    //CreateBufferSRV(&m_vertexBuffer[SkullGeometry::Skull+2], skullVertices.size(), sizeof(roomVertices[0]));
+
+
+
+    //auto roomGeo = std::make_unique<MeshGeometry>();
+    //auto csGeo = std::make_unique<MeshGeometry>();
+    //auto skullGeo = std::make_unique<MeshGeometry>();
+
+
+    //
+    //roomGeo->Name = "roomGeo";
+    //csGeo->Name = "csGeo";
+    //skullGeo->Name = "skullGeo";
+
+
+    //roomGeo->VertexBufferGPU = m_vertexBuffer[AllGeometry::Room].resource;
+    //roomGeo->IndexBufferGPU = m_indexBuffer[TriangleGeometry::Room].resource;
+    //
+    //csGeo->VertexBufferGPU = m_vertexBuffer[AllGeometry::Coordinates].resource;
+    //csGeo->IndexBufferGPU = m_indexBuffer[AllGeometry::Coordinates].resource;
+    //
+    //skullGeo->VertexBufferGPU = m_vertexBuffer[AllGeometry::Skull].resource;
+    //skullGeo->IndexBufferGPU = m_indexBuffer[AllGeometry::Skull].resource;
+
+
+
+    //roomGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+    //csGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+    //skullGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+
+
+    //roomGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
+    //csGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
+    //skullGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
+
+
+    //roomGeo->VertexBufferByteSize = roomvbByteSize;
+    //csGeo->VertexBufferByteSize = csvbByteSize;
+    //skullGeo->VertexBufferByteSize = skullvbByteSize;
+
+    //roomGeo->IndexBufferByteSize = roomibByteSize;
+    //csGeo->IndexBufferByteSize = csibByteSize;
+    //skullGeo->IndexBufferByteSize = skullibByteSize;
+
+
+    //roomGeo->DrawArgs["room"] = roomSubmesh;
+    //csGeo->DrawArgs["coordinateSystem"] = coordinateSystemSubmesh;
+    //skullGeo->DrawArgs["skull"] = skullSubmesh;
+
+    //
+
+    //m_geometries[roomGeo->Name] = std::move(roomGeo);
+    //m_geometries[csGeo->Name] = std::move(csGeo);
+    //m_geometries[skullGeo->Name] = std::move(skullGeo);
+    //
+    //m_geoOffset += 3;
+
+    //BuildModel(".\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+    //BuildModel(".\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    //BuildModel(".\\Models\\room.obj", aiProcess_Triangulate | aiProcess_FlipWindingOrder, true);
+    ////BuildModel(".\\Models\\vase.obj", aiProcess_Triangulate | aiProcess_FlipUVs);
+
+    auto device = m_deviceResources->GetD3DDevice();
+
  
+
     GeometryGenerator geoGen;
     GeometryGenerator::MeshData room = geoGen.CreateRoom(30.0f, 15.0f, 30.0f);
     GeometryGenerator::MeshData coordinateSystem = geoGen.CreateCoordinates(20.0f, 0.01f, 0.01f);
     GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
-    std::vector<GeometryGenerator::MeshData> modelMeshes = geoGen.LoadModel(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-    std::vector<GeometryGenerator::MeshData> lampMeshes = geoGen.LoadModel(path2, aiProcess_Triangulate | aiProcess_FlipUVs);
-    std::vector<GeometryGenerator::MeshData> houseMeshes = geoGen.LoadModel(path3, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FlipWindingOrder);
+ 
 
     UINT roomVertexOffset = 0;
     UINT coordinateSystemVertexOffset = 0;
     UINT skullVertexOffset = 0;
     vector<UINT> modelMeshesVertexOffsets;
-    for (auto i : modelMeshes)
-        modelMeshesVertexOffsets.push_back(0);
+
 
     UINT roomIndexOffset = 0;
     UINT coordinateSystemIndexOffset = 0;
     UINT skullIndexOffset = 0;
     vector<UINT> modelMeshesIndexOffsets;
-    for (auto i : modelMeshes)
-        modelMeshesIndexOffsets.push_back(0);
+  
 
     MeshGeometry::Submesh roomSubmesh;
     roomSubmesh.IndexCount = (UINT)room.Indices32.size();
@@ -187,35 +388,7 @@ void Room::BuildGeometry()
     skullSubmesh.VertexCount = (UINT)skull.Vertices.size();
     skullSubmesh.BaseVertexLocation = skullVertexOffset;
 
-    std::vector<MeshGeometry::Submesh> modelMeshesSubmeshes;
-    for (auto i = 0; i < modelMeshes.size(); i++) {
-        MeshGeometry::Submesh modelMeshSubmesh;
-        modelMeshSubmesh.IndexCount = (UINT)modelMeshes[i].Indices32.size();
-        modelMeshSubmesh.StartIndexLocation = modelMeshesIndexOffsets[i];
-        modelMeshSubmesh.VertexCount = (UINT)modelMeshes[i].Vertices.size();
-        modelMeshSubmesh.BaseVertexLocation = modelMeshesVertexOffsets[i];
-        modelMeshesSubmeshes.push_back(modelMeshSubmesh);
-    }
 
-    std::vector<MeshGeometry::Submesh> lampMeshesSubmeshes;
-    for (auto i = 0; i < lampMeshes.size(); i++) {
-        MeshGeometry::Submesh lampMeshSubmesh;
-        lampMeshSubmesh.IndexCount = (UINT)lampMeshes[i].Indices32.size();
-        lampMeshSubmesh.StartIndexLocation = 0;
-        lampMeshSubmesh.VertexCount = (UINT)lampMeshes[i].Vertices.size();
-        lampMeshSubmesh.BaseVertexLocation = 0;
-        lampMeshesSubmeshes.push_back(lampMeshSubmesh);
-    }
-
-    std::vector<MeshGeometry::Submesh> houseMeshesSubmeshes;
-    for (auto i = 0; i < houseMeshes.size(); i++) {
-        MeshGeometry::Submesh houseMeshSubmesh;
-        houseMeshSubmesh.IndexCount = (UINT)houseMeshes[i].Indices32.size();
-        houseMeshSubmesh.StartIndexLocation = 0;
-        houseMeshSubmesh.VertexCount = (UINT)houseMeshes[i].Vertices.size();
-        houseMeshSubmesh.BaseVertexLocation = 0;
-        houseMeshesSubmeshes.push_back(houseMeshSubmesh);
-    }
 
     std::vector<VertexPositionNormalTextureTangent> roomVertices(room.Vertices.size());
     UINT k = 0;
@@ -247,47 +420,7 @@ void Room::BuildGeometry()
         skullVertices[k].tangent = { 1.0f, 0.0f, 0.0f };//skull.Vertices[i].TangentU;
     }
 
-    std::vector<std::vector<VertexPositionNormalTextureTangent>> modelMeshesVertices;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        std::vector<VertexPositionNormalTextureTangent> modelMeshVertices(modelMeshes[j].Vertices.size());
-        k = 0;
-        for (size_t i = 0; i < modelMeshes[j].Vertices.size(); ++i, ++k)
-        {
-            modelMeshVertices[k].position = modelMeshes[j].Vertices[i].Position;
-            modelMeshVertices[k].normal = modelMeshes[j].Vertices[i].Normal;
-            modelMeshVertices[k].textureCoordinate = modelMeshes[j].Vertices[i].TexC;
-            modelMeshVertices[k].tangent = modelMeshes[j].Vertices[i].TangentU;
-        }
-        modelMeshesVertices.push_back(modelMeshVertices);
-    }
-
-    std::vector<std::vector<VertexPositionNormalTextureTangent>> lampMeshesVertices;
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        std::vector<VertexPositionNormalTextureTangent> lampMeshVertices(lampMeshes[j].Vertices.size());
-        k = 0;
-        for (size_t i = 0; i < lampMeshes[j].Vertices.size(); ++i, ++k)
-        {
-            lampMeshVertices[k].position = lampMeshes[j].Vertices[i].Position;
-            lampMeshVertices[k].normal = lampMeshes[j].Vertices[i].Normal;
-            lampMeshVertices[k].textureCoordinate = lampMeshes[j].Vertices[i].TexC;
-            lampMeshVertices[k].tangent = lampMeshes[j].Vertices[i].TangentU;
-        }
-        lampMeshesVertices.push_back(lampMeshVertices);
-    }
-
-    std::vector<std::vector<VertexPositionNormalTextureTangent>> houseMeshesVertices;
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        std::vector<VertexPositionNormalTextureTangent> houseMeshVertices(houseMeshes[j].Vertices.size());
-        k = 0;
-        for (size_t i = 0; i < houseMeshes[j].Vertices.size(); ++i, ++k)
-        {
-            houseMeshVertices[k].position = houseMeshes[j].Vertices[i].Position;
-            houseMeshVertices[k].normal = houseMeshes[j].Vertices[i].Normal;
-            houseMeshVertices[k].textureCoordinate = houseMeshes[j].Vertices[i].TexC;
-            houseMeshVertices[k].tangent = houseMeshes[j].Vertices[i].TangentU;
-        }
-        houseMeshesVertices.push_back(houseMeshVertices);
-    }
+ 
 
     std::vector<std::uint32_t> roomIndices;
     roomIndices.insert(roomIndices.end(), begin(room.Indices32), end(room.Indices32));
@@ -298,26 +431,7 @@ void Room::BuildGeometry()
     std::vector<std::uint32_t> skullIndices;
     skullIndices.insert(skullIndices.end(), begin(skull.Indices32), end(skull.Indices32));
 
-    vector<vector<uint32_t>> modelMeshesIndices;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        std::vector<std::uint32_t> modelMeshIndices;
-        modelMeshIndices.insert(modelMeshIndices.end(), begin(modelMeshes[j].Indices32), end(modelMeshes[j].Indices32));
-        modelMeshesIndices.push_back(modelMeshIndices);
-    }
 
-    vector<vector<uint32_t>> lampMeshesIndices;
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        std::vector<std::uint32_t> lampMeshIndices;
-        lampMeshIndices.insert(lampMeshIndices.end(), begin(lampMeshes[j].Indices32), end(lampMeshes[j].Indices32));
-        lampMeshesIndices.push_back(lampMeshIndices);
-    }
-
-    vector<vector<uint32_t>> houseMeshesIndices;
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        std::vector<std::uint32_t> houseMeshIndices;
-        houseMeshIndices.insert(houseMeshIndices.end(), begin(houseMeshes[j].Indices32), end(houseMeshes[j].Indices32));
-        houseMeshesIndices.push_back(houseMeshIndices);
-    }
 
     const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
     const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
@@ -328,36 +442,8 @@ void Room::BuildGeometry()
     const UINT skullibByteSize = (UINT)skullIndices.size() * sizeof(std::uint32_t);
     const UINT skullvbByteSize = (UINT)skullVertices.size() * sizeof(VertexPositionNormalTextureTangent);
 
-    vector<UINT> mmibByteSizes;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-       mmibByteSizes.push_back((UINT)modelMeshesIndices[j].size() * sizeof(std::uint32_t));
-    }
-    
-    vector<UINT> mmvbByteSizes;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        mmvbByteSizes.push_back((UINT)modelMeshesVertices[j].size() * sizeof(VertexPositionNormalTextureTangent));
-    }
 
-    vector<UINT> lmibByteSizes;
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lmibByteSizes.push_back((UINT)lampMeshesIndices[j].size() * sizeof(std::uint32_t));
-    }
 
-    vector<UINT> lmvbByteSizes;
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lmvbByteSizes.push_back((UINT)lampMeshesVertices[j].size() * sizeof(VertexPositionNormalTextureTangent));
-    }
-
-    vector<UINT> hmibByteSizes;
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        hmibByteSizes.push_back((UINT)houseMeshesIndices[j].size() * sizeof(std::uint32_t));
-    }
-
-    vector<UINT> hmvbByteSizes;
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        hmvbByteSizes.push_back((UINT)houseMeshesVertices[j].size() * sizeof(VertexPositionNormalTextureTangent));
-    }
-    
     AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[TriangleGeometry::Room].resource);
     AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[TriangleGeometry::Room].resource);
 
@@ -367,253 +453,219 @@ void Room::BuildGeometry()
     AllocateUploadBuffer(device, &skullIndices[0], skullibByteSize, &m_indexBuffer[SkullGeometry::Skull + 2].resource);
     AllocateUploadBuffer(device, &skullVertices[0], skullvbByteSize, &m_vertexBuffer[SkullGeometry::Skull + 2].resource);
 
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        AllocateUploadBuffer(device, &modelMeshesIndices[j][0], mmibByteSizes[j], &m_indexBuffer[TableGeometry::ModelMesh1+j + 3].resource);
-        AllocateUploadBuffer(device, &modelMeshesVertices[j][0], mmvbByteSizes[j], &m_vertexBuffer[TableGeometry::ModelMesh1+j + 3].resource);
-    }
 
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        AllocateUploadBuffer(device, &lampMeshesIndices[j][0], lmibByteSizes[j], &m_indexBuffer[LampsGeometry::LampMesh1 + j + 7].resource);
-        AllocateUploadBuffer(device, &lampMeshesVertices[j][0], lmvbByteSizes[j], &m_vertexBuffer[LampsGeometry::LampMesh1 + j + 7].resource);
-    }
-
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        AllocateUploadBuffer(device, &houseMeshesIndices[j][0], hmibByteSizes[j], &m_indexBuffer[HouseGeometry::HouseMesh1 + j + 15].resource);
-        AllocateUploadBuffer(device, &houseMeshesVertices[j][0], hmvbByteSizes[j], &m_vertexBuffer[HouseGeometry::HouseMesh1 + j + 15].resource);
-    }
 
     // Vertex buffer is passed to the shader along with index buffer as a descriptor range.
     CreateBufferSRV(&m_indexBuffer[TriangleGeometry::Room], roomIndices.size(), sizeof(uint32_t));
     CreateBufferSRV(&m_vertexBuffer[TriangleGeometry::Room], roomVertices.size(), sizeof(roomVertices[0]));
 
-    CreateBufferSRV(&m_indexBuffer[CoordinateGeometry::Coordinates+1], coordinateSystemIndices.size(), sizeof(uint32_t));
-    CreateBufferSRV(&m_vertexBuffer[CoordinateGeometry::Coordinates+1], coordinatesVertices.size(), sizeof(coordinatesVertices[0]));
+    CreateBufferSRV(&m_indexBuffer[CoordinateGeometry::Coordinates + 1], coordinateSystemIndices.size(), sizeof(uint32_t));
+    CreateBufferSRV(&m_vertexBuffer[CoordinateGeometry::Coordinates + 1], coordinatesVertices.size(), sizeof(coordinatesVertices[0]));
 
-    CreateBufferSRV(&m_indexBuffer[SkullGeometry::Skull+2], skullIndices.size(), sizeof(uint32_t));
-    CreateBufferSRV(&m_vertexBuffer[SkullGeometry::Skull+2], skullVertices.size(), sizeof(roomVertices[0]));
+    CreateBufferSRV(&m_indexBuffer[SkullGeometry::Skull + 2], skullIndices.size(), sizeof(uint32_t));
+    CreateBufferSRV(&m_vertexBuffer[SkullGeometry::Skull + 2], skullVertices.size(), sizeof(roomVertices[0]));
 
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        CreateBufferSRV(&m_indexBuffer[TableGeometry::ModelMesh1+j+3], modelMeshesIndices[j].size(), sizeof(uint32_t));
-        CreateBufferSRV(&m_vertexBuffer[TableGeometry::ModelMesh1+j+3], modelMeshesVertices[j].size(), sizeof(roomVertices[0]));
-    }
 
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        CreateBufferSRV(&m_indexBuffer[LampsGeometry::LampMesh1 + j+7], lampMeshesIndices[j].size(), sizeof(uint32_t));
-        CreateBufferSRV(&m_vertexBuffer[LampsGeometry::LampMesh1 + j+7], lampMeshesVertices[j].size(), sizeof(roomVertices[0]));
-    }
-
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        CreateBufferSRV(&m_indexBuffer[HouseGeometry::HouseMesh1 + j + 15], houseMeshesIndices[j].size(), sizeof(uint32_t));
-        CreateBufferSRV(&m_vertexBuffer[HouseGeometry::HouseMesh1 + j + 15], houseMeshesVertices[j].size(), sizeof(roomVertices[0]));
-    }
 
     auto roomGeo = std::make_unique<MeshGeometry>();
     auto csGeo = std::make_unique<MeshGeometry>();
     auto skullGeo = std::make_unique<MeshGeometry>();
 
-    vector<std::unique_ptr<MeshGeometry>> modelMeshesGeos;
-    modelMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    modelMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    modelMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    modelMeshesGeos.push_back(std::make_unique<MeshGeometry>());
 
-    vector<std::unique_ptr<MeshGeometry>> lampMeshesGeos;
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    lampMeshesGeos.push_back(std::make_unique<MeshGeometry>());
 
-    vector<std::unique_ptr<MeshGeometry>> houseMeshesGeos;
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    houseMeshesGeos.push_back(std::make_unique<MeshGeometry>());
-    
     roomGeo->Name = "roomGeo";
     csGeo->Name = "csGeo";
     skullGeo->Name = "skullGeo";
 
-    modelMeshesGeos[0]->Name = "modelMeshGeo0";
-    modelMeshesGeos[1]->Name = "modelMeshGeo1";
-    modelMeshesGeos[2]->Name = "modelMeshGeo2";
-    modelMeshesGeos[3]->Name = "modelMeshGeo3";
 
-    lampMeshesGeos[0]->Name = "lampMeshGeo0";
-    lampMeshesGeos[1]->Name = "lampMeshGeo1";
-    lampMeshesGeos[2]->Name = "lampMeshGeo2";
-    lampMeshesGeos[3]->Name = "lampMeshGeo3";
-    lampMeshesGeos[4]->Name = "lampMeshGeo4";
-    lampMeshesGeos[5]->Name = "lampMeshGeo5";
-    lampMeshesGeos[6]->Name = "lampMeshGeo6";
-    lampMeshesGeos[7]->Name = "lampMeshGeo7";
-
-    for (int i = 0; i < 35; i++) {
-        string tmp = "houseMeshGeo" + to_string(i);
-        houseMeshesGeos[i]->Name = tmp;
-    }
 
     roomGeo->VertexBufferGPU = m_vertexBuffer[TriangleGeometry::Room].resource;
     roomGeo->IndexBufferGPU = m_indexBuffer[TriangleGeometry::Room].resource;
-    
+
     csGeo->VertexBufferGPU = m_vertexBuffer[CoordinateGeometry::Coordinates].resource;
     csGeo->IndexBufferGPU = m_indexBuffer[CoordinateGeometry::Coordinates].resource;
-    
+
     skullGeo->VertexBufferGPU = m_vertexBuffer[SkullGeometry::Skull].resource;
     skullGeo->IndexBufferGPU = m_indexBuffer[SkullGeometry::Skull].resource;
 
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        modelMeshesGeos[j]->VertexBufferGPU = m_vertexBuffer[TableGeometry::ModelMesh1+j].resource;
-        modelMeshesGeos[j]->IndexBufferGPU = m_indexBuffer[TableGeometry::ModelMesh1+j].resource;
-    }
-
-    for (auto j = 0; j < lampMeshes.size(); j++) { ////??????????????????? ARE YOU SURE? shouldnt there be an offset?
-        lampMeshesGeos[j]->VertexBufferGPU = m_vertexBuffer[LampsGeometry::LampMesh1 +7+ j].resource;
-        lampMeshesGeos[j]->IndexBufferGPU = m_indexBuffer[LampsGeometry::LampMesh1 + 7+j].resource;
-    }
-
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        houseMeshesGeos[j]->VertexBufferGPU = m_vertexBuffer[HouseGeometry::HouseMesh1 +15+ j].resource;
-        houseMeshesGeos[j]->IndexBufferGPU = m_indexBuffer[HouseGeometry::HouseMesh1 +15+ j].resource;
-    }
 
     roomGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
     csGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
     skullGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        modelMeshesGeos[j]->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    }
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lampMeshesGeos[j]->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    }
 
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        houseMeshesGeos[j]->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    }
 
     roomGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
     csGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
     skullGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        modelMeshesGeos[j]->IndexFormat = DXGI_FORMAT_R32_UINT;
-    }
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lampMeshesGeos[j]->IndexFormat = DXGI_FORMAT_R32_UINT;
-    }
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        houseMeshesGeos[j]->IndexFormat = DXGI_FORMAT_R32_UINT;
-    }
+
 
     roomGeo->VertexBufferByteSize = roomvbByteSize;
     csGeo->VertexBufferByteSize = csvbByteSize;
     skullGeo->VertexBufferByteSize = skullvbByteSize;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        modelMeshesGeos[j]->VertexBufferByteSize = mmvbByteSizes[j];
-    }
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lampMeshesGeos[j]->VertexBufferByteSize = lmvbByteSizes[j];
-    }
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        houseMeshesGeos[j]->VertexBufferByteSize = hmvbByteSizes[j];
-    }
+
 
     roomGeo->IndexBufferByteSize = roomibByteSize;
     csGeo->IndexBufferByteSize = csibByteSize;
     skullGeo->IndexBufferByteSize = skullibByteSize;
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        modelMeshesGeos[j]->IndexBufferByteSize = mmibByteSizes[j];
-    }
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        lampMeshesGeos[j]->IndexBufferByteSize = lmibByteSizes[j];
-    }
-    for (auto j = 0; j < houseMeshes.size(); j++) {
-        houseMeshesGeos[j]->IndexBufferByteSize = hmibByteSizes[j];
-    }
+
 
     roomGeo->DrawArgs["room"] = roomSubmesh;
     csGeo->DrawArgs["coordinateSystem"] = coordinateSystemSubmesh;
     skullGeo->DrawArgs["skull"] = skullSubmesh;
-    modelMeshesGeos[0]->DrawArgs["modelMesh0"] = modelMeshesSubmeshes[0];
-    modelMeshesGeos[1]->DrawArgs["modelMesh1"] = modelMeshesSubmeshes[1];
-    modelMeshesGeos[2]->DrawArgs["modelMesh2"] = modelMeshesSubmeshes[2];
-    modelMeshesGeos[3]->DrawArgs["modelMesh3"] = modelMeshesSubmeshes[3];
 
-    lampMeshesGeos[0]->DrawArgs["lampMesh0"] = lampMeshesSubmeshes[0];
-    lampMeshesGeos[1]->DrawArgs["lampMesh1"] = lampMeshesSubmeshes[1];
-    lampMeshesGeos[2]->DrawArgs["lampMesh2"] = lampMeshesSubmeshes[2];
-    lampMeshesGeos[3]->DrawArgs["lampMesh3"] = lampMeshesSubmeshes[3];
-    lampMeshesGeos[4]->DrawArgs["lampMesh4"] = lampMeshesSubmeshes[4];
-    lampMeshesGeos[5]->DrawArgs["lampMesh5"] = lampMeshesSubmeshes[5];
-    lampMeshesGeos[6]->DrawArgs["lampMesh6"] = lampMeshesSubmeshes[6];
-    lampMeshesGeos[7]->DrawArgs["lampMesh7"] = lampMeshesSubmeshes[7];
 
-    for (int i = 0; i < 35; i++)
-    {
-        string temp = "houseMesh" + to_string(i);
-        OutputDebugStringA(temp.c_str());
-        houseMeshesGeos[i]->DrawArgs[temp] = houseMeshesSubmeshes[i];
-    }
-    
-    
 
     m_geometries[roomGeo->Name] = std::move(roomGeo);
     m_geometries[csGeo->Name] = std::move(csGeo);
     m_geometries[skullGeo->Name] = std::move(skullGeo);
-    for (auto j = 0; j < modelMeshes.size(); j++) {
-        m_geometries[modelMeshesGeos[j]->Name] = std::move(modelMeshesGeos[j]);
-    }
-    for (auto j = 0; j < lampMeshes.size(); j++) {
-        m_geometries[lampMeshesGeos[j]->Name] = std::move(lampMeshesGeos[j]);
-    }
-    for (auto j = 0; j < houseMeshes.size()-1; j++) {
-        m_geometries[houseMeshesGeos[j]->Name] = std::move(houseMeshesGeos[j]);
-    }
-    m_geometries[houseMeshesGeos[34]->Name] = std::move(houseMeshesGeos[34]);
+
+    m_geoOffset += 3;
+
+    BuildModel(".\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+    BuildModel(".\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    BuildModel(".\\Models\\room.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    /*BuildModel(".\\Models\\vase.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);*/
+
+    
 }
 
 void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs)
 {
+    //D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+
+    //D3D12_RAYTRACING_GEOMETRY_DESC triangleDescTemplate{};
+    //triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;        
+    //triangleDescTemplate.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
+    //triangleDescTemplate.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
+    //triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
+    //triangleDescTemplate.Flags = geometryFlags;
+
+    //geometryDescs[BottomLevelASType::Triangle].resize(TriangleGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < TriangleGeometry::Count; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::Triangle][i];
+    //    
+    //    switch (i)
+    //    {
+    //    case 0:
+    //        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Room].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Room].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.IndexCount = m_geometries["roomGeo"]->DrawArgs["room"].IndexCount;
+    //        geometryDesc.Triangles.VertexCount = m_geometries["roomGeo"]->DrawArgs["room"].VertexCount;
+    //        break;
+    //    }
+
+    //}  
+
+    //geometryDescs[BottomLevelASType::Coordinates].resize(CoordinateGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < CoordinateGeometry::Count; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::Coordinates][i];
+
+    //    switch (i)
+    //    {
+    //    case 0:
+    //        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Coordinates].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Coordinates].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.IndexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].IndexCount;
+    //        geometryDesc.Triangles.VertexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].VertexCount;
+    //        break;
+    //    
+    //    }
+
+    //}
+
+    //geometryDescs[BottomLevelASType::Skull].resize(SkullGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < SkullGeometry::Count; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::Skull][i];
+
+    //    switch (i)
+    //    {
+    //  
+    //    case 0:
+    //        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
+    //        geometryDesc.Triangles.IndexCount = m_geometries["skullGeo"]->DrawArgs["skull"].IndexCount;
+    //        geometryDesc.Triangles.VertexCount = m_geometries["skullGeo"]->DrawArgs["skull"].VertexCount;
+    //        break;
+    //   
+    //    }
+
+    //}
+
+    //geometryDescs[BottomLevelASType::Table].resize(TableGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < TableGeometry::Count; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::Table][i];
+
+    //    string geoName = "geo" + to_string(i + 3);
+    //    string meshName = "mesh" + to_string(i + 3);
+    //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[3 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[3 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+    //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+    //}
+
+    //geometryDescs[BottomLevelASType::Lamps].resize(LampsGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < 4; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::Lamps][i];
+
+    //    string geoName = "geo" + to_string(i + 7);
+    //    string meshName = "mesh" + to_string(i + 7);
+    //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[7 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[7 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+    //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+
+
+    //}
+
+    //geometryDescs[BottomLevelASType::House].resize(HouseGeometry::Count, triangleDescTemplate);
+
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < 27; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::House][i];
+
+    //    string geoName = "geo" + to_string(11 + i);
+    //    string meshName = "mesh" + to_string(11 + i);
+    //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11+i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+    //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+    //}
+
+    ////geometryDescs[BottomLevelASType::Vase].resize(22, triangleDescTemplate);
+
+    ////// Seperate geometries for each object allows for seperate hit shaders.
+    ////for (UINT i = 0; i < 22; i++)
+    ////{
+    ////    auto& geometryDesc = geometryDescs[BottomLevelASType::Vase][i];
+
+    ////    string geoName = "geo" + to_string(i +38);
+    ////    string meshName = "mesh" + to_string(i + 38);
+    ////    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[38 + i].resource->GetGPUVirtualAddress();
+    ////    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[38 + i].resource->GetGPUVirtualAddress();
+    ////    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+    ////    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+    ////}
+
     D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
     D3D12_RAYTRACING_GEOMETRY_DESC triangleDescTemplate{};
-    triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;        
+    triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
     triangleDescTemplate.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
     triangleDescTemplate.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
     triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
@@ -625,7 +677,7 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
     for (UINT i = 0; i < TriangleGeometry::Count; i++)
     {
         auto& geometryDesc = geometryDescs[BottomLevelASType::Triangle][i];
-        
+
         switch (i)
         {
         case 0:
@@ -636,7 +688,7 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
             break;
         }
 
-    }  
+    }
 
     geometryDescs[BottomLevelASType::Coordinates].resize(CoordinateGeometry::Count, triangleDescTemplate);
 
@@ -653,7 +705,7 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
             geometryDesc.Triangles.IndexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].IndexCount;
             geometryDesc.Triangles.VertexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].VertexCount;
             break;
-        
+
         }
 
     }
@@ -667,14 +719,14 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
 
         switch (i)
         {
-      
+
         case 0:
             geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
             geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
             geometryDesc.Triangles.IndexCount = m_geometries["skullGeo"]->DrawArgs["skull"].IndexCount;
             geometryDesc.Triangles.VertexCount = m_geometries["skullGeo"]->DrawArgs["skull"].VertexCount;
             break;
-       
+
         }
 
     }
@@ -686,112 +738,60 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
     {
         auto& geometryDesc = geometryDescs[BottomLevelASType::Table][i];
 
-        switch (i)
-        {
-        case 0:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::ModelMesh1].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::ModelMesh1].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["modelMeshGeo0"]->DrawArgs["modelMesh0"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["modelMeshGeo0"]->DrawArgs["modelMesh0"].VertexCount;
-            break;
-        case 1:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::ModelMesh2].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::ModelMesh2].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["modelMeshGeo1"]->DrawArgs["modelMesh1"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["modelMeshGeo1"]->DrawArgs["modelMesh1"].VertexCount;
-            break;
-        case 2:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::ModelMesh3].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::ModelMesh3].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["modelMeshGeo2"]->DrawArgs["modelMesh2"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["modelMeshGeo2"]->DrawArgs["modelMesh2"].VertexCount;
-            break;
-        case 3:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::ModelMesh4].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::ModelMesh4].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["modelMeshGeo3"]->DrawArgs["modelMesh3"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["modelMeshGeo3"]->DrawArgs["modelMesh3"].VertexCount;
-            break;
-        }
-
+        string geoName = "geo" + to_string(i + 3);
+        string meshName = "mesh" + to_string(i + 3);
+        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[3 + i].resource->GetGPUVirtualAddress();
+        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[3 + i].resource->GetGPUVirtualAddress();
+        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
     }
 
     geometryDescs[BottomLevelASType::Lamps].resize(LampsGeometry::Count, triangleDescTemplate);
 
     // Seperate geometries for each object allows for seperate hit shaders.
-    for (UINT i = 0; i < LampsGeometry::Count; i++)
+    for (UINT i = 0; i < 4; i++)
     {
         auto& geometryDesc = geometryDescs[BottomLevelASType::Lamps][i];
 
-        switch (i)
-        {
-      
-        case 0:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh1].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh1].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo0"]->DrawArgs["lampMesh0"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo0"]->DrawArgs["lampMesh0"].VertexCount;
-            break;
-        case 1:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh2].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh2].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo1"]->DrawArgs["lampMesh1"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo1"]->DrawArgs["lampMesh1"].VertexCount;
-            break;
-        case 2:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh3].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh3].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo2"]->DrawArgs["lampMesh2"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo2"]->DrawArgs["lampMesh2"].VertexCount;
-            break;
-        case 3:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh4].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh4].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo3"]->DrawArgs["lampMesh3"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo3"]->DrawArgs["lampMesh3"].VertexCount;
-            break;
-        case 4:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh5].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh5].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo4"]->DrawArgs["lampMesh4"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo4"]->DrawArgs["lampMesh4"].VertexCount;
-            break;
-        case 5:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh6].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh6].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo5"]->DrawArgs["lampMesh5"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo5"]->DrawArgs["lampMesh5"].VertexCount;
-            break;
-        case 6:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh7].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh7].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo6"]->DrawArgs["lampMesh6"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo6"]->DrawArgs["lampMesh6"].VertexCount;
-            break;
-        case 7:
-            geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::LampMesh8].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::LampMesh8].resource->GetGPUVirtualAddress();
-            geometryDesc.Triangles.IndexCount = m_geometries["lampMeshGeo7"]->DrawArgs["lampMesh7"].IndexCount;
-            geometryDesc.Triangles.VertexCount = m_geometries["lampMeshGeo7"]->DrawArgs["lampMesh7"].VertexCount;
-            break;
-        }
+        string geoName = "geo" + to_string(i + 7);
+        string meshName = "mesh" + to_string(i + 7);
+        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[7 + i].resource->GetGPUVirtualAddress();
+        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[7 + i].resource->GetGPUVirtualAddress();
+        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+
 
     }
 
-    geometryDescs[BottomLevelASType::House].resize(HouseGeometry::Count, triangleDescTemplate);
+    geometryDescs[BottomLevelASType::House].resize(22, triangleDescTemplate);
 
     // Seperate geometries for each object allows for seperate hit shaders.
-    for (UINT i = 0; i < HouseGeometry::Count; i++)
+    for (UINT i = 0; i < 22; i++)
     {
         auto& geometryDesc = geometryDescs[BottomLevelASType::House][i];
 
-        string geoName = "houseMeshGeo" + to_string(i);
-        string meshName = "houseMesh" + to_string(i);
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::HouseMesh1+i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::HouseMesh1+i].resource->GetGPUVirtualAddress();
+        string geoName = "geo" + to_string(11 + i);
+        string meshName = "mesh" + to_string(11 + i);
+        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11+i].resource->GetGPUVirtualAddress();
+        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
         geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
         geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
     }
+
+   // geometryDescs[BottomLevelASType::Vase].resize(22, triangleDescTemplate);
+
+   //// Seperate geometries for each object allows for seperate hit shaders.
+   //for (UINT i = 0; i < 22; i++)
+   //{
+   //    auto& geometryDesc = geometryDescs[BottomLevelASType::Vase][i];
+
+   //    string geoName = "geo" + to_string(i +33);
+   //    string meshName = "mesh" + to_string(i + 33);
+   //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[33 + i].resource->GetGPUVirtualAddress();
+   //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[33 + i].resource->GetGPUVirtualAddress();
+   //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+   //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+   //}
 }
 
 void Room::BuildShaderTables()
@@ -859,7 +859,7 @@ void Room::BuildShaderTables()
 
     // Hit group shader table.
     {
-        UINT numShaderRecords = AllGeometry::Count * RayType::Count;
+        UINT numShaderRecords = NUM_BLAS * RayType::Count;
         UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
         ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
@@ -968,7 +968,7 @@ void Room::BuildShaderTables()
             LocalRootSignature::Triangle::RootArguments rootArgs;
 
             // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < LampsGeometry::Count; instanceIndex++)
+            for (UINT instanceIndex = 0; instanceIndex < 4; instanceIndex++)
             {
                 rootArgs.materialCb = m_triangleMaterialCB[instanceIndex+7];
                 rootArgs.triangleCB.instanceIndex = instanceIndex+7;
@@ -993,13 +993,13 @@ void Room::BuildShaderTables()
             LocalRootSignature::Triangle::RootArguments rootArgs;
 
             // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < HouseGeometry::Count; instanceIndex++)
+            for (UINT instanceIndex = 0; instanceIndex < 22; instanceIndex++)
             {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 15];
-                rootArgs.triangleCB.instanceIndex = instanceIndex + 15;
-                auto ib = m_indexBuffer[instanceIndex + 15].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex + 15].gpuDescriptorHandle;
-                auto texture = m_stoneTexture[(instanceIndex + 15) % 3].gpuDescriptorHandle;
+                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 11];
+                rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
+                auto ib = m_indexBuffer[instanceIndex + 11].gpuDescriptorHandle;
+                auto vb = m_vertexBuffer[instanceIndex + 11].gpuDescriptorHandle;
+                auto texture = m_stoneTexture[(instanceIndex + 11) % 3].gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                 memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
@@ -1012,6 +1012,31 @@ void Room::BuildShaderTables()
                 }
             }
         }
+
+        //// Vase
+        //{
+        //    LocalRootSignature::Triangle::RootArguments rootArgs;
+
+        //    // Create a shader record for each primitive.
+        //    for (UINT instanceIndex = 0; instanceIndex < 22; instanceIndex++)
+        //    {
+        //        rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 33];
+        //        rootArgs.triangleCB.instanceIndex = instanceIndex + 33;
+        //        auto ib = m_indexBuffer[instanceIndex + 33].gpuDescriptorHandle;
+        //        auto vb = m_vertexBuffer[instanceIndex + 33].gpuDescriptorHandle;
+        //        auto texture = m_stoneTexture[(instanceIndex + 33) % 3].gpuDescriptorHandle;
+        //        memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
+        //        memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
+        //        memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
+
+        //        // Ray types
+        //        for (UINT r = 0; r < RayType::Count; r++)
+        //        {
+        //            auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
+        //            hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+        //        }
+        //    }
+        //}
       
         hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
         m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
@@ -1262,13 +1287,13 @@ void Room::UpdateTrianglePrimitiveAttributes(float animationTime)
         SetTransformForTriangle2(offset + LampsGeometry::LampMesh2 + 7, mScale025, mIdentity, mIdentity);
         SetTransformForTriangle2(offset + LampsGeometry::LampMesh3 + 7, mScale025, mIdentity, mIdentity);
         SetTransformForTriangle2(offset + LampsGeometry::LampMesh4 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh5 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh6 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh7 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh8 + 7, mScale025, mIdentity, mIdentity);
 
-        for (int i = 0; i < 35; i++) {
-            SetTransformForTriangle2(offset + HouseGeometry::HouseMesh1 + i + 15, mScale025, mIdentity, mIdentity);
+        for (int i = 0; i < 22; i++) {
+            SetTransformForTriangle2(offset + HouseGeometry::HouseMesh1 + i + 11, mScale025, mIdentity, mIdentity);
+        }
+
+        for (int i = 0; i < 22; i++) {
+            SetTransformForTriangle2(i + 33, mScale025, mIdentity, mIdentity);
         }
         
         offset += TriangleGeometry::Count;
@@ -1284,19 +1309,17 @@ void Room::InitializeScene()
         auto SetAttributes2 = [&](
             UINT primitiveIndex,
             const XMFLOAT4& albedo,
-            float reflectanceCoef = 0.0f,
-            float diffuseCoef = 0.9f,
-            float specularCoef = 0.7f,
-            float specularPower = 0.0f,
+            float metalness = 0.7f,
+            float roughness = 0.0f,
             float stepScale = 1.0f,
             float shaded = 1.0f)
         {
             auto& attributes = m_triangleMaterialCB[primitiveIndex];
             attributes.albedo = albedo;
-            attributes.reflectanceCoef = reflectanceCoef;
-            attributes.diffuseCoef = diffuseCoef;
-            attributes.specularCoef = specularCoef;
-            attributes.specularPower = specularPower;
+            attributes.reflectanceCoef = metalness;
+            attributes.diffuseCoef = 1-metalness;
+            attributes.metalness = metalness;
+            attributes.roughness = roughness;
             attributes.stepScale = stepScale;
             attributes.shaded = shaded;
         };
@@ -1308,24 +1331,26 @@ void Room::InitializeScene()
         XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 
-        SetAttributes2(TriangleGeometry::Room, XMFLOAT4(1.000f, 0.766f, 0.336f, 1.000f), 0.3f, 1.0f, 0.3f, 0.1f, 1.0f, 1.0f);
-        SetAttributes2(CoordinateGeometry::Coordinates+1, red, 0, 0.9, 0.7, 1.0, 1.0f, 0.0f);
-        SetAttributes2(SkullGeometry::Skull+2, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(TableGeometry::ModelMesh1+3, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(TableGeometry::ModelMesh2+3, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(TableGeometry::ModelMesh3+3, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(TableGeometry::ModelMesh4+3, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh1+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh2+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh3+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh4+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh5+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh6+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh7+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        SetAttributes2(LampsGeometry::LampMesh8+7, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
-        for (int i = 0; i < 35; i++)
+        SetAttributes2(TriangleGeometry::Room, XMFLOAT4(1.000f, 0.766f, 0.336f, 1.000f), 0.3f, 0.1f, 1.0f, 1.0f);
+        SetAttributes2(CoordinateGeometry::Coordinates+1, red, 0.7, 1.0, 1.0f, 0.0f);
+        SetAttributes2(SkullGeometry::Skull+2, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.3f, 0.5f, 1.0f, 1.0f);
+
+        // Table
+        for (int i = 0; i < 4; i++)
         {
-            SetAttributes2(HouseGeometry::HouseMesh1 + i + 15, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.1f, 1.0f, 0.3f, 0.5f, 1.0f, 1.0f);
+            SetAttributes2(i+ 3, XMFLOAT4(1.000f, 0.0f, 0.0f, 1.000f), 0.8f, 0.5f, 1.0f, 1.0f);
+        }
+
+        // Lamp
+        for (int i = 0; i < 4; i++)
+        {
+            SetAttributes2(i + 7, XMFLOAT4(0.000f, 0.5f, 0.836f, 1.000f), 0.8f, 0.5f, 1.0f, 1.0f);
+        }
+     
+        // House
+        for (int i = 0; i < 22; i++)
+        {
+            SetAttributes2(HouseGeometry::HouseMesh1 + i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
         }
     }
 
@@ -1377,7 +1402,7 @@ void Room::CreateTrianglePrimitiveAttributesBuffers()
 {
     auto device = m_deviceResources->GetD3DDevice();
     auto frameCount = m_deviceResources->GetBackBufferCount();
-    m_trianglePrimitiveAttributeBuffer.Create(device, AllGeometry::Count, frameCount, L"Triangle primitive attributes");
+    m_trianglePrimitiveAttributeBuffer.Create(device, NUM_BLAS, frameCount, L"Triangle primitive attributes");
 }
 
 void Room::CreateDeviceDependentResources()
@@ -1814,11 +1839,11 @@ void Room::BuildAccelerationStructures()
     // Build top-level AS.
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
 
-    m_stoneTexture[0].heapIndex = AllGeometry::Count * 2 + 1;
+    m_stoneTexture[0].heapIndex = AllGeometry::Count * 2 + 44 + 1;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
-    m_stoneTexture[1].heapIndex = AllGeometry::Count * 2 + 2;
+    m_stoneTexture[1].heapIndex = AllGeometry::Count * 2  + 44 + 2;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
-    m_stoneTexture[2].heapIndex = AllGeometry::Count * 2 + 3;
+    m_stoneTexture[2].heapIndex = AllGeometry::Count * 2 + 44 + 3;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
 
     // Kick off acceleration structure construction.
@@ -1880,6 +1905,7 @@ AccelerationStructureBuffers Room::BuildTopLevelAS(AccelerationStructureBuffers 
             bottomLevelAS[3].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[4].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[5].accelerationStructure->GetGPUVirtualAddress(),
+            //bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(),
         };
         BuildBottomLevelASInstanceDescs<D3D12_RAYTRACING_INSTANCE_DESC>(bottomLevelASaddresses, &instanceDescsResource);
     }
@@ -1962,7 +1988,7 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Skull];
 
         // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.5f, -3.5f, -0.5f);
+        auto position = XMFLOAT3(0.5f, 0.6f, -0.5f);
         const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
         // Scale in all dimensions.
@@ -1982,7 +2008,7 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Table];
 
         // Calculate transformation matrix.
-        auto position = XMFLOAT3(-2.75f, -7.5f, -4.75f);
+        auto position = XMFLOAT3(-2.75f, -3.3f, -4.75f);
         const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
         // Scale in all dimensions.
@@ -2001,7 +2027,7 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Lamps];
 
         // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.5f, -3.6f, 1.0f);
+        auto position = XMFLOAT3(0.5f, 0.6f, 1.0f);
         const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
         // Scale in all dimensions.
@@ -2017,20 +2043,41 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         auto& instanceDesc = instanceDescs[BottomLevelASType::House];
         instanceDesc = {};
         instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = 15 * RayType::Count;
+        instanceDesc.InstanceContributionToHitGroupIndex = 11 * RayType::Count;
         instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::House];
 
         // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.5f, -3.6f, 1.0f);
+        auto position = XMFLOAT3(7.5f, -4.5f, -20.0f);
         const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
         // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(0.05f, 0.05f, 0.05f);
+        XMMATRIX mScale = XMMatrixScaling(6.0f, 6.0f, 6.0f);
         XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
         XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
         XMMATRIX mTransform = mScale * mRotation * mTranslation;
         XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
     }
+
+    //// Vase
+    //{
+    //    auto& instanceDesc = instanceDescs[BottomLevelASType::Vase];
+    //    instanceDesc = {};
+    //    instanceDesc.InstanceMask = 1;
+    //    instanceDesc.InstanceContributionToHitGroupIndex = 38 * RayType::Count;
+    //    instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Vase];
+
+    //    // Calculate transformation matrix.
+    //    auto position = XMFLOAT3(0.5f, 0.0f, 1.0f);
+    //    const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
+
+    //    // Scale in all dimensions.
+    //    XMMATRIX mScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+    //    XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
+    //    XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
+    //    XMMATRIX mTransform = mScale * mRotation * mTranslation;
+    //    XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
+    //}
+
 
 
 
