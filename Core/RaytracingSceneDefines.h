@@ -64,7 +64,7 @@ namespace GeometryType {
         Table,
         Lamps,
         House,
-        Vase,
+        SunTemple,
         Count
     };
 }

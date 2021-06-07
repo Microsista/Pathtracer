@@ -523,7 +523,10 @@ void Room::BuildGeometry()
 
     BuildModel(".\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
     BuildModel(".\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
-    BuildModel(".\\Models\\room.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+   // BuildModel(".\\Models\\room.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+   //BuildModel(".\\Models\\medieval.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+   BuildModel(".\\Models\\SunTemple\\SunTemple.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+
     /*BuildModel(".\\Models\\vase.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);*/
 
     
@@ -763,35 +766,35 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
 
     }
 
-    geometryDescs[BottomLevelASType::House].resize(22, triangleDescTemplate);
+    //geometryDescs[BottomLevelASType::House].resize(22, triangleDescTemplate);
 
-    // Seperate geometries for each object allows for seperate hit shaders.
-    for (UINT i = 0; i < 22; i++)
-    {
-        auto& geometryDesc = geometryDescs[BottomLevelASType::House][i];
+    //// Seperate geometries for each object allows for seperate hit shaders.
+    //for (UINT i = 0; i < 22; i++)
+    //{
+    //    auto& geometryDesc = geometryDescs[BottomLevelASType::House][i];
 
-        string geoName = "geo" + to_string(11 + i);
-        string meshName = "mesh" + to_string(11 + i);
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11+i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
-    }
+    //    string geoName = "geo" + to_string(11 + i);
+    //    string meshName = "mesh" + to_string(11 + i);
+    //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11+i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
+    //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+    //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+    //}
 
-   // geometryDescs[BottomLevelASType::Vase].resize(22, triangleDescTemplate);
+    geometryDescs[BottomLevelASType::SunTemple].resize(1057, triangleDescTemplate);
 
-   //// Seperate geometries for each object allows for seperate hit shaders.
-   //for (UINT i = 0; i < 22; i++)
-   //{
-   //    auto& geometryDesc = geometryDescs[BottomLevelASType::Vase][i];
+   // Seperate geometries for each object allows for seperate hit shaders.
+   for (UINT i = 0; i < 1057; i++)
+   {
+       auto& geometryDesc = geometryDescs[BottomLevelASType::SunTemple][i];
 
-   //    string geoName = "geo" + to_string(i +33);
-   //    string meshName = "mesh" + to_string(i + 33);
-   //    geometryDesc.Triangles.IndexBuffer = m_indexBuffer[33 + i].resource->GetGPUVirtualAddress();
-   //    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[33 + i].resource->GetGPUVirtualAddress();
-   //    geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
-   //    geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
-   //}
+       string geoName = "geo" + to_string(i +11);
+       string meshName = "mesh" + to_string(i + 11);
+       geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11 + i].resource->GetGPUVirtualAddress();
+       geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
+       geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+       geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+   }
 }
 
 void Room::BuildShaderTables()
@@ -988,12 +991,62 @@ void Room::BuildShaderTables()
             }
         }
 
-        // House
+        //// House
+        //{
+        //    LocalRootSignature::Triangle::RootArguments rootArgs;
+
+        //    // Create a shader record for each primitive.
+        //    for (UINT instanceIndex = 0; instanceIndex < 22; instanceIndex++)
+        //    {
+        //        rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 11];
+        //        rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
+        //        auto ib = m_indexBuffer[instanceIndex + 11].gpuDescriptorHandle;
+        //        auto vb = m_vertexBuffer[instanceIndex + 11].gpuDescriptorHandle;
+        //        auto texture = m_stoneTexture[(instanceIndex + 11) % 3].gpuDescriptorHandle;
+        //        memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
+        //        memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
+        //        memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
+
+        //        // Ray types
+        //        for (UINT r = 0; r < RayType::Count; r++)
+        //        {
+        //            auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
+        //            hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+        //        }
+        //    }
+        //}
+
+       // // Medieval
+       //{
+       //    LocalRootSignature::Triangle::RootArguments rootArgs;
+
+       //    // Create a shader record for each primitive.
+       //    for (UINT instanceIndex = 0; instanceIndex < 7; instanceIndex++)
+       //    {
+       //        rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 33];
+       //        rootArgs.triangleCB.instanceIndex = instanceIndex + 33;
+       //        auto ib = m_indexBuffer[instanceIndex + 33].gpuDescriptorHandle;
+       //        auto vb = m_vertexBuffer[instanceIndex + 33].gpuDescriptorHandle;
+       //        auto texture = m_stoneTexture[(instanceIndex + 33) % 3].gpuDescriptorHandle;
+       //        memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
+       //        memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
+       //        memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
+
+       //        // Ray types
+       //        for (UINT r = 0; r < RayType::Count; r++)
+       //        {
+       //            auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
+       //            hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+       //        }
+       //    }
+       //}
+
+        // SunTemple
         {
             LocalRootSignature::Triangle::RootArguments rootArgs;
 
             // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < 22; instanceIndex++)
+            for (UINT instanceIndex = 0; instanceIndex < 1057; instanceIndex++)
             {
                 rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 11];
                 rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
@@ -1012,31 +1065,6 @@ void Room::BuildShaderTables()
                 }
             }
         }
-
-        //// Vase
-        //{
-        //    LocalRootSignature::Triangle::RootArguments rootArgs;
-
-        //    // Create a shader record for each primitive.
-        //    for (UINT instanceIndex = 0; instanceIndex < 22; instanceIndex++)
-        //    {
-        //        rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 33];
-        //        rootArgs.triangleCB.instanceIndex = instanceIndex + 33;
-        //        auto ib = m_indexBuffer[instanceIndex + 33].gpuDescriptorHandle;
-        //        auto vb = m_vertexBuffer[instanceIndex + 33].gpuDescriptorHandle;
-        //        auto texture = m_stoneTexture[(instanceIndex + 33) % 3].gpuDescriptorHandle;
-        //        memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-        //        memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-        //        memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-        //        // Ray types
-        //        for (UINT r = 0; r < RayType::Count; r++)
-        //        {
-        //            auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-        //            hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-        //        }
-        //    }
-        //}
       
         hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
         m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
@@ -1288,13 +1316,19 @@ void Room::UpdateTrianglePrimitiveAttributes(float animationTime)
         SetTransformForTriangle2(offset + LampsGeometry::LampMesh3 + 7, mScale025, mIdentity, mIdentity);
         SetTransformForTriangle2(offset + LampsGeometry::LampMesh4 + 7, mScale025, mIdentity, mIdentity);
 
-        for (int i = 0; i < 22; i++) {
+   /*     for (int i = 0; i < 22; i++) {
             SetTransformForTriangle2(offset + HouseGeometry::HouseMesh1 + i + 11, mScale025, mIdentity, mIdentity);
+        }*/
+
+
+        //for (int i = 0; i < 7; i++) {
+        //    SetTransformForTriangle2(i + 33, mScale025, mIdentity, mIdentity);
+        //}
+
+        for (int i = 0; i < 1057; i++) {
+            SetTransformForTriangle2(i + 11, mScale025, mIdentity, mIdentity);
         }
 
-        for (int i = 0; i < 22; i++) {
-            SetTransformForTriangle2(i + 33, mScale025, mIdentity, mIdentity);
-        }
         
         offset += TriangleGeometry::Count;
     }
@@ -1338,7 +1372,7 @@ void Room::InitializeScene()
         // Table
         for (int i = 0; i < 4; i++)
         {
-            SetAttributes2(i+ 3, XMFLOAT4(1.000f, 0.0f, 0.0f, 1.000f), 0.8f, 0.5f, 1.0f, 1.0f);
+            SetAttributes2(i+ 3, XMFLOAT4(1.000f, 0.0f, 0.0f, 1.000f), 0.8f, 0.01f, 1.0f, 1.0f);
         }
 
         // Lamp
@@ -1347,10 +1381,22 @@ void Room::InitializeScene()
             SetAttributes2(i + 7, XMFLOAT4(0.000f, 0.5f, 0.836f, 1.000f), 0.8f, 0.5f, 1.0f, 1.0f);
         }
      
-        // House
-        for (int i = 0; i < 22; i++)
+        //// House
+        //for (int i = 0; i < 22; i++)
+        //{
+        //    SetAttributes2(HouseGeometry::HouseMesh1 + i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
+        //}
+
+       // // Medieval
+       //for (int i = 0; i < 7; i++)
+       //{
+       //    SetAttributes2(i + 33, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
+       //}
+
+        // SunTemple
+        for (int i = 0; i < 1057; i++)
         {
-            SetAttributes2(HouseGeometry::HouseMesh1 + i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
+            SetAttributes2(i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
         }
     }
 
@@ -1839,11 +1885,11 @@ void Room::BuildAccelerationStructures()
     // Build top-level AS.
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
 
-    m_stoneTexture[0].heapIndex = AllGeometry::Count * 2 + 44 + 1;
+    m_stoneTexture[0].heapIndex = 3000 + 1;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
-    m_stoneTexture[1].heapIndex = AllGeometry::Count * 2  + 44 + 2;
+    m_stoneTexture[1].heapIndex = 3000 + 2;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
-    m_stoneTexture[2].heapIndex = AllGeometry::Count * 2 + 44 + 3;
+    m_stoneTexture[2].heapIndex = 3000 + 3;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
 
     // Kick off acceleration structure construction.
@@ -1905,7 +1951,8 @@ AccelerationStructureBuffers Room::BuildTopLevelAS(AccelerationStructureBuffers 
             bottomLevelAS[3].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[4].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[5].accelerationStructure->GetGPUVirtualAddress(),
-            //bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(),
+            //bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(), // Medieval
+            bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(), // Sun Temple
         };
         BuildBottomLevelASInstanceDescs<D3D12_RAYTRACING_INSTANCE_DESC>(bottomLevelASaddresses, &instanceDescsResource);
     }
@@ -2038,45 +2085,85 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
     }
 
-    // House
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::House];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = 11 * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::House];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(7.5f, -4.5f, -20.0f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(6.0f, 6.0f, 6.0f);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
-        XMMATRIX mTransform = mScale * mRotation * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    //// Vase
+    //// House
     //{
-    //    auto& instanceDesc = instanceDescs[BottomLevelASType::Vase];
+    //    auto& instanceDesc = instanceDescs[BottomLevelASType::House];
     //    instanceDesc = {};
     //    instanceDesc.InstanceMask = 1;
-    //    instanceDesc.InstanceContributionToHitGroupIndex = 38 * RayType::Count;
-    //    instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Vase];
+    //    instanceDesc.InstanceContributionToHitGroupIndex = 11 * RayType::Count;
+    //    instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::House];
 
     //    // Calculate transformation matrix.
-    //    auto position = XMFLOAT3(0.5f, 0.0f, 1.0f);
+    //    auto position = XMFLOAT3(7.5f, -4.5f, -20.0f);
     //    const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
     //    // Scale in all dimensions.
-    //    XMMATRIX mScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+    //    XMMATRIX mScale = XMMatrixScaling(6.0f, 6.0f, 6.0f);
     //    XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
     //    XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
     //    XMMATRIX mTransform = mScale * mRotation * mTranslation;
     //    XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
     //}
+
+   // // Warehouse
+   //{
+   //    auto& instanceDesc = instanceDescs[BottomLevelASType::SunTemple];
+   //    instanceDesc = {};
+   //    instanceDesc.InstanceMask = 1;
+   //    instanceDesc.InstanceContributionToHitGroupIndex = 33 * RayType::Count;
+   //    instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::SunTemple];
+
+   //    // Calculate transformation matrix.
+   //    auto position = XMFLOAT3(0.5f, 0.0f, 1.0f);
+   //    const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
+
+   //    // Scale in all dimensions.
+   //    XMMATRIX mScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+   //    XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
+   //    XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
+   //    XMMATRIX mTransform = mScale * mRotation * mTranslation;
+   //    XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
+   //}
+
+   //// Medieval
+   //{
+   //    auto& instanceDesc = instanceDescs[BottomLevelASType::SunTemple];
+   //    instanceDesc = {};
+   //    instanceDesc.InstanceMask = 1;
+   //    instanceDesc.InstanceContributionToHitGroupIndex = 33 * RayType::Count;
+   //    instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::SunTemple];
+
+   //    // Calculate transformation matrix.
+   //    auto position = XMFLOAT3(0.5f, 0.0f, 1.0f);
+   //    const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
+
+   //    // Scale in all dimensions.
+   //    XMMATRIX mScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+   //    XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
+   //    XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
+   //    XMMATRIX mTransform = mScale * mRotation * mTranslation;
+   //    XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
+   //}
+
+    // Sun Temple
+    {
+        auto& instanceDesc = instanceDescs[BottomLevelASType::SunTemple];
+        instanceDesc = {};
+        instanceDesc.InstanceMask = 1;
+        instanceDesc.InstanceContributionToHitGroupIndex = 11 * RayType::Count;
+        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::SunTemple];
+
+        // Calculate transformation matrix.
+        auto position = XMFLOAT3(0.0f, -5.0f, 210.0f);
+        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
+
+        // Scale in all dimensions.
+        XMMATRIX mScale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
+        XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
+        XMMATRIX mTransform = mScale * mRotation * mTranslation;
+        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
+    }
 
 
 
