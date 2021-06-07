@@ -1,13 +1,12 @@
 Simple real-time pathtracer built based on the Microsoft's DXR samples.
+![Zrzut ekranu 2021-06-07 101429](https://user-images.githubusercontent.com/8358987/120984393-e95c2600-c77a-11eb-9a20-16ce6afe8637.png)
+![Zrzut ekranu 2021-06-07 100825](https://user-images.githubusercontent.com/8358987/120984442-f2e58e00-c77a-11eb-9bb6-b29f8ba6346f.png)
+![Zrzut ekranu 2021-06-07 100303](https://user-images.githubusercontent.com/8358987/120984462-f6791500-c77a-11eb-852c-eeef6d2e894d.png)
+![Zrzut ekranu 2021-06-07 100611](https://user-images.githubusercontent.com/8358987/120984468-f842d880-c77a-11eb-8616-f6f0e0fb023a.png)
 
 Features include:
-Stochastic fuzzy reflections
-![Desktop Screenshot 2021 05 13 - 18 24 10 97](https://user-images.githubusercontent.com/8358987/118526381-772a8f80-b740-11eb-9d75-1fc90a2f1f32.png)
+Stochastic reflections
 Stochastic soft shadows
-![Desktop Screenshot 2021 05 13 - 18 24 25 41](https://user-images.githubusercontent.com/8358987/118526491-96292180-b740-11eb-9895-f3202aa23a57.png)
 Diffuse interreflections
-![Desktop Screenshot 2021 05 13 - 18 24 51 45](https://user-images.githubusercontent.com/8358987/118526557-a7722e00-b740-11eb-9e15-2994ec824887.png)
-Delta-distributed reflections with fully physically based renderer
-![Desktop Screenshot 2021 05 13 - 18 25 41 66](https://user-images.githubusercontent.com/8358987/118526658-c53f9300-b740-11eb-8e41-46a87eb79b59.png)
+PBR materials
 Textures and intricate geometry
-![screen](https://user-images.githubusercontent.com/8358987/119616792-4d88fc80-be01-11eb-8cad-94f0dc90c211.png)
