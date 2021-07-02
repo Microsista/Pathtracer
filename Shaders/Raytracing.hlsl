@@ -61,7 +61,7 @@ float3 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
 }
 
 // Trace a shadow ray and return true if it hits any geometry.
-bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
+bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, float3 N)
 {
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
@@ -95,20 +95,21 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
     // Set the initial value to true since closest and any hit shaders are skipped. 
     // Shadow miss shader, if called, will set it to false.
     ShadowRayPayload shadowPayload = { true };
-    TraceRay(g_scene,
-        RAY_FLAG_CULL_BACK_FACING_TRIANGLES
-        | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
-        | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
-        | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
-        TraceRayParameters::InstanceMask,
-        TraceRayParameters::HitGroup::Offset[RayType::Shadow],
-        TraceRayParameters::HitGroup::GeometryStride,
-        TraceRayParameters::MissShader::Offset[RayType::Shadow],
-        rayDesc, shadowPayload);
+   /* if (dot(ray.direction, N) > 0) {*/
+        TraceRay(g_scene,
+            RAY_FLAG_CULL_BACK_FACING_TRIANGLES
+            | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
+            | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
+            | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
+            TraceRayParameters::InstanceMask,
+            TraceRayParameters::HitGroup::Offset[RayType::Shadow],
+            TraceRayParameters::HitGroup::GeometryStride,
+            TraceRayParameters::MissShader::Offset[RayType::Shadow],
+            rayDesc, shadowPayload);
+    //}
 
     return shadowPayload.hit;
 }
-
 
 //nshade
 float3 Shade(
@@ -139,14 +140,15 @@ float3 Shade(
         // Compute coordinate system for sphere sampling. [PBR, 14.2.2] 
         Ray shadowRay = { hitPosition, g_sceneCB.lightPosition.xyz - hitPosition };
         // Trace a shadow ray.
-        bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
-
+        bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth, N);
         //
         // Diffuse and specular
         //
         float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
         
         L += BxDF::DirectLighting::Shade(l_materialCB.albedo, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
+
+
     //}
     //
     // INDIRECT ILLUMINATION
@@ -156,7 +158,7 @@ float3 Shade(
     // Ambient
     //
     
-    L += g_sceneCB.lightAmbientColor;
+    //L += g_sceneCB.lightAmbientColor;
 
     //
     // Reflected component

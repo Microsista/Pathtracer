@@ -194,10 +194,12 @@ namespace BxDF {
         float3 Shade(in float3 Albedo, in float3 N, in float3 L, in float3 V, in bool inShadow, SceneConstantBuffer g_sceneCB, in float Radiance = 1.0, in float Fo = 0.1, in float Roughness = 0.0)
         {
             float3 directLighting = 0;
-
+            if (dot(N, V) < 0)
+                N *= -1;
             float NoL = dot(N, L);
             if (!inShadow && NoL > 0)
             {
+              
                 float3 directDiffuse = 0;
                 if (!IsBlack(Albedo))
                 {
