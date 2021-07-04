@@ -11,6 +11,24 @@
 // referenced by the GPU.
 using Microsoft::WRL::ComPtr;
 
+//void print(double var) {
+//    std::ostringstream ss;
+//    ss << var;
+//    std::string s(ss.str());
+//    s += "\n";
+//
+//    OutputDebugStringA(s.c_str());
+//}
+
+//void print(std::string str) {
+//    std::ostringstream ss;
+//    ss << str;
+//    std::string s(ss.str());
+//    s += "\n";
+//
+//    OutputDebugStringA(s.c_str());
+//}
+
 class HrException : public std::runtime_error
 {
     inline std::string HrToString(HRESULT hr)
@@ -520,3 +538,28 @@ inline void LoadDDSTexture(
 {
     LoadDDSTexture(device, commandList, filename, descriptorHeap, &tex->resource, &tex->upload, &tex->heapIndex, &tex->cpuDescriptorHandle, &tex->gpuDescriptorHandle, srvDimension);
 }
+
+struct Material {
+    Material() {}
+
+    unsigned int id;
+
+    std::string newmtl;
+    float Ns;
+    DirectX::XMFLOAT3 Ka;
+    DirectX::XMFLOAT3 Kd;
+    DirectX::XMFLOAT3 Ks;
+    DirectX::XMFLOAT3 Ke;
+    float Ni;
+    float d;
+    float illum;
+    std::string map_Bump;
+    std::string map_Kd;
+    std::string map_Ks;
+};
+
+struct AssimpTexture {
+    unsigned int id;
+    std::string type;
+    std::string path;
+};

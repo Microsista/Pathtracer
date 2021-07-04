@@ -9,6 +9,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "DXSampleHelper.h"
+
+
+
 class GeometryGenerator
 {
 public:
@@ -44,16 +48,21 @@ public:
 		DirectX::XMFLOAT2 TexC;
 	};
 
+
+	
+
 	struct MeshData
 	{
 		std::vector<Vertex> Vertices;
 		std::vector<uint32> Indices32;
+		Material Material;
 
 		MeshData(){}
 
-		MeshData(std::vector<Vertex> vert, std::vector<uint32> ind) {
+		MeshData(std::vector<Vertex> vert, std::vector<uint32> ind, ::Material mat) {
 			Vertices = vert;
 			Indices32 = ind;
+			Material = mat;
 		}
 
 		std::vector<uint16>& GetIndices16()
@@ -77,6 +86,7 @@ public:
 	void processNode(aiNode* node, const aiScene* scene);
 
 	void loadModel(std::string path, unsigned int flags);
+
 
 	std::vector<GeometryGenerator::MeshData> LoadModel(std::string path, unsigned int flags);
 

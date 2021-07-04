@@ -53,6 +53,7 @@ public:
 		UINT StartIndexLocation = 0;
 		UINT VertexCount = 0;
 		INT BaseVertexLocation = 0;
+		Material Material;
 
 		// bounding box of the geometry defined by this submesh
 		DirectX::BoundingBox Bounds;

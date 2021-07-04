@@ -164,4 +164,9 @@ private:
     /*D3DTexture* m_textureBuffer;*/
     //D3DBuffer* m_textureBuffer;
     D3DTexture m_stoneTexture[3];
+    D3DTexture m_templeTextures[500];
+
+    //std::vector<Material> m_materials;
+
+    std::unordered_map<int, Material> m_materials;
 };

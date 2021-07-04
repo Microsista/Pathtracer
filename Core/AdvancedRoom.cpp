@@ -19,6 +19,24 @@ const wchar_t* Room::c_hitGroupNames_TriangleGeometry[] = {
     L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay"
 };
 
+void print(double var) {
+    std::ostringstream ss;
+    ss << var;
+    std::string s(ss.str());
+    s += "\n";
+
+    OutputDebugStringA(s.c_str());
+}
+
+void print(std::string str) {
+    std::ostringstream ss;
+    ss << str;
+    std::string s(ss.str());
+    s += "\n";
+
+    OutputDebugStringA(s.c_str());
+}
+
 void Room::CreateRootSignatures()
 {
     auto device = m_deviceResources->GetD3DDevice();
@@ -148,6 +166,7 @@ void Room::BuildModel(string path, UINT flags, bool usesTextures = false) {
         MeshGeometry::Submesh submesh{};
         submesh.IndexCount = meshes[j].Indices32.size();
         submesh.VertexCount = meshes[j].Vertices.size();
+        submesh.Material = meshes[j].Material;
     
         vector<VertexPositionNormalTextureTangent> vertices(meshes[j].Vertices.size());
         for (size_t i = 0; i < meshes[j].Vertices.size(); ++i) {
@@ -1051,7 +1070,12 @@ void Room::BuildShaderTables()
                 rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
                 auto ib = m_indexBuffer[instanceIndex + 11].gpuDescriptorHandle;
                 auto vb = m_vertexBuffer[instanceIndex + 11].gpuDescriptorHandle;
-                auto texture = m_stoneTexture[(instanceIndex + 11) % 3].gpuDescriptorHandle;
+
+                string geoName = "geo" + to_string(instanceIndex + 11);
+                string meshName = "mesh" + to_string(instanceIndex + 11);
+                Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
+
+                auto texture = m_templeTextures[m.id-1].gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                 memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
@@ -1248,6 +1272,9 @@ void Room::OnInit()
     InitializeScene();
 
     CreateDeviceDependentResources();
+
+    
+    
     CreateWindowSizeDependentResources();
 }
 
@@ -1392,10 +1419,18 @@ void Room::InitializeScene()
        //    SetAttributes2(i + 33, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
        //}
 
+
+        
+
         // SunTemple
         for (int i = 0; i < 1057; i++)
         {
-            SetAttributes2(i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
+           /* string geoName = "geo" + to_string(i + 11);
+            string meshName = "mesh" + to_string(i + 11);
+            Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
+ 
+            SetAttributes2(i + 11, XMFLOAT4(m.Kd.x, m.Kd.y, m.Kd.z, 1.0f), 0.01f, 0.5f, 1.0f, 1.0f);*/
+            //SetAttributes2(i + 11, XMFLOAT4(1.000f, 0.0f, 0.0f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
         }
     }
 
@@ -1403,7 +1438,7 @@ void Room::InitializeScene()
     {
         m_camera.SetPosition(0.0f, 2.0f, -15.0f);
         m_eye = { 0.0f, 1.6f, -10.0f, 1.0f };
-        m_at = { 0.0f, 0.0f, 0.0f, 1.0f };
+        m_at = { 0.0f, 0.0f, 0.0f, 1.0f };  
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
         XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
@@ -1468,6 +1503,35 @@ void Room::CreateDeviceDependentResources()
 
     // Build geometry to be used in the sample.
     BuildGeometry();
+
+    auto SetAttributes2 = [&](
+        UINT primitiveIndex,
+        const XMFLOAT4& albedo,
+        float metalness = 0.7f,
+        float roughness = 0.0f,
+        float stepScale = 1.0f,
+        float shaded = 1.0f)
+    {
+        auto& attributes = m_triangleMaterialCB[primitiveIndex];
+        attributes.albedo = albedo;
+        attributes.reflectanceCoef = metalness;
+        attributes.diffuseCoef = 1 - metalness;
+        attributes.metalness = metalness;
+        attributes.roughness = roughness;
+        attributes.stepScale = stepScale;
+        attributes.shaded = shaded;
+    };
+    // SunTemple
+    for (int i = 0; i < 1057; i++)
+    {
+
+         string geoName = "geo" + to_string(i + 11);
+         string meshName = "mesh" + to_string(i + 11);
+         Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
+
+         SetAttributes2(i + 11, XMFLOAT4(m.Kd.x, m.Kd.y, m.Kd.z, 1.0f), m.Ks.x, m.Ns, 1.0f, 1.0f);
+       
+    }
 
     // Build raytracing acceleration structures from the generated geometry.
     BuildAccelerationStructures();
@@ -1890,6 +1954,46 @@ void Room::BuildAccelerationStructures()
     LoadDDSTexture(device, commandList, L".\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
     m_stoneTexture[2].heapIndex = 3000 + 3;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
+    std::vector<int> included;
+    for (UINT i = 0; i < 1057; i++)
+    {
+        string geoName = "geo" + to_string(i + 11);
+        string meshName = "mesh" + to_string(i + 11);
+
+
+        int key = m_geometries[geoName]->DrawArgs[meshName].Material.id;
+        
+
+        if (std::find(included.begin(), included.end(), key) != included.end()) {
+            std::cout << "Element found";
+        }
+        else {
+            std::cout << "Element not found";
+            m_materials[key] = m_geometries[geoName]->DrawArgs[meshName].Material;
+            included.push_back(key);
+        }
+    }
+    
+    for (int i = 0; i < m_materials.size(); i++) {
+        string base = ".\\Models\\SunTemple\\Textures";
+        string add = m_materials[i].map_Kd;
+
+        std::size_t pos = add.find("\\");
+        std::string str3 = add.substr(pos + 1);
+        string path = base + str3;
+        //print(m_materials[i+1].id);
+        //print(path);
+        
+       
+        if(add != "")
+            LoadDDSTexture(device, commandList, wstring(path.begin(), path.end()).c_str(), m_descriptorHeap.get(), &m_templeTextures[i]);
+    }
+
+    for (int i = 0; i < 49; i++) {
+        print(m_materials[i+1].id);
+        print(m_materials[i+1].map_Kd);
+    }
+
 
     // Kick off acceleration structure construction.
     m_deviceResources->ExecuteCommandList();
