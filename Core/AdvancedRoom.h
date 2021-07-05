@@ -39,7 +39,6 @@ public:
 
 private:
     void UpdateCameraMatrices();
-    void UpdateTrianglePrimitiveAttributes(float animationTime);
     void InitializeScene();
     void RecreateD3D();
     void DoRaytracing();

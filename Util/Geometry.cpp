@@ -6,7 +6,23 @@
 using namespace DirectX;
 using namespace std;
 
+void print2(double var) {
+	std::ostringstream ss;
+	ss << var;
+	std::string s(ss.str());
+	s += "\n";
 
+	OutputDebugStringA(s.c_str());
+}
+
+void print2(std::string str) {
+	std::ostringstream ss;
+	ss << str;
+	std::string s(ss.str());
+	s += "\n";
+
+	OutputDebugStringA(s.c_str());
+}
 
 // checks all material textures of a given type and loads the textures if they're not loaded yet.
 	// the required info is returned as a Texture struct.
@@ -110,17 +126,36 @@ GeometryGenerator::MeshData GeometryGenerator::processMesh(aiMesh* mesh, const a
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		
 		aiColor3D color;
+		ai_real real;
 
 		// Read mtl file vertex data
 		material->Get(AI_MATKEY_COLOR_AMBIENT, color);
 		mat.Ka = XMFLOAT3(color.r, color.g, color.b);
+		mat.Ka = XMFLOAT3(0, 0, 0);
+
+		print2("AMBIENT");
+		print2(color.r);
+		print2(color.g);
+		print2(color.b);
+
 		material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 		mat.Kd = XMFLOAT3(color.r, color.g, color.b);
 
+		print2("DIFFUSE");
+		print2(color.r);
+		print2(color.g);
+		print2(color.b);
+
 		material->Get(AI_MATKEY_COLOR_SPECULAR, color);
-		mat.Ks = XMFLOAT3(color.r/3, color.g/3, color.b/3); // metalness
-		material->Get(AI_MATKEY_SHININESS, color); // roughness
-		mat.Ns = color.r / 400;
+		mat.Ks = XMFLOAT3(color.r, color.g, color.b); // metalness, F0
+		mat.Ks = XMFLOAT3(color.r/5, color.g/5, color.b/5); // metalness, F0
+		print2("SPECULAR/METALNESS");
+		print2(color.r);
+		print2(color.g);
+		print2(color.b);
+
+		material->Get(AI_MATKEY_SHININESS, real); // roughness
+		mat.Ns = 1- (real / 100);
 
 		//material->Get(AI_MATKEY_TEXTURE_DIFFUSE, 1, 1, )
 

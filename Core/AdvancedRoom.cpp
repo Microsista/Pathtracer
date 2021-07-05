@@ -161,7 +161,7 @@ void Room::BuildModel(string path, UINT flags, bool usesTextures = false) {
 
     GeometryGenerator geoGen;
     vector<GeometryGenerator::MeshData> meshes = geoGen.LoadModel(path, flags);
-
+    print(meshes.size());
     for (auto j = 0; j < meshes.size(); j++) {
         MeshGeometry::Submesh submesh{};
         submesh.IndexCount = meshes[j].Indices32.size();
@@ -351,7 +351,9 @@ void Room::BuildGeometry()
 
     BuildModel(".\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
     BuildModel(".\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
-    BuildModel(".\\Models\\SunTemple\\SunTemple.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);    
+    //BuildModel(".\\Models\\SunTemple\\SunTemple.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);    
+    BuildModel(".\\Models\\SunTemple\\SunTemple.fbx", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    print("Geometry built successfully.");
 }
 
 void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs)
@@ -457,10 +459,10 @@ void Room::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
 
     }
 
-    geometryDescs[BottomLevelASType::SunTemple].resize(1057, triangleDescTemplate);
+    geometryDescs[BottomLevelASType::SunTemple].resize(1056, triangleDescTemplate);
 
     // Seperate geometries for each object allows for seperate hit shaders.
-    for (UINT i = 0; i < 1057; i++)
+    for (UINT i = 0; i < 1056; i++)
     {
         auto& geometryDesc = geometryDescs[BottomLevelASType::SunTemple][i];
 
@@ -672,7 +674,7 @@ void Room::BuildShaderTables()
             LocalRootSignature::Triangle::RootArguments rootArgs;
 
             // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < 1057; instanceIndex++)
+            for (UINT instanceIndex = 0; instanceIndex < 1056; instanceIndex++)
             {
                 rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 11];
                 rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
@@ -683,7 +685,7 @@ void Room::BuildShaderTables()
                 string meshName = "mesh" + to_string(instanceIndex + 11);
 
                 Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
-                auto texture = m_templeTextures[m.id-1].gpuDescriptorHandle;
+                auto texture = m_templeTextures[m.id].gpuDescriptorHandle;
 
 
 
@@ -913,64 +915,6 @@ void Room::UpdateCameraMatrices()
 
 }
 
-void Room::UpdateTrianglePrimitiveAttributes(float animationTime)
-{
-    auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
-
-    XMMATRIX mIdentity = XMMatrixIdentity();
-
-    XMMATRIX mScale15y = XMMatrixScaling(1, 1.5, 1);
-    XMMATRIX mScaleMirror = XMMatrixScaling(0.1, 1.5, 1);
-    XMMATRIX mRotationMirror = XMMatrixRotationZ(XMConvertToRadians(22.5));
-    XMMATRIX mScale15 = XMMatrixScaling(1.5, 1.5, 1.5);
-    XMMATRIX mScale025 = XMMatrixScaling(0.25, 0.25, 0.25);
-    XMMATRIX mScale2 = XMMatrixScaling(2, 2, 2);
-    XMMATRIX mScale3 = XMMatrixScaling(3, 3, 3);
-
-    XMMATRIX mRotation = XMMatrixRotationY(-2 * animationTime);
-
-    XMMATRIX mTranslation = XMMatrixTranslation(0.0f, 2.5f, 0.0f);
-
-    auto SetTransformForTriangle2 = [&](UINT primitiveIndex, XMMATRIX& mScale, XMMATRIX& mRotation, XMMATRIX& mTranslation)
-    {
-        XMMATRIX mTransform = mScale * mRotation * mTranslation;
-        m_trianglePrimitiveAttributeBuffer[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
-        m_trianglePrimitiveAttributeBuffer[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
-    };
-
-    UINT offset = 0;
-    {
-        
-        SetTransformForTriangle2(offset + TriangleGeometry::Room, mScaleMirror, mRotationMirror, mTranslation);
-        SetTransformForTriangle2(offset + CoordinateGeometry::Coordinates+1, mScale15, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + SkullGeometry::Skull+2, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + TableGeometry::ModelMesh1 + 3, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + TableGeometry::ModelMesh2 + 3, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + TableGeometry::ModelMesh3 + 3, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + TableGeometry::ModelMesh4 + 3, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh1 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh2 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh3 + 7, mScale025, mIdentity, mIdentity);
-        SetTransformForTriangle2(offset + LampsGeometry::LampMesh4 + 7, mScale025, mIdentity, mIdentity);
-
-   /*     for (int i = 0; i < 22; i++) {
-            SetTransformForTriangle2(offset + HouseGeometry::HouseMesh1 + i + 11, mScale025, mIdentity, mIdentity);
-        }*/
-
-
-        //for (int i = 0; i < 7; i++) {
-        //    SetTransformForTriangle2(i + 33, mScale025, mIdentity, mIdentity);
-        //}
-
-        for (int i = 0; i < 1057; i++) {
-            SetTransformForTriangle2(i + 11, mScale025, mIdentity, mIdentity);
-        }
-
-        
-        offset += TriangleGeometry::Count;
-    }
-}
-
 void Room::InitializeScene()
 {
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
@@ -1133,33 +1077,37 @@ void Room::CreateDeviceDependentResources()
         attributes.shaded = shaded;
     };
     // SunTemple
-    for (int i = 0; i < 1057; i++)
+    for (int i = 0; i < 1056; i++)
     {
 
          string geoName = "geo" + to_string(i + 11);
          string meshName = "mesh" + to_string(i + 11);
          Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
-
          SetAttributes2(i + 11, XMFLOAT4(m.Kd.x, m.Kd.y, m.Kd.z, 1.0f), m.Ks.x, m.Ns, 1.0f, 1.0f);
        
     }
 
     // Build raytracing acceleration structures from the generated geometry.
     BuildAccelerationStructures();
+    print("Acceleration structures created successfully.");
 
     // Create constant buffers for the geometry and the scene.
     CreateConstantBuffers();
+    print("Constant buffers created successfully.");
 
     // Create triangle primitive attribute buffers.
     CreateTrianglePrimitiveAttributesBuffers();
+    print("Triangle primitive attributes created successfully.");
 
     // Build shader tables, which define shaders and their local root arguments.
     BuildShaderTables();
+    print("Shader tables created successfully.");
 
     // Create an output 2D texture to store the raytracing result to.
     CreateRaytracingOutputResource();
 
     m_denoiser.Setup(m_deviceResources, m_cbvSrvUavHeap);
+    print("Device-dependent resources created successfully.");
 }
 
 void Room::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName = nullptr)
@@ -1521,7 +1469,6 @@ void Room::OnUpdate()
     {
         m_animateGeometryTime += elapsedTime;
     }
-    UpdateTrianglePrimitiveAttributes(m_animateGeometryTime);
     m_sceneCB->elapsedTime = m_animateGeometryTime;
 }
 
@@ -1540,12 +1487,13 @@ void Room::BuildAccelerationStructures()
     array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count> geometryDescs;
     {
         BuildGeometryDescsForBottomLevelAS(geometryDescs);
-
+        print("GeoemtryDesc");
         // Build all bottom-level AS.
         for (UINT i = 0; i < BottomLevelASType::Count; i++)
         {
             bottomLevelAS[i] = BuildBottomLevelAS(geometryDescs[i]);
         }
+        print("Bottom-level AS");
     }
 
     // Batch all resource barriers for bottom-level AS builds.
@@ -1566,7 +1514,8 @@ void Room::BuildAccelerationStructures()
     m_stoneTexture[2].heapIndex = 3000 + 3;
     LoadDDSTexture(device, commandList, L".\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
     std::vector<int> included;
-    for (UINT i = 0; i < 1057; i++)
+    print("BEFORE LOAD");
+    for (UINT i = 0; i < 1056; i++)
     {
         string geoName = "geo" + to_string(i + 11);
         string meshName = "mesh" + to_string(i + 11);
@@ -1584,22 +1533,25 @@ void Room::BuildAccelerationStructures()
             included.push_back(key);
         }
     }
+    print("AFTER MATERIALS");
     
     for (int i = 0; i < m_materials.size(); i++) {
-        string base = ".\\Models\\SunTemple\\Textures";
+        string base = ".\\Models\\SunTemple\\Textures\\";
         string add = m_materials[i].map_Kd;
 
         std::size_t pos = add.find("\\");
         std::string str3 = add.substr(pos + 1);
         string path = base + str3;        
-       
+        print(path);
         if(add != "")
             LoadDDSTexture(device, commandList, wstring(path.begin(), path.end()).c_str(), m_descriptorHeap.get(), &m_templeTextures[i]);
     }
 
+    print("AFTER TEXTURES");
+
     for (int i = 0; i < 49; i++) {
-        print(m_materials[i+1].id);
-        print(m_materials[i+1].map_Kd);
+        print(m_materials[i + 1].id);
+        print(m_materials[i + 1].map_Kd);
     }
 
     // Kick off acceleration structure construction.
@@ -1661,7 +1613,6 @@ AccelerationStructureBuffers Room::BuildTopLevelAS(AccelerationStructureBuffers 
             bottomLevelAS[3].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[4].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[5].accelerationStructure->GetGPUVirtualAddress(),
-            //bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(), // Medieval
             bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress(), // Sun Temple
         };
         BuildBottomLevelASInstanceDescs<D3D12_RAYTRACING_INSTANCE_DESC>(bottomLevelASaddresses, &instanceDescsResource);
@@ -1808,7 +1759,7 @@ template <class InstanceDescType, class BLASPtrType> void Room::BuildBottomLevel
         const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
 
         // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+        XMMATRIX mScale = XMMatrixScaling(0.05f, 0.05f, 0.05f);
         XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
         XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
         XMMATRIX mTransform = mScale * mRotation * mTranslation;
