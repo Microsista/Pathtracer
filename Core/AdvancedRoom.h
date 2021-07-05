@@ -93,7 +93,6 @@ private:
     ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
 
     // Descriptors
-    //ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
     std::shared_ptr<DX::DescriptorHeap> m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
@@ -112,11 +111,8 @@ private:
     std::vector<Index> m_indices;
     D3DBuffer m_indexBuffer[NUM_BLAS];
     D3DBuffer m_vertexBuffer[NUM_BLAS];
-    //D3DBuffer m_coordinateSystemIndexBuffer;
-    //D3DBuffer m_coordinateSystemVertexBuffer;
     D3DBuffer m_aabbBuffer;
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
-    //std::map<std::wstring, BottomLevelAccelerationStructureGeometry> m_bottomLevelASGeometries;
 
     // Acceleration structure
     ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
@@ -161,12 +157,8 @@ private:
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
-    /*D3DTexture* m_textureBuffer;*/
-    //D3DBuffer* m_textureBuffer;
     D3DTexture m_stoneTexture[3];
     D3DTexture m_templeTextures[500];
-
-    //std::vector<Material> m_materials;
 
     std::unordered_map<int, Material> m_materials;
 };
