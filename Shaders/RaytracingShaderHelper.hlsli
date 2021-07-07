@@ -5,6 +5,8 @@
 
 #define INFINITY (1.0/0.0)
 
+
+
 struct Ray
 {
     float3 origin;
@@ -124,6 +126,8 @@ inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 
 
     return ray;
 }
+
+
 
 // Test if a hit is culled based on specified RayFlags.
 bool IsCulled(in Ray ray, in float3 hitSurfaceNormal)

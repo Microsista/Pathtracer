@@ -33,6 +33,7 @@ public:
     virtual void OnLeftButtonDown(UINT x, UINT y) override;
     virtual void OnUpdate();
     virtual void OnRender();
+    virtual void Compose();
     virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
     virtual void OnDestroy();
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
@@ -86,10 +87,13 @@ private:
     ComPtr<ID3D12Device5> m_dxrDevice;
     ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
     ComPtr<ID3D12StateObject> m_dxrStateObject;
+    ComPtr<ID3D12PipelineState> m_composePSO[1];
 
     // Root signatures
     ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
     ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    ComPtr<ID3D12RootSignature> m_composeRootSig;
+
 
     // Descriptors
     std::shared_ptr<DX::DescriptorHeap> m_descriptorHeap;
@@ -119,8 +123,14 @@ private:
 
     // Raytracing output
     ComPtr<ID3D12Resource> m_raytracingOutput;
+    ComPtr<ID3D12Resource> m_reflectionBuffer;
+    ComPtr<ID3D12Resource> m_shadowBuffer;
     D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
     UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
+    UINT m_reflectionBufferResourceUAVDescriptorHeapIndex;
+    UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
 
     // Shader tables
     static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
@@ -154,6 +164,7 @@ private:
     Denoiser m_denoiser;
 
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
+    std::shared_ptr<DX::DescriptorHeap> m_composeHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
     D3DTexture m_stoneTexture[3];

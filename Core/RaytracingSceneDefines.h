@@ -9,6 +9,8 @@ namespace GlobalRootSignature {
             AccelerationStructure,
             SceneConstant,
             TriangleAttributeBuffer,
+            ReflectionBuffer,
+            ShadowBuffer,
             Count
         };
     }

@@ -16,6 +16,9 @@ static const float LIGHT_SIZE = 0.6f;
 // Global
 RaytracingAccelerationStructure g_scene : register(t0);
 RWTexture2D<float3> g_renderTarget : register(u0);
+RWTexture2D<float3> g_reflectionBuffer : register(u1);
+RWTexture2D<float3> g_shadowBuffer : register(u2);
+
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
 SamplerState LinearWrapSampler : register(s0);
@@ -131,25 +134,20 @@ float3 Shade(
     //
     // DIRECT ILLUMINATION
     // 
-    //if (!BxDF::IsBlack(Kd) || !BxDF::IsBlack(Ks))
-    //{
-        //
-        // Shadow component
-        //
 
-        // Compute coordinate system for sphere sampling. [PBR, 14.2.2] 
-        Ray shadowRay = { hitPosition, g_sceneCB.lightPosition.xyz - hitPosition };
-        // Trace a shadow ray.
-        bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth, N);
-        //
-        // Diffuse and specular
-        //
-        float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-        
-        L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
+    // Compute coordinate system for sphere sampling. [PBR, 14.2.2] 
+    Ray shadowRay = { hitPosition, g_sceneCB.lightPosition.xyz - hitPosition };
+    // Trace a shadow ray.
+    bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth, N);
+    uint2 DTID = DispatchRaysIndex().xy;
+    //
+    // Diffuse and specular
+    //
+    float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
+    shadowRayHit = false;
+    L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
 
 
-    //}
     //
     // INDIRECT ILLUMINATION
     //
@@ -171,90 +169,54 @@ float3 Shade(
     // don't cast reflection rays in that case.
     float smallValue = 1e-6f;
     isReflective = dot(V, N) > smallValue ? isReflective : false;
-
-    //if (isReflective /*|| isTransmissive*/)
+        
+    float3 Fo = Ks;
     {
-        //if (isReflective
-        //    && (BxDF::Specular::Reflection::IsTotalInternalReflection(V, N)
-        //        /*|| material.type == MaterialType::Mirror*/))
-        //{
-        //    RayPayload reflectedRayPayLoad = rayPayload;
-        //    //float3 wi = reflect(-V, N);
-        //    Ray reflectionRay = { HitWorldPosition(), reflect(WorldRayDirection(), N) };
-        //    float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, l_materialCB.albedo.xyz);
-        //    // Trace a reflection ray.
-        //    L += Kr * TraceRadianceRay(reflectionRay, rayPayload.recursionDepth) * fresnelR;
-        //    //L += Kr * TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
-        //   // UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Kr);
-        //}
-        //else // No total internal reflection
-        {
-            float3 Fo = Ks;
-            //if (isReflective)
-            {
-                // Radiance contribution from reflection.
-                float3 wi;
-                float3 Fr = Kr * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
+        // Radiance contribution from reflection.
+        float3 wi;
+        float3 Fr = Kr * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
+
+        // Fuzzy reflections
+        uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
+        uint RNGState = RNG::SeedThread(threadId);
+        float2 noiseUV = {
+            2 * RNG::Random01(RNGState) - 1,            // [0, 1) -> [-1, 1)
+            2 * RNG::Random01(RNGState) - 1
+        };
+
+        float4x4 objectToWorld = BuildInverseLookAtMatrix(hitPosition, normalize(wi));
 
 
-                // Fuzzy reflections
-                uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
-                uint RNGState = RNG::SeedThread(threadId);
-                float2 noiseUV = {
-                    2 * RNG::Random01(RNGState) - 1,            // [0, 1) -> [-1, 1)
-                    2 * RNG::Random01(RNGState) - 1
-                };
+        RayPayload reflectedRayPayLoad = rayPayload;
+        // Ref: eq 24.4, [Ray-tracing from the Ground Up]
+        Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
+        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Kd.xyz);
 
-                //float dist = length(ray.direction) - LIGHT_SIZE - 0.01;
-
-                float4x4 objectToWorld = BuildInverseLookAtMatrix(hitPosition, normalize(wi));
-
-
-                RayPayload reflectedRayPayLoad = rayPayload;
-                // Ref: eq 24.4, [Ray-tracing from the Ground Up]
-                Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
-                float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Kd.xyz);
-                // Trace a reflection ray.
-                L += Fr * TraceRadianceRay(reflectionRay, rayPayload.recursionDepth); // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
-                //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
-            }
-
-            //if (isTransmissive)
-            //{
-            //    // Radiance contribution from refraction.
-            //    float3 wt;
-            //    float3 Ft = Kt * BxDF::Specular::Transmission::Sample_Ft(V, wt, N, Fo);    // Calculates wt
-
-            //    PathtracerRayPayload refractedRayPayLoad = rayPayload;
-
-            //    L += Ft * TraceRefractedGBufferRay(hitPosition, wt, N, objectNormal, refractedRayPayLoad);
-            //    UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, refractedRayPayLoad, Ft);
-            //}
-        }
+        
+        // Trace a reflection ray.
+        g_reflectionBuffer[DTID] = Fr* TraceRadianceRay(reflectionRay, rayPayload.recursionDepth); // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
     }
 
     return l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
 }
 
-//***************************************************************************
-//********************------ Ray gen shader.. -------************************
-//***************************************************************************
-
 [shader("raygeneration")]
 void MyRaygenShader()
 {
+
     uint2 DTID = DispatchRaysIndex().xy;
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
- 
+
     // Cast a ray into the scene and retrieve a shaded color.
     UINT currentRecursionDepth = 0;
+    g_shadowBuffer[DTID] = float3(0, 0, 0);
     float3 color = TraceRadianceRay(ray, currentRecursionDepth);
-
-    // OUTPUT
+    
     g_renderTarget[DTID] = color;
-    //GBUFFER_POSITION[DTID] = 1 - color;
 }
+
 
 //***************************************************************************
 //******************------ Closest hit shaders -------***********************
@@ -311,6 +273,8 @@ void MyMissShader(inout RayPayload rayPayload)
 void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
 {
     rayPayload.hit = false;
+    uint2 DTID = DispatchRaysIndex().xy;
+    g_shadowBuffer[DTID] = float3(1.0f, 0.0f, 0.0f);
 }
 
 #endif // RAYTRACING_HLSL

@@ -1,6 +1,7 @@
 #include "../Core/stdafx.h"
 #include "AdvancedRoom.h"
 #include "../Obj/Debug/CompiledShaders/Raytracing.hlsl.h"
+#include "../Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "../Util/SimpleGeometry.h"
 #include "../Util/Geometry.h"
 #include "../Util/Texture.h"
@@ -46,12 +47,20 @@ void Room::CreateRootSignatures()
         CD3DX12_DESCRIPTOR_RANGE ranges[1] = {};
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
 
+        CD3DX12_DESCRIPTOR_RANGE ranges2[1] = {};
+        ranges2[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
+
+        CD3DX12_DESCRIPTOR_RANGE ranges3[1] = {};
+        ranges3[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignature::Slot::Count];
         rootParameters[GlobalRootSignature::Slot::OutputView].InitAsDescriptorTable(1, &ranges[0]);
         rootParameters[GlobalRootSignature::Slot::AccelerationStructure].InitAsShaderResourceView(0);
         rootParameters[GlobalRootSignature::Slot::SceneConstant].InitAsConstantBufferView(0);
         rootParameters[GlobalRootSignature::Slot::TriangleAttributeBuffer].InitAsShaderResourceView(4);
-
+        rootParameters[GlobalRootSignature::Slot::ReflectionBuffer].InitAsDescriptorTable(1, &ranges2[0]);
+        rootParameters[GlobalRootSignature::Slot::ShadowBuffer].InitAsDescriptorTable(1, &ranges3[0]);
+        
         CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] =
         {
             // LinearWrapSampler
@@ -59,7 +68,9 @@ void Room::CreateRootSignatures()
         };
 
         CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers);
+        print("damn");
         SerializeAndCreateRaytracingRootSignature(device, globalRootSignatureDesc, &m_raytracingGlobalRootSignature, L"Global root signature");
+        print("damn2");
     }
 
     using namespace LocalRootSignature::Triangle;
@@ -739,6 +750,8 @@ void Room::DoRaytracing()
 
         // Set index and successive vertex buffer decriptor tables.
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, m_reflectionBufferResourceUAVGpuDescriptor);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
     };
 
     commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
@@ -762,6 +775,8 @@ void Room::DoRaytracing()
 Room::Room(UINT width, UINT height, std::wstring name) :
     DXSample(width, height, name),
     m_raytracingOutputResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_reflectionBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_animateGeometryTime(0.0f),
     m_animateCamera(false),
     m_animateGeometry(true),
@@ -862,6 +877,7 @@ void Room::OnLeftButtonDown(UINT x, UINT y)
 
 void Room::OnInit()
 {
+    
     m_deviceResources = std::make_unique<DeviceResources>(
         DXGI_FORMAT_R8G8B8A8_UNORM,
         DXGI_FORMAT_UNKNOWN,
@@ -883,9 +899,7 @@ void Room::OnInit()
     m_deviceResources->CreateWindowSizeDependentResources();
 
     InitializeScene();
-
     CreateDeviceDependentResources();
-
     
     
     CreateWindowSizeDependentResources();
@@ -961,32 +975,6 @@ void Room::InitializeScene()
         {
             SetAttributes2(i + 7, XMFLOAT4(0.000f, 0.5f, 0.836f, 1.000f), 0.8f, 0.5f, 1.0f, 1.0f);
         }
-     
-        //// House
-        //for (int i = 0; i < 22; i++)
-        //{
-        //    SetAttributes2(HouseGeometry::HouseMesh1 + i + 11, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
-        //}
-
-       // // Medieval
-       //for (int i = 0; i < 7; i++)
-       //{
-       //    SetAttributes2(i + 33, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
-       //}
-
-
-        
-
-        // SunTemple
-        for (int i = 0; i < 1057; i++)
-        {
-           /* string geoName = "geo" + to_string(i + 11);
-            string meshName = "mesh" + to_string(i + 11);
-            Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
- 
-            SetAttributes2(i + 11, XMFLOAT4(m.Kd.x, m.Kd.y, m.Kd.z, 1.0f), 0.01f, 0.5f, 1.0f, 1.0f);*/
-            //SetAttributes2(i + 11, XMFLOAT4(1.000f, 0.0f, 0.0f, 1.000f), 0.01f, 0.5f, 1.0f, 1.0f);
-        }
     }
 
     // Setup camera.
@@ -1042,17 +1030,18 @@ void Room::CreateTrianglePrimitiveAttributesBuffers()
 
 void Room::CreateDeviceDependentResources()
 {
+    print("I'm here-2");
     CreateAuxilaryDeviceResources();
-
+    print("I'm here-1");
     // Create raytracing interfaces: raytracing device and commandlist.
     CreateRaytracingInterfaces();
-
+    print("I'm here0");
     // Create root signatures for the shaders.
     CreateRootSignatures();
-
+    print("I'm here");
     // Create a raytracing pipeline state object which defines the binding of shaders, state and resources to be used during raytracing.
     CreateRaytracingPipelineStateObject();
-
+    print("I'm here2");
     // Create a heap for descriptors.
     CreateDescriptorHeap();
 
@@ -1185,6 +1174,34 @@ void Room::CreateRaytracingOutputResource()
     UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
     device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
     m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
+
+    // Reflection buffer
+    ThrowIfFailed(device->CreateCommittedResource(
+        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_reflectionBuffer)));
+    NAME_D3D12_OBJECT(m_reflectionBuffer);
+    print("Resource Created");
+
+    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle2;
+    m_reflectionBufferResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle2, m_reflectionBufferResourceUAVDescriptorHeapIndex);
+    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc2 = {};
+    UAVDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    device->CreateUnorderedAccessView(m_reflectionBuffer.Get(), nullptr, &UAVDesc2, uavDescriptorHandle2);
+    m_reflectionBufferResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_reflectionBufferResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    print("all Created");
+
+    // Shadow buffer
+    ThrowIfFailed(device->CreateCommittedResource(
+        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_shadowBuffer)));
+    NAME_D3D12_OBJECT(m_shadowBuffer);
+    print("Resource Created");
+
+    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle3;
+    m_shadowBufferResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle3, m_shadowBufferResourceUAVDescriptorHeapIndex);
+    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc3 = {};
+    UAVDesc3.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    device->CreateUnorderedAccessView(m_shadowBuffer.Get(), nullptr, &UAVDesc3, uavDescriptorHandle3);
+    m_shadowBufferResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_shadowBufferResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    print("all Created");
 }
 
 void Room::UpdateForSizeChange(UINT width, UINT height)
@@ -1274,6 +1291,51 @@ void Room::RecreateD3D()
     m_deviceResources->HandleDeviceLost();
 }
 
+void Room::Compose()
+{
+    auto commandList = m_deviceResources->GetCommandList();
+    auto device = m_deviceResources->GetD3DDevice();
+
+
+
+    //create root sig
+    CD3DX12_DESCRIPTOR_RANGE ranges[3];
+    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+    ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
+
+    CD3DX12_ROOT_PARAMETER rootParameters[3];
+    rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
+    rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
+    rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
+
+
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+    SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
+
+
+
+    // create pso
+    D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
+    descComputePSO.pRootSignature = m_composeRootSig.Get();
+    descComputePSO.CS = CD3DX12_SHADER_BYTECODE((void*)g_pCompositionCS, ARRAYSIZE(g_pCompositionCS));
+
+    ThrowIfFailed(device->CreateComputePipelineState(&descComputePSO, IID_PPV_ARGS(&m_composePSO[0])));
+    m_composePSO[0]->SetName(L"PSO: CompositionCS");
+
+    commandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
+    commandList->SetComputeRootSignature(m_composeRootSig.Get());
+    commandList->SetPipelineState(m_composePSO[0].Get());
+    m_composePSO[0]->AddRef();
+
+    commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
+    commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
+
+    commandList->Dispatch(1280/8, 720/8, 1);
+
+}
+
 void Room::OnRender()
 {
     if (!m_deviceResources->IsWindowVisible())
@@ -1294,6 +1356,9 @@ void Room::OnRender()
     DoRaytracing();
 
     m_denoiser.Run(m_pathtracer/*, m_RTEffects*/);
+
+    // Here we have both m_raytracingOutput and m_reflectionBuffer, and we need to merge then into a single buffer
+    Compose();
 
     CopyRaytracingOutputToBackbuffer();
 

@@ -152,5 +152,8 @@
     <FxCompile Include="Shaders\Raytracing.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CompositionCS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
