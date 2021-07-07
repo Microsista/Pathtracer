@@ -9,6 +9,12 @@
 
 static const float LIGHT_SIZE = 0.6f;
 
+struct Info {
+    float4 color;
+    float inShadow;
+};
+
+
 //
 // Resources
 //
@@ -36,11 +42,14 @@ Texture2D<float3> l_texDiffuse : register(t3);
 //***************************************************************************
 
 // Trace a radiance ray into the scene and returns a shaded color.
-float3 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
+Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
 {
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
-        return float4(0, 0, 0, 0);
+        Info info3;
+        info3.color = float4(0, 0, 0, 0);
+        info3.inShadow = 0.0f;
+        return info3;
     }
 
     // Set the ray's extents.
@@ -51,7 +60,7 @@ float3 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float3(0, 0, 0), currentRayRecursionDepth + 1 };
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.0f };
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -59,8 +68,10 @@ float3 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
         TraceRayParameters::HitGroup::GeometryStride,
         TraceRayParameters::MissShader::Offset[RayType::Radiance],
         rayDesc, rayPayload);
-
-    return rayPayload.color;
+    Info info;
+    info.color = rayPayload.color;
+    info.inShadow = rayPayload.inShadow;
+    return info;
 }
 
 // Trace a shadow ray and return true if it hits any geometry.
@@ -115,7 +126,7 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
 }
 
 //nshade
-float3 Shade(
+Info Shade(
     float3 hitPosition,
     RayPayload rayPayload,
     float3 N,
@@ -123,7 +134,7 @@ float3 Shade(
 {
     float3 V = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
     float3 indirectContribution = 0;
-    float3 L = 0;
+    float4 L = 0;
   
     const float3 Kd = material.Kd;
     const float3 Ks = material.Ks;
@@ -144,9 +155,11 @@ float3 Shade(
     // Diffuse and specular
     //
     float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-    shadowRayHit = false;
-    L += BxDF::DirectLighting::Shade(Kd, N, wi, V, shadowRayHit, g_sceneCB, Kd, Ks, roughness);
-
+    L += float4(BxDF::DirectLighting::Shade(Kd, N, wi, V, false, g_sceneCB, Kd, Ks, roughness), 0.0f);
+    if (shadowRayHit)
+        L += float4(0.0f, 0.0f, 0.0f, 1.0f);
+    else
+        L += float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     //
     // INDIRECT ILLUMINATION
@@ -192,13 +205,23 @@ float3 Shade(
         Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
         float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Kd.xyz);
 
-        
+        Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
         // Trace a reflection ray.
-        g_reflectionBuffer[DTID] = Fr* TraceRadianceRay(reflectionRay, rayPayload.recursionDepth); // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        g_reflectionBuffer[DTID] = Fr* info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
         //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
     }
+    Info info;
+    info.color = L;
+    info.inShadow = shadowRayHit;
 
-    return l_materialCB.shaded == 1.0f ? L : l_materialCB.albedo;
+    Info info2;
+    info2.color = float4(l_materialCB.albedo.x, l_materialCB.albedo.y, l_materialCB.albedo.z, 0.0f);
+    info2.inShadow = shadowRayHit;
+    if (l_materialCB.shaded)
+        return info;
+    else
+        return info2;
+    //return  == 1.0f ? info : info2;
 }
 
 [shader("raygeneration")]
@@ -212,8 +235,11 @@ void MyRaygenShader()
     // Cast a ray into the scene and retrieve a shaded color.
     UINT currentRecursionDepth = 0;
     g_shadowBuffer[DTID] = float3(0, 0, 0);
-    float3 color = TraceRadianceRay(ray, currentRecursionDepth);
-    
+    Info info = TraceRadianceRay(ray, currentRecursionDepth);
+
+    float3 inShadow = info.inShadow;
+    float3 color = info.color;
+    g_shadowBuffer[DTID] = inShadow;
     g_renderTarget[DTID] = color;
 }
 
@@ -254,8 +280,9 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     float3 texSample = l_texDiffuse.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
     material.Kd = texSample;
     float3 hitPosition = HitWorldPosition();
-
-    rayPayload.color = Shade(hitPosition, rayPayload, localNormal, material);
+    Info info = Shade(hitPosition, rayPayload, localNormal, material);
+    rayPayload.color = info.color;
+    rayPayload.inShadow = info.inShadow;
 }
 
 //***************************************************************************
@@ -274,7 +301,6 @@ void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
 {
     rayPayload.hit = false;
     uint2 DTID = DispatchRaysIndex().xy;
-    g_shadowBuffer[DTID] = float3(1.0f, 0.0f, 0.0f);
 }
 
 #endif // RAYTRACING_HLSL
