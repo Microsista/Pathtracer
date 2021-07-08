@@ -1,174 +1,142 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{2c40c396-e4d4-4aa4-8efa-daf36f7648e3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Util">
-      <UniqueIdentifier>{0d166577-e69f-4d84-b102-f0f52e7fc777}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Util">
-      <UniqueIdentifier>{d09480f9-e2d4-4d7b-9b83-8c902c573d60}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Util\PerformanceTimers.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Camera.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\DeviceResources.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\DXSample.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Win32Application.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Geometry.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Math.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\AdvancedRoom.cpp" />
-    <ClCompile Include="Core\stdafx.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Main.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Denoiser.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\EngineTuning.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\Pathtracer.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\RTEffectsGpuKernels.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Util\PerformanceTimers.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\Camera.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="Core.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\d3dx12.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\DeviceResources.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="DeviceResources.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\DXSample.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="DirectXRaytracingHelper.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\DXSampleHelper.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="DXCore.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\HlslCompat.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="DXSampleHelper.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\Math.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="Geometry.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\StepTimer.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="HlslCompat.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\Win32Application.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="Math.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\SimpleGeometry.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="Mesh.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Util\Geometry.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Mesh.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Texture.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\GraphicsMemory.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\WicTextureLoader.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\AdvancedRoom.h" />
-    <ClInclude Include="Core\stdafx.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\RaytracingSceneDefines.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Shaders\RayTracingHlslCompat.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DirectXRaytracingHelper.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Composition.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Denoiser.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\EngineTuning.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\GpuResource.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\Pathtracer.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\RTEffects.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\RTEffectsGpuKernels.h">
-      <Filter>Util</Filter>
+    <ClInclude Include="PerformanceTimers.h">
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="range.hpp">
-      <Filter>Util</Filter>
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracingHlslCompat.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingSceneDefines.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="StepTimer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WicTextureLoader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32Application.h">
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\RaytracingShaderHelper.hlsli">
-      <Filter>Shaders\Util</Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{c00b4901-b39d-434c-9b50-936689304642}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL Header">
+      <UniqueIdentifier>{2e969269-d42d-4cca-a804-18f6e0b3bdf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL Source">
+      <UniqueIdentifier>{34c03a23-d6f4-42d6-a93a-6a232e06e763}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Core.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResources.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCore.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimers.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32Application.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BxDF.hlsli">
+      <Filter>HLSL Header</Filter>
     </None>
-    <None Include="Shaders\RandomNumberGenerator.hlsli">
-      <Filter>Shaders\Util</Filter>
+    <None Include="RandomNumberGenerator.hlsli">
+      <Filter>HLSL Header</Filter>
     </None>
-    <None Include="Shaders\BxDF.hlsli">
-      <Filter>Shaders\Util</Filter>
+    <None Include="RaytracingShaderHelper.hlsli">
+      <Filter>HLSL Header</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Raytracing.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CompositionCS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ViewRG.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="RadianceCH.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="RadianceMS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>HLSL Source</Filter>
+    </FxCompile>
+    <FxCompile Include="Raytracing.hlsl">
+      <Filter>HLSL Source</Filter>
     </FxCompile>
     <FxCompile Include="ShadowMS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>HLSL Source</Filter>
+    </FxCompile>
+    <FxCompile Include="ViewRG.hlsl">
+      <Filter>HLSL Source</Filter>
+    </FxCompile>
+    <FxCompile Include="CompositionCS.hlsl">
+      <Filter>HLSL Source</Filter>
+    </FxCompile>
+    <FxCompile Include="RadianceCH.hlsl">
+      <Filter>HLSL Source</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

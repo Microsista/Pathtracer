@@ -18,6 +18,57 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="DeviceResources.h" />
+    <ClInclude Include="DirectXRaytracingHelper.h" />
+    <ClInclude Include="DXCore.h" />
+    <ClInclude Include="DXSampleHelper.h" />
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="HlslCompat.h" />
+    <ClInclude Include="Math.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="PerformanceTimers.h" />
+    <ClInclude Include="range.hpp" />
+    <ClInclude Include="RayTracingHlslCompat.h" />
+    <ClInclude Include="RaytracingSceneDefines.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StepTimer.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="WicTextureLoader.h" />
+    <ClInclude Include="Win32Application.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="DeviceResources.cpp" />
+    <ClCompile Include="DXCore.cpp" />
+    <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="PerformanceTimers.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Win32Application.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BxDF.hlsli" />
+    <None Include="RandomNumberGenerator.hlsli" />
+    <None Include="RaytracingShaderHelper.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="CompositionCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+    </FxCompile>
+    <FxCompile Include="RadianceCH.hlsl" />
+    <FxCompile Include="RadianceMS.hlsl" />
+    <FxCompile Include="Raytracing.hlsl" />
+    <FxCompile Include="ShadowMS.hlsl" />
+    <FxCompile Include="ViewRG.hlsl">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zpr %(AdditionalOptions)</AdditionalOptions>
+    </FxCompile>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -191,123 +242,6 @@
       <Command>xcopy /y /d "$(ProjectDir)Libs\Release\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\AdvancedRoom.cpp" />
-    <ClCompile Include="Core\Main.cpp" />
-    <ClCompile Include="Core\stdafx.cpp" />
-    <ClCompile Include="Util\Camera.cpp" />
-    <ClCompile Include="Util\Denoiser.cpp" />
-    <ClCompile Include="Util\DeviceResources.cpp" />
-    <ClCompile Include="Util\DXSample.cpp" />
-    <ClCompile Include="Util\EngineTuning.cpp" />
-    <ClCompile Include="Util\Geometry.cpp" />
-    <ClCompile Include="Util\Math.cpp" />
-    <ClCompile Include="Util\Pathtracer.cpp" />
-    <ClCompile Include="Util\PerformanceTimers.cpp" />
-    <ClCompile Include="Util\RTEffectsGpuKernels.cpp" />
-    <ClCompile Include="Util\Win32Application.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\AdvancedRoom.h" />
-    <ClInclude Include="Core\DirectXRaytracingHelper.h" />
-    <ClInclude Include="Core\RaytracingSceneDefines.h" />
-    <ClInclude Include="Core\stdafx.h" />
-    <ClInclude Include="range.hpp" />
-    <ClInclude Include="Shaders\RayTracingHlslCompat.h" />
-    <ClInclude Include="Util\Camera.h" />
-    <ClInclude Include="Util\Composition.h" />
-    <ClInclude Include="Util\d3dx12.h" />
-    <ClInclude Include="Util\Denoiser.h" />
-    <ClInclude Include="Util\DeviceResources.h" />
-    <ClInclude Include="Util\DXSample.h" />
-    <ClInclude Include="Util\DXSampleHelper.h" />
-    <ClInclude Include="Util\EngineTuning.h" />
-    <ClInclude Include="Util\Geometry.h" />
-    <ClInclude Include="Util\GpuResource.h" />
-    <ClInclude Include="Util\GraphicsMemory.h" />
-    <ClInclude Include="Util\HlslCompat.h" />
-    <ClInclude Include="Util\Math.h" />
-    <ClInclude Include="Util\Mesh.h" />
-    <ClInclude Include="Util\Pathtracer.h" />
-    <ClInclude Include="Util\PerformanceTimers.h" />
-    <ClInclude Include="Util\RTEffects.h" />
-    <ClInclude Include="Util\RTEffectsGpuKernels.h" />
-    <ClInclude Include="Util\SimpleGeometry.h" />
-    <ClInclude Include="Util\StepTimer.h" />
-    <ClInclude Include="Util\Texture.h" />
-    <ClInclude Include="Util\WicTextureLoader.h" />
-    <ClInclude Include="Util\Win32Application.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="CompositionCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="RadianceCH.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="RadianceMS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="Shaders\Raytracing.hlsl">
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
-      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
-      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)CompiledShaders\%(Filename).hlsl.h</HeaderFileOutput>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zpr %(AdditionalOptions)</AdditionalOptions>
-      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
-      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)CompiledShaders\%(Filename).hlsl.h</HeaderFileOutput>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="ShadowMS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="ViewRG.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zpr %(AdditionalOptions)</AdditionalOptions>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\BxDF.hlsli" />
-    <None Include="Shaders\RandomNumberGenerator.hlsli" />
-    <None Include="Shaders\RaytracingShaderHelper.hlsli" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

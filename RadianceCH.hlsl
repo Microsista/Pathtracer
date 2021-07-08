@@ -1,4 +1,4 @@
-#include "Shaders/Raytracing.hlsl"
+#include "Raytracing.hlsl"
 
 [shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
