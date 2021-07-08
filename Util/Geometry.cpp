@@ -219,6 +219,9 @@ void GeometryGenerator::loadModel(std::string path, unsigned int flags)
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+		string errstring("ERROR::ASSIMP::");
+		errstring.append(import.GetErrorString());
+		OutputDebugStringA(errstring.c_str());
 		return;
 	}
 	//directory = path.substr(0, path.find_last_of('/'));

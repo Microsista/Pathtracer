@@ -365,9 +365,51 @@ void Room::BuildGeometry()
 
     m_geoOffset += 3;
 
-    BuildModel("..\\..\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+    char dir[200];
+    GetCurrentDirectoryA(sizeof(dir), dir);
+   
+
+
+    char full[_MAX_PATH];
+    if (_fullpath(full, ".\\Models\\table.obj", _MAX_PATH) != NULL)
+    {
+        print("Full path is:");
+        print(full);
+        print("\n");
+    }
+    else
+        print("Invalid path\n");
+
+    TCHAR buffer[MAX_PATH] = { 0 };
+    GetModuleFileName(NULL, buffer, MAX_PATH);
+    std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+    wstring path = std::wstring(buffer).substr(0, pos);
+
+    string s(path.begin(), path.end());
+    s.append("\\..\\..\\Models\\table.obj");
+    string s2(path.begin(), path.end());
+    s2.append("\\..\\..\\Models\\lamp.obj");
+    string s3(path.begin(), path.end());
+    s3.append("\\..\\..\\Models\\SunTemple\\SunTemple.fbx");
+
+
+    OutputDebugStringA(s.c_str());
+    OutputDebugStringA("\n");
+
+    OutputDebugStringA(s2.c_str());
+    OutputDebugStringA("\n");
+
+    OutputDebugStringA(s3.c_str());
+    OutputDebugStringA("\n");
+
+
+    BuildModel(s, aiProcess_Triangulate | aiProcess_FlipUVs, false);
+    BuildModel(s2, aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    BuildModel(s3, aiProcess_Triangulate | aiProcess_FlipUVs, true);
+
+   /* BuildModel("..\\..\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
     BuildModel("..\\..\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
-    BuildModel("..\\..\\Models\\SunTemple\\SunTemple.fbx", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    BuildModel("..\\..\\Models\\SunTemple\\SunTemple.fbx", aiProcess_Triangulate | aiProcess_FlipUVs, true);*/
     print("Geometry built successfully.");
 }
 
