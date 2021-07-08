@@ -432,10 +432,13 @@ GeometryGenerator::MeshData GeometryGenerator::CreateSkull(float width, float he
 {
 	MeshData meshData;
 
-	char dir[200];
-	GetCurrentDirectoryA(sizeof(dir), dir);
-	string s(dir);
-	s.append("\\Models\\skull.txt");
+	TCHAR buffer[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	wstring path = std::wstring(buffer).substr(0, pos);
+
+	string s(path.begin(), path.end());
+	s.append("\\..\\..\\Models\\skull.txt");
 
 	std::ifstream fin(s);
 	//std::ifstream fin("../../Models/skull.txt");
