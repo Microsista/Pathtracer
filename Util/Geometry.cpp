@@ -430,7 +430,7 @@ GeometryGenerator::MeshData GeometryGenerator::CreateSkull(float width, float he
 	MeshData meshData;
 
 
-	std::ifstream fin("Models/skull.txt");
+	std::ifstream fin("../../Models/skull.txt");
 
 	if (!fin)
 	{

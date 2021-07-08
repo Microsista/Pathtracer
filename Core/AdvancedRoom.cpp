@@ -1,6 +1,10 @@
 #include "../Core/stdafx.h"
 #include "AdvancedRoom.h"
-#include "../Obj/Debug/CompiledShaders/Raytracing.hlsl.h"
+//#include "../Obj/Debug/CompiledShaders/Raytracing.hlsl.h"
+#include "../Obj/Debug/CompiledShaders/ViewRG.hlsl.h"
+#include "../Obj/Debug/CompiledShaders/RadianceCH.hlsl.h"
+#include "../Obj/Debug/CompiledShaders/RadianceMS.hlsl.h"
+#include "../Obj/Debug/CompiledShaders/ShadowMS.hlsl.h"
 #include "../Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "../Util/SimpleGeometry.h"
 #include "../Util/Geometry.h"
@@ -8,6 +12,7 @@
 
 using namespace std;
 using namespace DX;
+using namespace util::lang;
 
 const wchar_t* Room::c_raygenShaderName = L"MyRaygenShader";
 const wchar_t* Room::c_closestHitShaderNames[] = {
@@ -124,7 +129,7 @@ void Room::CreateRaytracingPipelineStateObject()
     CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
     // DXIL library
-    CreateDxilLibrarySubobject(&raytracingPipeline);
+    CreateDxilLibrarySubobjects(&raytracingPipeline);
 
     // Hit groups
     CreateHitGroupSubobjects(&raytracingPipeline);
@@ -360,10 +365,9 @@ void Room::BuildGeometry()
 
     m_geoOffset += 3;
 
-    BuildModel(".\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
-    BuildModel(".\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
-    //BuildModel(".\\Models\\SunTemple\\SunTemple.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);    
-    BuildModel(".\\Models\\SunTemple\\SunTemple.fbx", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    BuildModel("..\\..\\Models\\table.obj", aiProcess_Triangulate | aiProcess_FlipUVs, false);
+    BuildModel("..\\..\\Models\\lamp.obj", aiProcess_Triangulate | aiProcess_FlipUVs, true);
+    BuildModel("..\\..\\Models\\SunTemple\\SunTemple.fbx", aiProcess_Triangulate | aiProcess_FlipUVs, true);
     print("Geometry built successfully.");
 }
 
@@ -1122,11 +1126,17 @@ void Room::CreateRaytracingInterfaces()
     ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
 }
 
-void Room::CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
+void Room::CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 {
-    auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-    D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void*)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
-    lib->SetDXILLibrary(&libdxil);
+    const unsigned char* compiledShaderByteCode[] = { g_pViewRG, g_pRadianceCH, g_pRadianceMS, g_pShadowMS };
+    const unsigned int compiledShaderByteCodeSizes[] = { ARRAYSIZE(g_pViewRG), ARRAYSIZE(g_pRadianceCH), ARRAYSIZE(g_pRadianceMS), ARRAYSIZE(g_pShadowMS) };
+
+    for (auto i : indices(compiledShaderByteCode)) {
+        auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
+        auto libDXIL = CD3DX12_SHADER_BYTECODE((void*)compiledShaderByteCode[i], compiledShaderByteCodeSizes[i]);
+        lib->SetDXILLibrary(&libDXIL);
+    };
+
     // Use default shader exports for a DXIL library/collection subobject ~ surface all shaders.
 }
 
@@ -1573,11 +1583,11 @@ void Room::BuildAccelerationStructures()
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
 
     m_stoneTexture[0].heapIndex = 3000 + 1;
-    LoadDDSTexture(device, commandList, L".\\Textures\\stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
+    LoadDDSTexture(device, commandList, L"..\\..\\Textures\\stone.dds", m_descriptorHeap.get(), &m_stoneTexture[0]);
     m_stoneTexture[1].heapIndex = 3000 + 2;
-    LoadDDSTexture(device, commandList, L".\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
+    LoadDDSTexture(device, commandList, L"..\\..\\Textures\\stone2.dds", m_descriptorHeap.get(), &m_stoneTexture[1]);
     m_stoneTexture[2].heapIndex = 3000 + 3;
-    LoadDDSTexture(device, commandList, L".\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
+    LoadDDSTexture(device, commandList, L"..\\..\\Textures\\stone3.dds", m_descriptorHeap.get(), &m_stoneTexture[2]);
     std::vector<int> included;
     print("BEFORE LOAD");
     for (UINT i = 0; i < 1056; i++)
@@ -1601,7 +1611,7 @@ void Room::BuildAccelerationStructures()
     print("AFTER MATERIALS");
     
     for (int i = 0; i < m_materials.size(); i++) {
-        string base = ".\\Models\\SunTemple\\Textures\\";
+        string base = "..\\..\\Models\\SunTemple\\Textures\\";
         string add = m_materials[i].map_Kd;
 
         std::size_t pos = add.find("\\");

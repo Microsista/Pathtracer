@@ -61,3 +61,5 @@
 //#include "../Core/DDSTextureLoader12.h"
 #include <wrl/event.h>
 #include <ResourceUploadBatch.h>
+
+#include "../range.hpp"

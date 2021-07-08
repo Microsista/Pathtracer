@@ -136,6 +136,9 @@
     <ClInclude Include="Util\RTEffectsGpuKernels.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="range.hpp">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\RaytracingShaderHelper.hlsli">
@@ -153,6 +156,18 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="CompositionCS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ViewRG.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RadianceCH.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RadianceMS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
