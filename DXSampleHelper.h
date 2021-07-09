@@ -2,31 +2,25 @@
 
 #include <DDSTextureLoader.h>
 
-// Note that while ComPtr is used to manage the lifetime of resources on the CPU,
-// it has no understanding of the lifetime of resources on the GPU. Apps must account
-// for the GPU lifetime of resources to avoid destroying objects that may still be
-// referenced by the GPU.
 using Microsoft::WRL::ComPtr;
 
-//namespace debugging {
-//    void print(double var) {
-//        std::ostringstream ss;
-//        ss << var;
-//        std::string s(ss.str());
-//        s += "\n";
-//
-//        OutputDebugStringA(s.c_str());
-//    }
-//
-//    void print(std::string str) {
-//        std::ostringstream ss;
-//        ss << str;
-//        std::string s(ss.str());
-//        s += "\n";
-//
-//        OutputDebugStringA(s.c_str());
-//    }
-//}
+inline void print(double var) {
+    std::ostringstream ss;
+    ss << var;
+    std::string s(ss.str());
+    s += "\n";
+
+    OutputDebugStringA(s.c_str());
+}
+
+inline void print(std::string str) {
+    std::ostringstream ss;
+    ss << str;
+    std::string s(ss.str());
+    s += "\n";
+
+    OutputDebugStringA(s.c_str());
+}
 
 class HrException : public std::runtime_error
 {
@@ -157,9 +151,6 @@ inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
 }
 #endif
 
-// Naming helper for ComPtr<T>.
-// Assigns the name of the variable as the name of the object.
-// The indexed variant will include the index in the name of the object.
 #define NAME_D3D12_OBJECT(x) SetName((x).Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed((x)[n].Get(), L#x, n)
 
@@ -545,4 +536,10 @@ struct AssimpTexture {
     unsigned int id;
     std::string type;
     std::string path;
+};
+
+struct Transform {
+    DirectX::XMFLOAT3 translation;
+    DirectX::XMFLOAT3 scale;
+    float rotation;
 };

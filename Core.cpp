@@ -7,7 +7,6 @@
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 
 #include "Geometry.h"
-#include "Texture.h"
 
 using namespace std;
 using namespace DX;
@@ -102,7 +101,10 @@ void Core::BuildModel(string path, UINT flags, bool usesTextures = false) {
 
     GeometryGenerator geoGen;
     vector<GeometryGenerator::MeshData> meshes = geoGen.LoadModel(path, flags);
- 
+
+    m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
+    m_meshSizes.push_back(meshes.size());
+
     for (auto j = 0; j < meshes.size(); j++) {
         MeshGeometry::Submesh submesh{};
         submesh.IndexCount = meshes[j].Indices32.size();
@@ -250,9 +252,9 @@ void Core::BuildGeometry()
     auto csGeo = std::make_unique<MeshGeometry>();
     auto skullGeo = std::make_unique<MeshGeometry>();
 
-    roomGeo->Name = "roomGeo";
-    csGeo->Name = "csGeo";
-    skullGeo->Name = "skullGeo";
+    roomGeo->Name = "geo0";
+    csGeo->Name = "geo1";
+    skullGeo->Name = "geo2";
 
     roomGeo->VertexBufferGPU = m_vertexBuffer[TriangleGeometry::Room].resource;
     roomGeo->IndexBufferGPU = m_indexBuffer[TriangleGeometry::Room].resource;
@@ -279,15 +281,22 @@ void Core::BuildGeometry()
     csGeo->IndexBufferByteSize = csibByteSize;
     skullGeo->IndexBufferByteSize = skullibByteSize;
 
-    roomGeo->DrawArgs["room"] = roomSubmesh;
-    csGeo->DrawArgs["coordinateSystem"] = coordinateSystemSubmesh;
-    skullGeo->DrawArgs["skull"] = skullSubmesh;
+    roomGeo->DrawArgs["mesh0"] = roomSubmesh;
+    csGeo->DrawArgs["mesh1"] = coordinateSystemSubmesh;
+    skullGeo->DrawArgs["mesh2"] = skullSubmesh;
 
     m_geometries[roomGeo->Name] = std::move(roomGeo);
     m_geometries[csGeo->Name] = std::move(csGeo);
     m_geometries[skullGeo->Name] = std::move(skullGeo);
 
     m_geoOffset += 3;
+
+    m_meshOffsets.push_back(0);
+    m_meshSizes.push_back(1);
+    m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
+    m_meshSizes.push_back(1);
+    m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
+    m_meshSizes.push_back(1);
 
     char dir[200];
     GetCurrentDirectoryA(sizeof(dir), dir);
@@ -309,78 +318,24 @@ void Core::BuildGeometry()
     BuildModel(s3, aiProcess_Triangulate | aiProcess_FlipUVs, true);
 }
 
-void Core::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs)
-{
-    D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
+void Core::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs) {
     D3D12_RAYTRACING_GEOMETRY_DESC triangleDescTemplate{};
     triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
     triangleDescTemplate.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
     triangleDescTemplate.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
     triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
-    triangleDescTemplate.Flags = geometryFlags;
+    triangleDescTemplate.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-    {
-        geometryDescs[BottomLevelASType::Triangle].resize(TriangleGeometry::Count, triangleDescTemplate);
-        auto& geometryDesc = geometryDescs[BottomLevelASType::Triangle][0];
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Room].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Room].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries["roomGeo"]->DrawArgs["room"].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries["roomGeo"]->DrawArgs["room"].VertexCount;
-    }
-    {
-        geometryDescs[BottomLevelASType::Coordinates].resize(CoordinateGeometry::Count, triangleDescTemplate);
-        auto& geometryDesc = geometryDescs[BottomLevelASType::Coordinates][0];
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Coordinates].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Coordinates].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries["csGeo"]->DrawArgs["coordinateSystem"].VertexCount; }
-    
-    {
-        geometryDescs[BottomLevelASType::Skull].resize(SkullGeometry::Count, triangleDescTemplate);
-        auto& geometryDesc = geometryDescs[BottomLevelASType::Skull][0];
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[AllGeometry::Skull].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries["skullGeo"]->DrawArgs["skull"].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries["skullGeo"]->DrawArgs["skull"].VertexCount;
-    }
-   
-
-    geometryDescs[BottomLevelASType::Table].resize(TableGeometry::Count, triangleDescTemplate);
-    for (UINT i = 0; i < TableGeometry::Count; i++)
-    {
-        auto& geometryDesc = geometryDescs[BottomLevelASType::Table][i];
-
-        string geoName = "geo" + to_string(i + 3);
-        string meshName = "mesh" + to_string(i + 3);
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[3 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[3 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
-    }
-
-    geometryDescs[BottomLevelASType::Lamps].resize(LampsGeometry::Count, triangleDescTemplate);
-    for (UINT i = 0; i < 4; i++) {
-        auto& geometryDesc = geometryDescs[BottomLevelASType::Lamps][i];
-
-        string geoName = "geo" + to_string(i + 7);
-        string meshName = "mesh" + to_string(i + 7);
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[7 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[7 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
-    }
-
-    geometryDescs[BottomLevelASType::SunTemple].resize(1056, triangleDescTemplate);
-    for (UINT i = 0; i < 1056; i++) {
-        auto& geometryDesc = geometryDescs[BottomLevelASType::SunTemple][i];
-
-        string geoName = "geo" + to_string(i +11);
-        string meshName = "mesh" + to_string(i + 11);
-        geometryDesc.Triangles.IndexBuffer = m_indexBuffer[11 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer[11 + i].resource->GetGPUVirtualAddress();
-        geometryDesc.Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
-        geometryDesc.Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+    for (auto i : range(1, 6)) {
+        geometryDescs[i].resize(m_meshSizes[i], triangleDescTemplate);
+        for (auto j : range(0, m_meshSizes[i])) {
+            string geoName = "geo" + to_string(m_meshOffsets[i] + j);
+            string meshName = "mesh" + to_string(m_meshOffsets[i] + j);
+            geometryDescs[i][j].Triangles.IndexBuffer = m_indexBuffer[m_meshOffsets[i] + j].resource->GetGPUVirtualAddress();
+            geometryDescs[i][j].Triangles.VertexBuffer.StartAddress = m_vertexBuffer[m_meshOffsets[i] + j].resource->GetGPUVirtualAddress();
+            geometryDescs[i][j].Triangles.IndexCount = m_geometries[geoName]->DrawArgs[meshName].IndexCount;
+            geometryDescs[i][j].Triangles.VertexCount = m_geometries[geoName]->DrawArgs[meshName].VertexCount;
+        }
     }
 }
 
@@ -855,8 +810,6 @@ void Core::InitializeScene()
         XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
         XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-
-        SetAttributes2(TriangleGeometry::Room, XMFLOAT4(1.000f, 0.766f, 0.336f, 1.000f), 0.3f, 0.1f, 1.0f, 1.0f);
         SetAttributes2(CoordinateGeometry::Coordinates+1, red, 0.7, 1.0, 1.0f, 0.0f);
         SetAttributes2(SkullGeometry::Skull+2, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.3f, 0.5f, 1.0f, 1.0f);
 
@@ -1516,7 +1469,6 @@ AccelerationStructureBuffers Core::BuildTopLevelAS(AccelerationStructureBuffers 
             bottomLevelAS[3].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[4].accelerationStructure->GetGPUVirtualAddress(),
             bottomLevelAS[5].accelerationStructure->GetGPUVirtualAddress(),
-            bottomLevelAS[6].accelerationStructure->GetGPUVirtualAddress()
         };
         BuildBottomLevelASInstanceDescs<D3D12_RAYTRACING_INSTANCE_DESC>(bottomLevelASaddresses, &instanceDescsResource);
     }
@@ -1539,138 +1491,31 @@ AccelerationStructureBuffers Core::BuildTopLevelAS(AccelerationStructureBuffers 
     return topLevelASBuffers;
 }
 
-template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource)
-{
-    // Transformations here are moving the whole bottom level acceleration structure in world space.
+template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource) {
+    Transform transforms[] = {
+        { XMFLOAT3(500.0f, 0.0f, 0.0f),     XMFLOAT3(1.0f, 1.0f, 1.0f),     0 },
+        { XMFLOAT3(0.0f, 0.0f, 0.0f),       XMFLOAT3(1.0f, 1.0f, 1.0f),     0 },
+        { XMFLOAT3(0.5f, 0.6f, -0.5f),      XMFLOAT3(0.15f, 0.15f, 0.15f),  45 },
+        { XMFLOAT3(-2.75f, -3.3f, -4.75f),  XMFLOAT3(0.05f, 0.05f, 0.05f),  0 },
+        { XMFLOAT3(0.5f, 0.6f, 1.0f),       XMFLOAT3(0.05f, 0.05f, 0.05f),  180 },
+        { XMFLOAT3(0.0f, -5.0f, 210.0f),    XMFLOAT3(0.05f, 0.05f, 0.05f),  180 }
+    };
 
-    auto device = m_deviceResources->GetD3DDevice();
+    vector<InstanceDescType> instanceDescs(NUM_BLAS);
+    for (int i = 0; i < GeometryType::Count; i++) {        
+        instanceDescs[i] = {};
+        instanceDescs[i].InstanceMask = 1;
+        instanceDescs[i].InstanceContributionToHitGroupIndex = m_meshOffsets[i] * RayType::Count;
+        instanceDescs[i].AccelerationStructure = bottomLevelASaddresses[i];
 
-    vector<InstanceDescType> instanceDescs;
-    instanceDescs.resize(NUM_BLAS);
-
-    // Width of a bottom-level AS geometry.
-    // Make the room a little larger in all dimensions.
-    const XMFLOAT3 fWidth = { 1.0f, 1.0f, 1.0f };
-
-    // Bottom-level AS with the room geometry.
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::Triangle];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = 0;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Triangle];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(500.0f, 0.0f, 0.0f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(fWidth.x, fWidth.y, fWidth.z);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mTransform = mScale * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    // Coordinate
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::Coordinates];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = BottomLevelASType::Coordinates * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Coordinates];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(fWidth.x, fWidth.y, fWidth.z);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mTransform = mScale * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    // Skull
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::Skull];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = BottomLevelASType::Skull * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Skull];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.5f, 0.6f, -0.5f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(0.15f, 0.15f, 0.15f);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(45));
-        XMMATRIX mTransform = mScale * mRotation * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    // Table
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::Table];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = BottomLevelASType::Table * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Table];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(-2.75f, -3.3f, -4.75f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(0.05f, 0.05f, 0.05f);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mTransform = mScale * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    // Lamps
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::Lamps];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = 7 * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::Lamps];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.5f, 0.6f, 1.0f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(0.05f, 0.05f, 0.05f);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mRotation= XMMatrixRotationY(XMConvertToRadians(180));
-        XMMATRIX mTransform = mScale * mRotation * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
-    }
-
-    // Sun Temple
-    {
-        auto& instanceDesc = instanceDescs[BottomLevelASType::SunTemple];
-        instanceDesc = {};
-        instanceDesc.InstanceMask = 1;
-        instanceDesc.InstanceContributionToHitGroupIndex = 11 * RayType::Count;
-        instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::SunTemple];
-
-        // Calculate transformation matrix.
-        auto position = XMFLOAT3(0.0f, -5.0f, 210.0f);
-        const XMVECTOR vBasePosition = XMLoadFloat3(&fWidth) * XMLoadFloat3(&position);
-
-        // Scale in all dimensions.
-        XMMATRIX mScale = XMMatrixScaling(0.05f, 0.05f, 0.05f);
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mRotation = XMMatrixRotationY(XMConvertToRadians(180));
-        XMMATRIX mTransform = mScale * mRotation * mTranslation;
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
+        XMMATRIX scale = XMMatrixScaling(transforms[i].scale.x, transforms[i].scale.y, transforms[i].scale.z);
+        XMMATRIX rotation = XMMatrixRotationY(XMConvertToRadians(transforms[i].rotation));
+        XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&transforms[i].translation));
+        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDescs[i].Transform), scale * rotation * translation);
     }
 
     UINT64 bufferSize = static_cast<UINT64>(instanceDescs.size() * sizeof(instanceDescs[0]));
-    AllocateUploadBuffer(device, instanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
+    AllocateUploadBuffer(m_deviceResources->GetD3DDevice(), instanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
 };
 
 AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
@@ -1697,16 +1542,12 @@ AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRAC
     // Create a scratch buffer.
     AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ScratchDataSizeInBytes, &scratch, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, L"ScratchResource");
 
-    {
-        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-        AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &bottomLevelAS, initialResourceState, L"BottomLevelAccelerationStructure");
-    }
+    D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+    AllocateUAVBuffer(device, bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, &bottomLevelAS, initialResourceState, L"BottomLevelAccelerationStructure");
 
     // bottom-level AS desc.
-    {
-        bottomLevelBuildDesc.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress();
-        bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->GetGPUVirtualAddress();
-    }
+    bottomLevelBuildDesc.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress();
+    bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->GetGPUVirtualAddress();
 
     // Build the acceleration structure.
     m_dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);

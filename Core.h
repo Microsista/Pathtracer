@@ -163,4 +163,7 @@ private:
     D3DTexture m_templeTextures[500];
 
     std::unordered_map<int, Material> m_materials;
+
+    std::vector<int> m_meshSizes;
+    std::vector<int> m_meshOffsets;
 };

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Win32Application.h"
-#include "DXSampleHelper.h"
 
 HWND Win32Core::m_hwnd = nullptr;
 bool Win32Core::m_fullscreenMode = false;
