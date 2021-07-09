@@ -17,6 +17,15 @@ const wchar_t* Core::c_closestHitShaderName = L"MyClosestHitShader_Triangle";
 const wchar_t* Core::c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
 const wchar_t* Core::c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
 
+namespace Directions {
+    auto FORWARD = DirectX::XMVECTOR{ 0.0f, 0.0f, 1.0f };
+    auto BACKWARD = DirectX::XMVECTOR{ 0.0f, 0.0f, -1.0f };
+    auto LEFT = DirectX::XMVECTOR{ -1.0f, 0.0f, 0.0f };
+    auto RIGHT = DirectX::XMVECTOR{ 1.0f, 0.0f, 0.0f };
+    auto UP = DirectX::XMVECTOR{ 0.0f, 1.0f, 0.0f };
+    auto DOWN = DirectX::XMVECTOR{ 0.0f, -1.0f, 0.0f };
+}
+
 void Core::CreateRootSignatures() {
     auto device = m_deviceResources->GetD3DDevice();
 
@@ -148,149 +157,64 @@ void Core::BuildModel(string path, UINT flags, bool usesTextures = false) {
 void Core::BuildGeometry()
 {
     auto device = m_deviceResources->GetD3DDevice();
-    
+
     GeometryGenerator geoGen;
-    GeometryGenerator::MeshData room = geoGen.CreateRoom(30.0f, 15.0f, 30.0f);
-    GeometryGenerator::MeshData coordinateSystem = geoGen.CreateCoordinates(20.0f, 0.01f, 0.01f);
-    GeometryGenerator::MeshData skull = geoGen.CreateSkull(0.0f, 0.0f, 0.0f);
- 
-    UINT roomVertexOffset = 0;
-    UINT coordinateSystemVertexOffset = 0;
-    UINT skullVertexOffset = 0;
-    vector<UINT> modelMeshesVertexOffsets;
+    Material nullMaterial;
+    nullMaterial.id = 0;
 
-    UINT roomIndexOffset = 0;
-    UINT coordinateSystemIndexOffset = 0;
-    UINT skullIndexOffset = 0;
-    vector<UINT> modelMeshesIndexOffsets;
-  
-    MeshGeometry::Submesh roomSubmesh;
-    roomSubmesh.IndexCount = (UINT)room.Indices32.size();
-    roomSubmesh.StartIndexLocation = roomIndexOffset;
-    roomSubmesh.VertexCount = (UINT)room.Vertices.size();
-    roomSubmesh.BaseVertexLocation = roomVertexOffset;
+    XMFLOAT3 sizes[] = {
+       XMFLOAT3(30.0f, 15.0f, 30.0f),
+       XMFLOAT3(20.0f, 0.01f, 0.01f),
+       XMFLOAT3(0.0f, 0.0f, 0.0f)
+    };
 
-    MeshGeometry::Submesh coordinateSystemSubmesh;
-    coordinateSystemSubmesh.IndexCount = (UINT)coordinateSystem.Indices32.size();
-    coordinateSystemSubmesh.StartIndexLocation = coordinateSystemIndexOffset;
-    coordinateSystemSubmesh.VertexCount = (UINT)coordinateSystem.Vertices.size();
-    coordinateSystemSubmesh.BaseVertexLocation = coordinateSystemVertexOffset;
+    GeometryGenerator::MeshData(GeometryGenerator::*createGeo[3])(float width, float height, float depth) = {
+        &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
+    };
 
-    MeshGeometry::Submesh skullSubmesh;
-    skullSubmesh.IndexCount = (UINT)skull.Indices32.size();
-    skullSubmesh.StartIndexLocation = skullIndexOffset;
-    skullSubmesh.VertexCount = (UINT)skull.Vertices.size();
-    skullSubmesh.BaseVertexLocation = skullVertexOffset;
+    for (auto i : range(0, 3)) {
+        GeometryGenerator::MeshData geo = (geoGen.*createGeo[i])(sizes[i].x, sizes[i].y, sizes[i].z);
+        UINT roomVertexOffset = 0;
+        UINT roomIndexOffset = 0;
+        MeshGeometry::Submesh roomSubmesh;
+        roomSubmesh.IndexCount = (UINT)geo.Indices32.size();
+        roomSubmesh.StartIndexLocation = roomIndexOffset;
+        roomSubmesh.VertexCount = (UINT)geo.Vertices.size();
+        roomSubmesh.BaseVertexLocation = roomVertexOffset;
+        roomSubmesh.Material = nullMaterial;
+        std::vector<VertexPositionNormalTextureTangent> roomVertices(geo.Vertices.size());
+        UINT k = 0;
+        for (size_t i = 0; i < geo.Vertices.size(); ++i, ++k)
+        {
+            roomVertices[k].position = geo.Vertices[i].Position;
+            roomVertices[k].normal = geo.Vertices[i].Normal;
+            roomVertices[k].textureCoordinate = geo.Vertices[i].TexC;
+            roomVertices[k].tangent = geo.Vertices[i].TangentU;
+        }
+        std::vector<std::uint32_t> roomIndices;
+        roomIndices.insert(roomIndices.end(), begin(geo.Indices32), end(geo.Indices32));
+        const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
+        const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
+        AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[i].resource);
+        AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[i].resource);
+        CreateBufferSRV(&m_indexBuffer[i], roomIndices.size(), sizeof(uint32_t));
+        CreateBufferSRV(&m_vertexBuffer[i], roomVertices.size(), sizeof(roomVertices[0]));
+        auto roomGeo = std::make_unique<MeshGeometry>();
 
-    std::vector<VertexPositionNormalTextureTangent> roomVertices(room.Vertices.size());
-    UINT k = 0;
-    for (size_t i = 0; i < room.Vertices.size(); ++i, ++k)
-    {
-        roomVertices[k].position = room.Vertices[i].Position;
-        roomVertices[k].normal = room.Vertices[i].Normal;
-        roomVertices[k].textureCoordinate = room.Vertices[i].TexC;
-        roomVertices[k].tangent = room.Vertices[i].TangentU;
-    }
-
-    std::vector<VertexPositionNormalTextureTangent> coordinatesVertices(coordinateSystem.Vertices.size());
-    k = 0;
-    for (size_t i = 0; i < coordinateSystem.Vertices.size(); ++i, ++k)
-    {
-        coordinatesVertices[k].position = coordinateSystem.Vertices[i].Position;
-        coordinatesVertices[k].normal = coordinateSystem.Vertices[i].Normal;
-        coordinatesVertices[k].textureCoordinate = coordinateSystem.Vertices[i].TexC;
-        coordinatesVertices[k].tangent = coordinateSystem.Vertices[i].TangentU;
-    }
-
-    std::vector<VertexPositionNormalTextureTangent> skullVertices(skull.Vertices.size());
-    k = 0;
-    for (size_t i = 0; i < skull.Vertices.size(); ++i, ++k)
-    {
-        skullVertices[k].position = skull.Vertices[i].Position;
-        skullVertices[k].normal = skull.Vertices[i].Normal;
-        skullVertices[k].textureCoordinate = { 0.0f, 0.0f };// skull.Vertices[i].TexC;
-        skullVertices[k].tangent = { 1.0f, 0.0f, 0.0f };//skull.Vertices[i].TangentU;
+        string geoName = "geo" + to_string(i);
+        string meshName = "mesh" + to_string(i);
+        roomGeo->Name = geoName;
+        roomGeo->VertexBufferGPU = m_vertexBuffer[i].resource;
+        roomGeo->IndexBufferGPU = m_indexBuffer[i].resource;
+        roomGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
+        roomGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
+        roomGeo->VertexBufferByteSize = roomvbByteSize;
+        roomGeo->IndexBufferByteSize = roomibByteSize;
+        roomGeo->DrawArgs[meshName] = roomSubmesh;
+        m_geometries[roomGeo->Name] = std::move(roomGeo);
+        m_geoOffset++;
     }
     
-    std::vector<std::uint32_t> roomIndices;
-    roomIndices.insert(roomIndices.end(), begin(room.Indices32), end(room.Indices32));
-
-    std::vector<std::uint32_t> coordinateSystemIndices;
-    coordinateSystemIndices.insert(coordinateSystemIndices.end(), begin(coordinateSystem.Indices32), end(coordinateSystem.Indices32));
-
-    std::vector<std::uint32_t> skullIndices;
-    skullIndices.insert(skullIndices.end(), begin(skull.Indices32), end(skull.Indices32));
-
-    const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
-    const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
-
-    const UINT csibByteSize = (UINT)coordinateSystemIndices.size() * sizeof(std::uint32_t);
-    const UINT csvbByteSize = (UINT)coordinatesVertices.size() * sizeof(VertexPositionNormalTextureTangent);
-
-    const UINT skullibByteSize = (UINT)skullIndices.size() * sizeof(std::uint32_t);
-    const UINT skullvbByteSize = (UINT)skullVertices.size() * sizeof(VertexPositionNormalTextureTangent);
-
-    AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[TriangleGeometry::Room].resource);
-    AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[TriangleGeometry::Room].resource);
-
-    AllocateUploadBuffer(device, &coordinateSystemIndices[0], csibByteSize, &m_indexBuffer[CoordinateGeometry::Coordinates + TriangleGeometry::Count].resource);
-    AllocateUploadBuffer(device, &coordinatesVertices[0], csvbByteSize, &m_vertexBuffer[CoordinateGeometry::Coordinates + TriangleGeometry::Count].resource);
-
-    AllocateUploadBuffer(device, &skullIndices[0], skullibByteSize, &m_indexBuffer[SkullGeometry::Skull + 2].resource);
-    AllocateUploadBuffer(device, &skullVertices[0], skullvbByteSize, &m_vertexBuffer[SkullGeometry::Skull + 2].resource);
-
-    CreateBufferSRV(&m_indexBuffer[TriangleGeometry::Room], roomIndices.size(), sizeof(uint32_t));
-    CreateBufferSRV(&m_vertexBuffer[TriangleGeometry::Room], roomVertices.size(), sizeof(roomVertices[0]));
-
-    CreateBufferSRV(&m_indexBuffer[CoordinateGeometry::Coordinates + 1], coordinateSystemIndices.size(), sizeof(uint32_t));
-    CreateBufferSRV(&m_vertexBuffer[CoordinateGeometry::Coordinates + 1], coordinatesVertices.size(), sizeof(coordinatesVertices[0]));
-
-    CreateBufferSRV(&m_indexBuffer[SkullGeometry::Skull + 2], skullIndices.size(), sizeof(uint32_t));
-    CreateBufferSRV(&m_vertexBuffer[SkullGeometry::Skull + 2], skullVertices.size(), sizeof(roomVertices[0]));
-
-    auto roomGeo = std::make_unique<MeshGeometry>();
-    auto csGeo = std::make_unique<MeshGeometry>();
-    auto skullGeo = std::make_unique<MeshGeometry>();
-
-    roomGeo->Name = "geo0";
-    csGeo->Name = "geo1";
-    skullGeo->Name = "geo2";
-
-    roomGeo->VertexBufferGPU = m_vertexBuffer[TriangleGeometry::Room].resource;
-    roomGeo->IndexBufferGPU = m_indexBuffer[TriangleGeometry::Room].resource;
-
-    csGeo->VertexBufferGPU = m_vertexBuffer[CoordinateGeometry::Coordinates].resource;
-    csGeo->IndexBufferGPU = m_indexBuffer[CoordinateGeometry::Coordinates].resource;
-
-    skullGeo->VertexBufferGPU = m_vertexBuffer[SkullGeometry::Skull].resource;
-    skullGeo->IndexBufferGPU = m_indexBuffer[SkullGeometry::Skull].resource;
-
-    roomGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    csGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-    skullGeo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
-
-    roomGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
-    csGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
-    skullGeo->IndexFormat = DXGI_FORMAT_R32_UINT;
-
-    roomGeo->VertexBufferByteSize = roomvbByteSize;
-    csGeo->VertexBufferByteSize = csvbByteSize;
-    skullGeo->VertexBufferByteSize = skullvbByteSize;
-
-    roomGeo->IndexBufferByteSize = roomibByteSize;
-    csGeo->IndexBufferByteSize = csibByteSize;
-    skullGeo->IndexBufferByteSize = skullibByteSize;
-
-    roomGeo->DrawArgs["mesh0"] = roomSubmesh;
-    csGeo->DrawArgs["mesh1"] = coordinateSystemSubmesh;
-    skullGeo->DrawArgs["mesh2"] = skullSubmesh;
-
-    m_geometries[roomGeo->Name] = std::move(roomGeo);
-    m_geometries[csGeo->Name] = std::move(csGeo);
-    m_geometries[skullGeo->Name] = std::move(skullGeo);
-
-    m_geoOffset += 3;
-
     m_meshOffsets.push_back(0);
     m_meshSizes.push_back(1);
     m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
@@ -408,151 +332,21 @@ void Core::BuildShaderTables()
         UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
         ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
-        // Triangle geometry hit groups.
+        for (auto i : range(0, 6))
         {
             LocalRootSignature::Triangle::RootArguments rootArgs;
 
             // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < TriangleGeometry::Count; instanceIndex++)
+            for (UINT instanceIndex = 0; instanceIndex < m_meshSizes[i]; instanceIndex++)
             {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex];
-                rootArgs.triangleCB.instanceIndex = instanceIndex;
-                auto ib = m_indexBuffer[instanceIndex].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex].gpuDescriptorHandle;
-                auto texture = m_templeTextures[0].gpuDescriptorHandle;
-                memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-                memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-                // Ray types
-                for (UINT r = 0; r < RayType::Count; r++)
-                {
-                    auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-                    hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-                }
-            }
-        }
-
-        // Coordinate
-        {
-            LocalRootSignature::Triangle::RootArguments rootArgs;
-
-            // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < CoordinateGeometry::Count; instanceIndex++)
-            {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex+1];
-                rootArgs.triangleCB.instanceIndex = instanceIndex+1;
-                auto ib = m_indexBuffer[instanceIndex+1].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex+1].gpuDescriptorHandle;
-                auto texture = m_templeTextures[0].gpuDescriptorHandle;
-                memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-                memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-                // Ray types
-                for (UINT r = 0; r < RayType::Count; r++)
-                {
-                    auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-                    hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-                }
-            }
-        }
-
-        // Skull
-        {
-            LocalRootSignature::Triangle::RootArguments rootArgs;
-
-            // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < SkullGeometry::Count; instanceIndex++)
-            {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex+2];
-                rootArgs.triangleCB.instanceIndex = instanceIndex+2;
-                auto ib = m_indexBuffer[instanceIndex+2].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex+2].gpuDescriptorHandle;
-                auto texture = m_templeTextures[0].gpuDescriptorHandle;
-                memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-                memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-                // Ray types
-                for (UINT r = 0; r < RayType::Count; r++)
-                {
-                    auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-                    hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-                }
-            }
-        }
-
-        // Table
-        {
-            LocalRootSignature::Triangle::RootArguments rootArgs;
-
-            // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < TableGeometry::Count; instanceIndex++)
-            {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex+3];
-                rootArgs.triangleCB.instanceIndex = instanceIndex+3;
-                auto ib = m_indexBuffer[instanceIndex+3].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex+3].gpuDescriptorHandle;
-                auto texture = m_templeTextures[0].gpuDescriptorHandle;
-                memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-                memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-                // Ray types
-                for (UINT r = 0; r < RayType::Count; r++)
-                {
-                    auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-                    hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-                }
-            }
-        }
-
-        // Lamp
-        {
-            LocalRootSignature::Triangle::RootArguments rootArgs;
-
-            // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < 4; instanceIndex++)
-            {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex+7];
-                rootArgs.triangleCB.instanceIndex = instanceIndex+7;
-                auto ib = m_indexBuffer[instanceIndex+7].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex+7].gpuDescriptorHandle;
-                auto texture = m_templeTextures[0].gpuDescriptorHandle;
-                memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
-                memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
-                memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
-
-                // Ray types
-                for (UINT r = 0; r < RayType::Count; r++)
-                {
-                    auto& hitGroupShaderID = hitGroupShaderIDs_TriangleGeometry[r];
-                    hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-                }
-            }
-        }
-
-        // SunTemple
-        {
-            LocalRootSignature::Triangle::RootArguments rootArgs;
-
-            // Create a shader record for each primitive.
-            for (UINT instanceIndex = 0; instanceIndex < 1056; instanceIndex++)
-            {
-                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + 11];
-                rootArgs.triangleCB.instanceIndex = instanceIndex + 11;
-                auto ib = m_indexBuffer[instanceIndex + 11].gpuDescriptorHandle;
-                auto vb = m_vertexBuffer[instanceIndex + 11].gpuDescriptorHandle;
-
-                string geoName = "geo" + to_string(instanceIndex + 11);
-                string meshName = "mesh" + to_string(instanceIndex + 11);
-
+                rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + m_meshOffsets[i]];
+                rootArgs.triangleCB.instanceIndex = instanceIndex + m_meshOffsets[i];
+                auto ib = m_indexBuffer[instanceIndex + m_meshOffsets[i]].gpuDescriptorHandle;
+                auto vb = m_vertexBuffer[instanceIndex + m_meshOffsets[i]].gpuDescriptorHandle;
+                string geoName = "geo" + to_string(instanceIndex + m_meshOffsets[i]);
+                string meshName = "mesh" + to_string(instanceIndex + m_meshOffsets[i]);
                 Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
                 auto texture = m_templeTextures[m.id].gpuDescriptorHandle;
-
-
-
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                 memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
@@ -651,57 +445,30 @@ void Core::OnKeyDown(UINT8 key)
     const XMVECTOR& prevLightPosition = m_sceneCB->lightPosition;
     XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
     XMMATRIX rotateClockwise = XMMatrixRotationY(XMConvertToRadians(-angleToRotateBy));
-
-
+    
     auto speed = 100.0f;
     if (GetKeyState(VK_SHIFT))
         speed *= 5;
     switch (key)
     {
-    case 'W':
-        m_camera.Walk(speed * elapsedTime);
-        break;
-    case 'S':
-        m_camera.Walk(-speed * elapsedTime);
-        break;
-    case 'A':
-        m_camera.Strafe(-speed * elapsedTime);
-        break;
-    case 'D':
-        m_camera.Strafe(speed * elapsedTime);
-        break;
-    case 'Q':
-        m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
-        break;
-    case 'E':
-        m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotateClockwise);
-        break;
+    case 'W': m_camera.Walk(speed * elapsedTime); break;
+    case 'S': m_camera.Walk(-speed * elapsedTime); break;
+    case 'A': m_camera.Strafe(-speed * elapsedTime); break;
+    case 'D': m_camera.Strafe(speed * elapsedTime); break;
+    case 'Q': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate); break;
+    case 'E': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotateClockwise); break;
+    case 'I': m_sceneCB->lightPosition += speed * Directions::FORWARD * elapsedTime; break;
+    case 'J': m_sceneCB->lightPosition += speed * Directions::LEFT * elapsedTime; break;
+    case 'K': m_sceneCB->lightPosition += speed * Directions::BACKWARD * elapsedTime; break;
+    case 'L': m_sceneCB->lightPosition += speed * Directions::RIGHT * elapsedTime; break;
+    case 'U': m_sceneCB->lightPosition += speed * Directions::DOWN * elapsedTime; break;
+    case 'O': m_sceneCB->lightPosition += speed * Directions::UP * elapsedTime;  break;
     case '1':
         XMFLOAT4 equal;
         XMStoreFloat4(&equal, XMVectorEqual(m_sceneCB->lightPosition, XMVECTOR{ 0.0f, 0.0f, 0.0f }));
         equal.x ? m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 18.0f, -20.0f, 0.0f } : m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
         break;
-    case 'I':
-        m_sceneCB->lightPosition += XMVECTOR{ 0.0f, 0.0f, 100.0f } *elapsedTime;
-        break;
-    case 'J':
-        m_sceneCB->lightPosition += XMVECTOR{ -100.0f, 0.0f, 0.0f } *elapsedTime;
-        break;
-    case 'K':
-        m_sceneCB->lightPosition += XMVECTOR{ 0.0f, 0.0f, -100.0f } *elapsedTime;
-        break;
-    case 'L':
-        m_sceneCB->lightPosition += XMVECTOR{ 100.0f, 0.0f, 0.0f } *elapsedTime;
-        break;
-    case 'U':
-        m_sceneCB->lightPosition += XMVECTOR{ 0.0f, -100.0f, 0.0f } *elapsedTime;
-        break;
-    case 'O':
-        m_sceneCB->lightPosition += XMVECTOR{ 0.0f, 100.0f, 0.0f } *elapsedTime;
-        break;
-    case '2':
-        m_orbitalCamera = !m_orbitalCamera;
-        break;
+    case '2': m_orbitalCamera = !m_orbitalCamera; break;
     }
     m_camera.UpdateViewMatrix();
     UpdateCameraMatrices();
@@ -723,23 +490,13 @@ void Core::OnMouseMove(int x, int y)
     m_lastMousePosition.y = y;
 }
 
-void Core::OnLeftButtonDown(UINT x, UINT y)
-{
+void Core::OnLeftButtonDown(UINT x, UINT y) {
     m_lastMousePosition = { static_cast<int>(x), static_cast<int>(y) };
 }
 
-void Core::OnInit()
-{
-    m_deviceResources = std::make_unique<DeviceResources>(
-        DXGI_FORMAT_R8G8B8A8_UNORM,
-        DXGI_FORMAT_UNKNOWN,
-        FrameCount,
-        D3D_FEATURE_LEVEL_11_0,
-        // Sample shows handling of use cases with tearing support, which is OS dependent and has been supported since TH2.
-        // Since the sample requires build 1809 (RS5) or higher, we don't need to handle non-tearing cases.
-        DeviceResources::c_RequireTearingSupport,
-        m_adapterIDoverride
-        );
+void Core::OnInit() {
+    m_deviceResources = std::make_unique<DeviceResources>(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, FrameCount,
+        D3D_FEATURE_LEVEL_11_0, DeviceResources::c_RequireTearingSupport, m_adapterIDoverride);
     m_deviceResources->RegisterDeviceNotify(this);
     m_deviceResources->SetWindow(Win32Core::GetHwnd(), m_width, m_height);
     m_deviceResources->InitializeDXGIAdapter();
@@ -756,8 +513,7 @@ void Core::OnInit()
     CreateWindowSizeDependentResources();
 }
 
-void Core::UpdateCameraMatrices()
-{
+void Core::UpdateCameraMatrices() {
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
     if (m_orbitalCamera) {
@@ -777,11 +533,9 @@ void Core::UpdateCameraMatrices()
         XMMATRIX viewProj = view * proj;
         m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, XMMatrixMultiply(m_camera.GetView(), m_camera.GetProj()));
     }
-
 }
 
-void Core::InitializeScene()
-{
+void Core::InitializeScene() {
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
     // Setup materials.
@@ -861,16 +615,14 @@ void Core::InitializeScene()
     }
 }
 
-void Core::CreateConstantBuffers()
-{
+void Core::CreateConstantBuffers() {
     auto device = m_deviceResources->GetD3DDevice();
     auto frameCount = m_deviceResources->GetBackBufferCount();
 
     m_sceneCB.Create(device, frameCount, L"Scene Constant Buffer");
 }
 
-void Core::CreateTrianglePrimitiveAttributesBuffers()
-{
+void Core::CreateTrianglePrimitiveAttributesBuffers() {
     auto device = m_deviceResources->GetD3DDevice();
     auto frameCount = m_deviceResources->GetBackBufferCount();
     m_trianglePrimitiveAttributeBuffer.Create(device, NUM_BLAS, frameCount, L"Triangle primitive attributes");
@@ -929,8 +681,7 @@ void Core::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D1
     }
 }
 
-void Core::CreateRaytracingInterfaces()
-{
+void Core::CreateRaytracingInterfaces() {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
 
@@ -938,8 +689,7 @@ void Core::CreateRaytracingInterfaces()
     ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
 }
 
-void Core::CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
-{
+void Core::CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
     const unsigned char* compiledShaderByteCode[] = { g_pViewRG, g_pRadianceCH, g_pRadianceMS, g_pShadowMS };
     const unsigned int compiledShaderByteCodeSizes[] = { ARRAYSIZE(g_pViewRG), ARRAYSIZE(g_pRadianceCH), ARRAYSIZE(g_pRadianceMS), ARRAYSIZE(g_pShadowMS) };
 
@@ -952,8 +702,7 @@ void Core::CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipe
     // Use default shader exports for a DXIL library/collection subobject ~ surface all shaders.
 }
 
-void Core::CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
-{
+void Core::CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
     for (UINT rayType = 0; rayType < RayType::Count; rayType++)
     {
         auto hitGroup = raytracingPipeline->CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
@@ -966,8 +715,7 @@ void Core::CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipelin
     }
 }
 
-void Core::CreateAuxilaryDeviceResources()
-{
+void Core::CreateAuxilaryDeviceResources() {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandQueue = m_deviceResources->GetCommandQueue();
 
@@ -977,58 +725,50 @@ void Core::CreateAuxilaryDeviceResources()
     }
 }
 
-void Core::CreateRaytracingOutputResource()
-{
+void Core::CreateRaytracingOutputResource() {
     auto device = m_deviceResources->GetD3DDevice();
     auto backbufferFormat = m_deviceResources->GetBackBufferFormat();
 
-    // Create the output resource. The dimensions and format should match the swap-chain.
     auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(backbufferFormat, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
     auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(device->CreateCommittedResource(
-        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_raytracingOutput)));
-    NAME_D3D12_OBJECT(m_raytracingOutput);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
-    m_raytracingOutputResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle, m_raytracingOutputResourceUAVDescriptorHeapIndex);
-    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
-    UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-    device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-    m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    UINT* heapIndices[] = {
+        &m_raytracingOutputResourceUAVDescriptorHeapIndex,
+        &m_reflectionBufferResourceUAVDescriptorHeapIndex,
+        &m_shadowBufferResourceUAVDescriptorHeapIndex
+    };
 
-    // Reflection buffer
-    ThrowIfFailed(device->CreateCommittedResource(
-        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_reflectionBuffer)));
-    NAME_D3D12_OBJECT(m_reflectionBuffer);
+    ComPtr<ID3D12Resource>* buffers[] = {
+        &m_raytracingOutput,
+        &m_reflectionBuffer,
+        &m_shadowBuffer
+    };
 
-    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle2;
-    m_reflectionBufferResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle2, m_reflectionBufferResourceUAVDescriptorHeapIndex);
-    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc2 = {};
-    UAVDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-    device->CreateUnorderedAccessView(m_reflectionBuffer.Get(), nullptr, &UAVDesc2, uavDescriptorHandle2);
-    m_reflectionBufferResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_reflectionBufferResourceUAVDescriptorHeapIndex, m_descriptorSize);
+    D3D12_GPU_DESCRIPTOR_HANDLE* descHandles[] = {
+        &m_raytracingOutputResourceUAVGpuDescriptor,
+        &m_reflectionBufferResourceUAVGpuDescriptor,
+        &m_shadowBufferResourceUAVGpuDescriptor
+    };
 
-    // Shadow buffer
-    ThrowIfFailed(device->CreateCommittedResource(
-        &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_shadowBuffer)));
-    NAME_D3D12_OBJECT(m_shadowBuffer);
+    for (auto i : range(0, 3)) {
+        ThrowIfFailed(device->CreateCommittedResource(
+            &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
+        NAME_D3D12_OBJECT(*buffers[i]);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle3;
-    m_shadowBufferResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle3, m_shadowBufferResourceUAVDescriptorHeapIndex);
-    D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc3 = {};
-    UAVDesc3.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-    device->CreateUnorderedAccessView(m_shadowBuffer.Get(), nullptr, &UAVDesc3, uavDescriptorHandle3);
-    m_shadowBufferResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_shadowBufferResourceUAVDescriptorHeapIndex, m_descriptorSize);
+        D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
+        *heapIndices[i] = AllocateDescriptor(&uavDescriptorHandle, *heapIndices[i]);
+        D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+        UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+        device->CreateUnorderedAccessView((*buffers)[i].Get(), nullptr, &UAVDesc, uavDescriptorHandle);
+        *descHandles[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), *heapIndices[i], m_descriptorSize);
+    }
 }
 
-void Core::UpdateForSizeChange(UINT width, UINT height)
-{
+void Core::UpdateForSizeChange(UINT width, UINT height) {
     DXCore::UpdateForSizeChange(width, height);
 }
 
-void Core::CopyRaytracingOutputToBackbuffer()
-{
+void Core::CopyRaytracingOutputToBackbuffer() {
     auto commandList = m_deviceResources->GetCommandList();
     auto renderTarget = m_deviceResources->GetRenderTarget();
 
@@ -1046,19 +786,16 @@ void Core::CopyRaytracingOutputToBackbuffer()
     commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
 }
 
-void Core::CreateWindowSizeDependentResources()
-{
+void Core::CreateWindowSizeDependentResources() {
     CreateRaytracingOutputResource();
     UpdateCameraMatrices();
 }
 
-void Core::ReleaseWindowSizeDependentResources()
-{
+void Core::ReleaseWindowSizeDependentResources() {
     m_raytracingOutput.Reset();
 }
 
-void Core::ReleaseDeviceDependentResources()
-{
+void Core::ReleaseDeviceDependentResources() {
     for (auto& gpuTimer : m_gpuTimers)
     {
         gpuTimer.ReleaseDevice();
@@ -1095,8 +832,7 @@ void Core::ReleaseDeviceDependentResources()
     m_hitGroupShaderTable.Reset();
 }
 
-void Core::RecreateD3D()
-{
+void Core::RecreateD3D() {
     // Give GPU a chance to finish its execution in progress.
     try
     {
@@ -1109,8 +845,7 @@ void Core::RecreateD3D()
     m_deviceResources->HandleDeviceLost();
 }
 
-void Core::Compose()
-{
+void Core::Compose() {
     auto commandList = m_deviceResources->GetCommandList();
     auto device = m_deviceResources->GetD3DDevice();
 
@@ -1147,8 +882,7 @@ void Core::Compose()
     commandList->Dispatch(1280/8, 720/8, 1);
 }
 
-void Core::OnRender()
-{
+void Core::OnRender() {
     if (!m_deviceResources->IsWindowVisible())
     {
         return;
@@ -1183,20 +917,17 @@ void Core::OnDestroy() {
     OnDeviceLost();
 }
 
-void Core::OnDeviceLost()
-{
+void Core::OnDeviceLost() {
     ReleaseWindowSizeDependentResources();
     ReleaseDeviceDependentResources();
 }
 
-void Core::OnDeviceRestored()
-{
+void Core::OnDeviceRestored() {
     CreateDeviceDependentResources();
     CreateWindowSizeDependentResources();
 }
 
-void Core::CalculateFrameStats()
-{
+void Core::CalculateFrameStats() {
     static int frameCnt = 0;
     static double prevTime = 0.0f;
     double totalTime = m_timer.GetTotalSeconds();
@@ -1224,8 +955,7 @@ void Core::CalculateFrameStats()
     }
 }
 
-void Core::OnSizeChanged(UINT width, UINT height, bool minimized)
-{
+void Core::OnSizeChanged(UINT width, UINT height, bool minimized) {
     if (!m_deviceResources->WindowSizeChanged(width, height, minimized))
     {
         return;
@@ -1237,8 +967,7 @@ void Core::OnSizeChanged(UINT width, UINT height, bool minimized)
     CreateWindowSizeDependentResources();
 }
 
-UINT Core::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
-{
+UINT Core::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse) {
     auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
     if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
     {
@@ -1249,8 +978,7 @@ UINT Core::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT d
     return descriptorIndexToUse;
 }
 
-UINT Core::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize)
-{
+UINT Core::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize) {
     auto device = m_deviceResources->GetD3DDevice();
 
     // SRV
@@ -1276,8 +1004,7 @@ UINT Core::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize
     return descriptorIndex;
 }
 
-UINT Core::CreateTextureSRV(UINT numElements, UINT elementSize)
-{
+UINT Core::CreateTextureSRV(UINT numElements, UINT elementSize) {
     auto device = m_deviceResources->GetD3DDevice();
 
     auto srvDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 512, 512, 1, 1, 1, 0);
@@ -1305,8 +1032,7 @@ UINT Core::CreateTextureSRV(UINT numElements, UINT elementSize)
     return descriptorIndex;
 }
 
-void Core::OnUpdate()
-{
+void Core::OnUpdate() {
     m_timer.Tick();
     CalculateFrameStats();
     float elapsedTime = static_cast<float>(m_timer.GetElapsedSeconds());
@@ -1342,8 +1068,7 @@ void Core::OnUpdate()
     m_sceneCB->elapsedTime = m_animateGeometryTime;
 }
 
-void Core::BuildAccelerationStructures()
-{
+void Core::BuildAccelerationStructures() {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
     auto commandQueue = m_deviceResources->GetCommandQueue();
@@ -1518,8 +1243,7 @@ template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevel
     AllocateUploadBuffer(m_deviceResources->GetD3DDevice(), instanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
 };
 
-AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
-{
+AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags) {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
     ComPtr<ID3D12Resource> scratch;
