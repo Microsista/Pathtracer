@@ -12,3 +12,4 @@ Features include:
 - PBR materials
 - Textures and intricate geometry
 - Denoising
+- Lua scripting
