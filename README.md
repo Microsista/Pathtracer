@@ -1,4 +1,4 @@
-Simple real-time pathtracer built based on the Microsoft's DXR samples.
+Simple real-time pathtracer built based on Microsoft's DXR samples.
 
 ![attic](https://user-images.githubusercontent.com/8358987/124905427-4f400580-dfe6-11eb-884d-6743ec19b251.png)
 ![middle](https://user-images.githubusercontent.com/8358987/124905435-5109c900-dfe6-11eb-86eb-19c396780904.png)
