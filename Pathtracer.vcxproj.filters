@@ -75,6 +75,9 @@
     <Filter Include="HLSL Source">
       <UniqueIdentifier>{34c03a23-d6f4-42d6-a93a-6a232e06e763}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scripts">
+      <UniqueIdentifier>{5a30275c-8441-47a8-97bb-e09142c4a523}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -117,6 +120,9 @@
     </None>
     <None Include="RaytracingShaderHelper.hlsli">
       <Filter>HLSL Header</Filter>
+    </None>
+    <None Include="LuaScripts\MyScript.lua">
+      <Filter>Scripts</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

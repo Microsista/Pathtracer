@@ -8,6 +8,34 @@
 
 #include "Geometry.h"
 
+extern "C" {
+#include "Lua542/include/lua.h"
+#include "Lua542/include/lauxlib.h"
+#include "Lua542/include/lualib.h"
+}
+
+bool CheckLua(lua_State* L, int r) {
+    if (r != LUA_OK) {
+        std::string errormsg = lua_tostring(L, -1);
+        print(errormsg);
+        return false;
+    }
+    return true;
+}
+
+int lua_HostFunction(lua_State* L) {
+    float a = (float)lua_tonumber(L, 1);
+    float b = (float)lua_tonumber(L, 2);
+    print("[C++] Hostfunction(");
+    print(a);
+    print(", ");
+    print(b);
+    print(") called");
+    float c = a * b;
+    lua_pushnumber(L, c);
+    return 1;
+}
+
 using namespace std;
 using namespace DX;
 using namespace util::lang;
@@ -167,6 +195,75 @@ void Core::BuildGeometry()
        XMFLOAT3(20.0f, 0.01f, 0.01f),
        XMFLOAT3(0.0f, 0.0f, 0.0f)
     };
+
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+
+    lua_register(L, "HostFunction", lua_HostFunction);
+
+    if (CheckLua(L, luaL_dofile(L, "LuaScripts/MyScript.lua"))) {
+        //lua_getglobal(L, "DoAThing");
+        //if (lua_isfunction(L, -1)) {
+        //    if (CheckLua(L, lua_pcall(L, 0, 3, 0))) {
+        //        print("[C++] Called in Lua 'DoAThing()' got ");
+        //        sizes[1] = XMFLOAT3((float)lua_tonumber(L, 1), (float)lua_tonumber(L, 2), (float)lua_tonumber(L, 3));
+        //    }
+        //}
+
+        lua_getglobal(L, "coordinatesSize");
+        if (lua_istable(L, -1)) {
+            /*if (CheckLua(L, lua_pcall(L, 0, 3, 0))) {
+                print("[C++] Called in Lua 'DoAThing()' got ");
+                
+            }*/
+            lua_pushstring(L, "x");
+            lua_gettable(L, -2);
+            float x = (float)lua_tonumber(L, -1);
+            lua_pop(L, 1);
+
+            lua_pushstring(L, "y");
+            lua_gettable(L, -2);
+            float y = (float)lua_tonumber(L, -1);
+            lua_pop(L, 1);
+
+            lua_pushstring(L, "z");
+            lua_gettable(L, -2);
+            float z = (float)lua_tonumber(L, -1);
+            lua_pop(L, 1);
+
+            sizes[1] = XMFLOAT3(x, y, z);
+        }
+
+        /*  lua_getglobal(L, "player");
+          if (lua_istable(L, -1)) {
+              lua_pushstring(L, "Name");
+              lua_gettable(L, -2);
+              player.name = lua_tostring(L, -1);
+              lua_pop(L, 1);
+
+              lua_pushstring(L, "Family");
+              lua_gettable(L, -2);
+              player.family = lua_tostring(L, -1);
+              lua_pop(L, 1);
+
+              lua_pushstring(L, "Title");
+              lua_gettable(L, -2);
+              player.title = lua_tostring(L, -1);
+              lua_pop(L, 1);
+
+              lua_pushstring(L, "Level");
+              lua_gettable(L, -2);
+              player.level = lua_tonumber(L, -1);
+              lua_pop(L, 1);
+          }
+          print(player.name);
+          print(player.family);
+          print(player.title);
+          print(player.level);*/
+
+
+    }
+    lua_close(L);
 
     GeometryGenerator::MeshData(GeometryGenerator::*createGeo[3])(float width, float height, float depth) = {
         &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
@@ -447,14 +544,15 @@ void Core::OnKeyDown(UINT8 key)
     XMMATRIX rotateClockwise = XMMatrixRotationY(XMConvertToRadians(-angleToRotateBy));
     
     auto speed = 100.0f;
+    auto movementSpeed = 100.0f;
     if (GetKeyState(VK_SHIFT))
-        speed *= 5;
+        movementSpeed *= 5;
     switch (key)
     {
-    case 'W': m_camera.Walk(speed * elapsedTime); break;
-    case 'S': m_camera.Walk(-speed * elapsedTime); break;
-    case 'A': m_camera.Strafe(-speed * elapsedTime); break;
-    case 'D': m_camera.Strafe(speed * elapsedTime); break;
+    case 'W': m_camera.Walk(movementSpeed * elapsedTime); break;
+    case 'S': m_camera.Walk(-movementSpeed * elapsedTime); break;
+    case 'A': m_camera.Strafe(-movementSpeed * elapsedTime); break;
+    case 'D': m_camera.Strafe(movementSpeed * elapsedTime); break;
     case 'Q': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate); break;
     case 'E': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotateClockwise); break;
     case 'I': m_sceneCB->lightPosition += speed * Directions::FORWARD * elapsedTime; break;
@@ -879,7 +977,7 @@ void Core::Compose() {
     commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
 
-    commandList->Dispatch(1280/8, 720/8, 1);
+    commandList->Dispatch(1920/8, 1080/8, 1);
 }
 
 void Core::OnRender() {
