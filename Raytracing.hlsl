@@ -52,7 +52,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
         Info info3;
-        info3.color = float4(0, 0, 0, 0);
+        info3.color = float4(1, 0, 0, 0);
         info3.inShadow = 1.0f;
         return info3;
     }
@@ -234,7 +234,7 @@ Info Shade(
         // Radiance contribution from reflection.
         float3 wi;
         float3 Fr = Kr * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
-
+        Fr = 1 - Fr;
         // Fuzzy reflections
         uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
         uint RNGState = RNG::SeedThread(threadId);
@@ -245,11 +245,9 @@ Info Shade(
 
         float4x4 objectToWorld = BuildInverseLookAtMatrix(hitPosition, normalize(wi));
 
-
         RayPayload reflectedRayPayload = rayPayload;
         // Ref: eq 24.4, [Ray-tracing from the Ground Up]
         Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
-        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Ks);
 
         Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth/*, hitPosition*/);
         // Trace a reflection ray.

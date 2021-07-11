@@ -82,6 +82,7 @@ namespace BxDF {
 
     //
     // Fresnel reflectance - schlick approximation.
+    // Calculates how much colour is coming from reflection vs how much is coming from it's own colour
     float3 Fresnel(in float3 F0, in float cos_thetai)
     {
         F0 /= 4.0f;

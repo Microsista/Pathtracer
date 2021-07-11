@@ -301,11 +301,6 @@ Vector3f OrthoNormalVector(double x, double y, double z) {
 }
 
 float4x4 BuildLookAtMatrix(float3 origin, float3 zAxis) {
-    zAxis = zAxis;
-    //float3 yAxis = cross(zAxis, normalize(float3(1.0f, 1.0f, 1.0f)));
-    /*float3 yAxis = (zAxis.z, zAxis.z, -zAxis.x - zAxis.y);
-    if (yAxis.x == 0 && yAxis.y == 0 && yAxis.z == 0)
-        yAxis = (-zAxis.y - zAxis.z, zAxis.x, zAxis.x);*/
     float3 yAxis = OrthoNormalVector(zAxis.x, zAxis.y, zAxis.z);
     float3 xAxis = cross(zAxis, yAxis);
 
@@ -326,61 +321,12 @@ float4x4 BuildLookAtMatrix(float3 origin, float3 zAxis) {
     m[2][2] = zAxis.z;
     m[2][3] = 0;
 
-    m[3][0] = dot(xAxis, origin);;
-    m[3][1] = dot(yAxis, origin);;
+    m[3][0] = dot(xAxis, origin);
+    m[3][1] = dot(yAxis, origin);
     m[3][2] = dot(zAxis, origin);
     m[3][3] = 1;
 
-
-    //m[0][0] = xAxis.x;
-    //m[0][1] = xAxis.y;
-    //m[0][2] = xAxis.z;
-    //m[0][3] = 0;
-
-    //m[1][0] = yAxis.x;
-    //m[1][1] = yAxis.y;
-    //m[1][2] = yAxis.z;
-    //m[1][3] = 0;
-
-    //m[2][0] = zAxis.x;
-    //m[2][1] = zAxis.y;
-    //m[2][2] = zAxis.z;
-    //m[2][3] = 0;
-
-    //m[3][0] = -dot(xAxis, origin);;
-    //m[3][1] = -dot(yAxis, origin);;
-    //m[3][2] = -dot(zAxis, origin);
-    //m[3][3] = 1;
-
-    return m;// transpose(m);
-
-   /* float3 forward = -zAxis;
-    float3 right = cross(float3(0, 1, 0), forward);
-    float3 up = cross(forward, right);
-
-    float4x4 camToWorld;
-
-    camToWorld[0][0] = right.x;
-    camToWorld[0][1] = right.y;
-    camToWorld[0][2] = right.z;
-    camToWorld[0][3] = 0;
-
-    camToWorld[1][0] = up.x;
-    camToWorld[1][1] = up.y;
-    camToWorld[1][2] = up.z;
-    camToWorld[1][3] = 0;
-
-    camToWorld[2][0] = forward.x;
-    camToWorld[2][1] = forward.y;
-    camToWorld[2][2] = forward.z;
-    camToWorld[2][3] = 0;
-
-    camToWorld[3][0] = origin.x;
-    camToWorld[3][1] = origin.y;
-    camToWorld[3][2] = origin.z;
-    camToWorld[3][3] = 1;    
-
-    return transpose(camToWorld);*/
+    return m;
 }
 
 float4x4 inverse(float4x4 m) {
