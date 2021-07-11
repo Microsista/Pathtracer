@@ -84,6 +84,7 @@ namespace BxDF {
     // Fresnel reflectance - schlick approximation.
     float3 Fresnel(in float3 F0, in float cos_thetai)
     {
+        F0 /= 4.0f;
         return F0 + (1 - F0) * pow(1 - cos_thetai, 5);
     }
 
