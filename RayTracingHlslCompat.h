@@ -103,6 +103,7 @@ struct RayPayload
     XMFLOAT4 color;
     UINT   recursionDepth;
     float inShadow;
+    float depth;
 };
 
 struct ShadowRayPayload

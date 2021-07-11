@@ -11,6 +11,7 @@ namespace GlobalRootSignature {
             TriangleAttributeBuffer,
             ReflectionBuffer,
             ShadowBuffer,
+            NormalDepth,
             Count
         };
     }

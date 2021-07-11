@@ -32,7 +32,9 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     float3 texSample = l_texDiffuse.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
     material.Kd = texSample;
     float3 hitPosition = HitWorldPosition();
+    float depth = length(g_sceneCB.cameraPosition - hitPosition)/200;
     Info info = Shade(hitPosition, rayPayload, localNormal, material);
     rayPayload.color = info.color;
     rayPayload.inShadow = info.inShadow;
+    rayPayload.depth = depth;
 }

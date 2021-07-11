@@ -59,10 +59,11 @@ void Core::CreateRootSignatures() {
 
     // Global Root Signature
     {
-        CD3DX12_DESCRIPTOR_RANGE ranges[3] = {};
+        CD3DX12_DESCRIPTOR_RANGE ranges[4] = {};
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+        ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
 
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignature::Slot::Count];
         rootParameters[GlobalRootSignature::Slot::OutputView].InitAsDescriptorTable(1, &ranges[0]);
@@ -71,6 +72,7 @@ void Core::CreateRootSignatures() {
         rootParameters[GlobalRootSignature::Slot::TriangleAttributeBuffer].InitAsShaderResourceView(4);
         rootParameters[GlobalRootSignature::Slot::ReflectionBuffer].InitAsDescriptorTable(1, &ranges[1]);
         rootParameters[GlobalRootSignature::Slot::ShadowBuffer].InitAsDescriptorTable(1, &ranges[2]);
+        rootParameters[GlobalRootSignature::Slot::NormalDepth].InitAsDescriptorTable(1, &ranges[3]);
 
         CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = { CD3DX12_STATIC_SAMPLER_DESC(0, SAMPLER_FILTER) }; // LinearWrapSampler
 
@@ -347,7 +349,7 @@ void Core::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOM
     triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
     triangleDescTemplate.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-    for (auto i : range(1, 6)) {
+    for (auto i : range(2, 6)) {
         geometryDescs[i].resize(m_meshSizes[i], triangleDescTemplate);
         for (auto j : range(0, m_meshSizes[i])) {
             string geoName = "geo" + to_string(m_meshOffsets[i] + j);
@@ -496,6 +498,7 @@ void Core::DoRaytracing()
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, m_reflectionBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, m_normalDepthResourceUAVGpuDescriptor);
     };
 
     commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
@@ -521,6 +524,7 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_raytracingOutputResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_reflectionBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_normalDepthResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_animateGeometryTime(0.0f),
     m_animateCamera(false),
     m_animateGeometry(true),
@@ -718,6 +722,7 @@ void Core::CreateConstantBuffers() {
     auto frameCount = m_deviceResources->GetBackBufferCount();
 
     m_sceneCB.Create(device, frameCount, L"Scene Constant Buffer");
+    m_filterCB.Create(device, frameCount, L"Filter Constant Buffer");
 }
 
 void Core::CreateTrianglePrimitiveAttributesBuffers() {
@@ -833,22 +838,25 @@ void Core::CreateRaytracingOutputResource() {
     UINT* heapIndices[] = {
         &m_raytracingOutputResourceUAVDescriptorHeapIndex,
         &m_reflectionBufferResourceUAVDescriptorHeapIndex,
-        &m_shadowBufferResourceUAVDescriptorHeapIndex
+        &m_shadowBufferResourceUAVDescriptorHeapIndex,
+        &m_normalDepthResourceUAVDescriptorHeapIndex
     };
 
     ComPtr<ID3D12Resource>* buffers[] = {
         &m_raytracingOutput,
         &m_reflectionBuffer,
-        &m_shadowBuffer
+        &m_shadowBuffer,
+        &m_normalDepth
     };
 
     D3D12_GPU_DESCRIPTOR_HANDLE* descHandles[] = {
         &m_raytracingOutputResourceUAVGpuDescriptor,
         &m_reflectionBufferResourceUAVGpuDescriptor,
-        &m_shadowBufferResourceUAVGpuDescriptor
+        &m_shadowBufferResourceUAVGpuDescriptor,
+        &m_normalDepthResourceUAVGpuDescriptor
     };
 
-    for (auto i : range(0, 3)) {
+    for (auto i : range(0, 4)) {
         ThrowIfFailed(device->CreateCommittedResource(
             &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
         NAME_D3D12_OBJECT(*buffers[i]);
@@ -947,15 +955,18 @@ void Core::Compose() {
     auto commandList = m_deviceResources->GetCommandList();
     auto device = m_deviceResources->GetD3DDevice();
 
-    CD3DX12_DESCRIPTOR_RANGE ranges[3];
+    CD3DX12_DESCRIPTOR_RANGE ranges[4];
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
     ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
+    ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[3];
+    CD3DX12_ROOT_PARAMETER rootParameters[5];
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
     rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
     rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
+    rootParameters[3].InitAsConstantBufferView(0, 0);
+    rootParameters[4].InitAsDescriptorTable(1, &ranges[3]);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
@@ -976,8 +987,15 @@ void Core::Compose() {
     commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
     commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
+    //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
 
-    commandList->Dispatch(1920/8, 1080/8, 1);
+    auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+    m_filterCB.CopyStagingToGpu(frameIndex);
+    commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
+    commandList->SetComputeRootDescriptorTable(4, m_normalDepthResourceUAVGpuDescriptor); // Input
+
+    auto outputSize = m_deviceResources->GetOutputSize();
+    commandList->Dispatch(outputSize.right/8, outputSize.bottom/8, 1);
 }
 
 void Core::OnRender() {
@@ -1164,6 +1182,9 @@ void Core::OnUpdate() {
         m_animateGeometryTime += elapsedTime;
     }
     m_sceneCB->elapsedTime = m_animateGeometryTime;
+
+    auto outputSize = m_deviceResources->GetOutputSize();
+    m_filterCB->textureDim = XMUINT2(outputSize.right, outputSize.bottom);
 }
 
 void Core::BuildAccelerationStructures() {

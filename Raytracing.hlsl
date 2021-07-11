@@ -12,6 +12,7 @@ static const float LIGHT_SIZE = 0.6f;
 struct Info {
     float4 color;
     float inShadow;
+    float depth;
 };
 
 
@@ -24,6 +25,7 @@ RaytracingAccelerationStructure g_scene : register(t0);
 RWTexture2D<float3> g_renderTarget : register(u0);
 RWTexture2D<float3> g_reflectionBuffer : register(u1);
 RWTexture2D<float3> g_shadowBuffer : register(u2);
+RWTexture2D<float3> g_normalDepth : register(u3);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
@@ -60,7 +62,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.0f };
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.0f, 0.0f };
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -71,6 +73,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     Info info;
     info.color = rayPayload.color;
     info.inShadow = rayPayload.inShadow;
+    info.depth = rayPayload.depth;
     return info;
 }
 

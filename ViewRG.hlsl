@@ -16,4 +16,5 @@ void MyRaygenShader()
     float3 color = info.color;
     g_shadowBuffer[DTID] = inShadow;
     g_renderTarget[DTID] = color;
+    g_normalDepth[DTID] = float3(info.depth, info.depth, info.depth);
 }

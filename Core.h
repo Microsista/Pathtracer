@@ -99,6 +99,7 @@ private:
 
     // Raytracing scene
     ConstantBuffer<SceneConstantBuffer> m_sceneCB;
+    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> m_filterCB;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_trianglePrimitiveAttributeBuffer;
     std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
@@ -122,12 +123,15 @@ private:
     ComPtr<ID3D12Resource> m_raytracingOutput;
     ComPtr<ID3D12Resource> m_reflectionBuffer;
     ComPtr<ID3D12Resource> m_shadowBuffer;
+    ComPtr<ID3D12Resource> m_normalDepth;
     D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_normalDepthResourceUAVGpuDescriptor;
     UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
     UINT m_reflectionBufferResourceUAVDescriptorHeapIndex;
     UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
+    UINT m_normalDepthResourceUAVDescriptorHeapIndex;
 
     // Shader tables
     static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
