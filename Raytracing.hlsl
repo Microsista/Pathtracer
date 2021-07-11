@@ -52,7 +52,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
         Info info3;
-        info3.color = float4(1, 0, 0, 0);
+        info3.color = float4(0, 0, 0, 0);
         info3.inShadow = 1.0f;
         return info3;
     }
@@ -233,8 +233,10 @@ Info Shade(
     {
         // Radiance contribution from reflection.
         float3 wi;
-        float3 Fr = Kr * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
+        float3 Fr = (1 - (Fo.x + Fo.y + Fo.z)/1.1f ) * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
         Fr = 1 - Fr;
+        Fr = dot(1, Fr)/3;
+        //g_reflectionBuffer[DTID] = Fr;
         // Fuzzy reflections
         uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
         uint RNGState = RNG::SeedThread(threadId);
@@ -248,10 +250,18 @@ Info Shade(
         RayPayload reflectedRayPayload = rayPayload;
         // Ref: eq 24.4, [Ray-tracing from the Ground Up]
         Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
-
+        
         Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth/*, hitPosition*/);
+        //g_reflectionBuffer[DTID] = Fr;
         // Trace a reflection ray.
-        g_reflectionBuffer[DTID] = Fr * info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        if (dot(N, V) < 0)
+            N *= -1;
+
+        float F = (Fo.x + Fo.y + Fo.z * 3.5f) / 3;
+        float3 fresnel = FresnelReflectanceSchlick(WorldRayDirection(), N, F);
+
+        g_reflectionBuffer[DTID] = fresnel * info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        //g_reflectionBuffer[DTID] = fresnel;
         //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
     }
 

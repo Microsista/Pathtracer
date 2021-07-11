@@ -94,7 +94,7 @@ GeometryGenerator::MeshData GeometryGenerator::processMesh(aiMesh* mesh, const a
 
 
 		material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-		mat.Kd = XMFLOAT3(color.r, color.g, color.b);
+		mat.Kd = XMFLOAT3(color.r, color.g, color.b); // albedo
 
 
 		material->Get(AI_MATKEY_COLOR_SPECULAR, color);
