@@ -64,6 +64,9 @@ void Core::CreateRootSignatures() {
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
         ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
+        //ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
+        //ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);
+        //ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
 
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignature::Slot::Count];
         rootParameters[GlobalRootSignature::Slot::OutputView].InitAsDescriptorTable(1, &ranges[0]);
@@ -73,6 +76,9 @@ void Core::CreateRootSignatures() {
         rootParameters[GlobalRootSignature::Slot::ReflectionBuffer].InitAsDescriptorTable(1, &ranges[1]);
         rootParameters[GlobalRootSignature::Slot::ShadowBuffer].InitAsDescriptorTable(1, &ranges[2]);
         rootParameters[GlobalRootSignature::Slot::NormalDepth].InitAsDescriptorTable(1, &ranges[3]);
+       /* rootParameters[GlobalRootSignature::Slot::NormalMap].InitAsDescriptorTable(1, &ranges[4]);
+        rootParameters[GlobalRootSignature::Slot::SpecularMap].InitAsDescriptorTable(1, &ranges[5]);
+        rootParameters[GlobalRootSignature::Slot::EmissiveMap].InitAsDescriptorTable(1, &ranges[6]);*/
 
         CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = { CD3DX12_STATIC_SAMPLER_DESC(0, SAMPLER_FILTER) }; // LinearWrapSampler
 
@@ -86,6 +92,9 @@ void Core::CreateRootSignatures() {
     ranges[Slot::IndexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     ranges[Slot::VertexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
     ranges[Slot::DiffuseTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
+    ranges[Slot::NormalTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
+    ranges[Slot::SpecularTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);
+    ranges[Slot::EmissiveTexture].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
 
     namespace RootSignatureSlots = LocalRootSignature::Triangle::Slot;
     CD3DX12_ROOT_PARAMETER rootParameters[RootSignatureSlots::Count] = {};
@@ -95,6 +104,10 @@ void Core::CreateRootSignatures() {
     rootParameters[RootSignatureSlots::IndexBuffer].InitAsDescriptorTable(1, &ranges[Slot::IndexBuffer]);
     rootParameters[RootSignatureSlots::VertexBuffer].InitAsDescriptorTable(1, &ranges[Slot::VertexBuffer]);
     rootParameters[RootSignatureSlots::DiffuseTexture].InitAsDescriptorTable(1, &ranges[Slot::DiffuseTexture]);
+    rootParameters[RootSignatureSlots::NormalTexture].InitAsDescriptorTable(1, &ranges[Slot::NormalTexture]);
+    rootParameters[RootSignatureSlots::SpecularTexture].InitAsDescriptorTable(1, &ranges[Slot::SpecularTexture]);
+    rootParameters[RootSignatureSlots::EmissiveTexture].InitAsDescriptorTable(1, &ranges[Slot::EmissiveTexture]);
+
     CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
     SerializeAndCreateRaytracingRootSignature(device, localRootSignatureDesc, &m_raytracingLocalRootSignature[LocalRootSignature::Type::Triangle], L"Local root signature");
@@ -112,19 +125,30 @@ void Core::CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytrac
 
 void Core::CreateRaytracingPipelineStateObject() {
     CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
+
     CreateDxilLibrarySubobjects(&raytracingPipeline);
     CreateHitGroupSubobjects(&raytracingPipeline);
+
     auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
+
     UINT payloadSize = max(sizeof(RayPayload), sizeof(ShadowRayPayload));
+
     UINT attributeSize = sizeof(struct ProceduralPrimitiveAttributes);
+
     shaderConfig->Config(payloadSize, attributeSize);
+
     CreateLocalRootSignatureSubobjects(&raytracingPipeline);
+
     auto globalRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>();
     globalRootSignature->SetRootSignature(m_raytracingGlobalRootSignature.Get());
+
     auto pipelineConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_PIPELINE_CONFIG_SUBOBJECT>();
+
     UINT maxRecursionDepth = MAX_RAY_RECURSION_DEPTH;
     pipelineConfig->Config(maxRecursionDepth);
+
     PrintStateObjectDesc(raytracingPipeline);
+
     ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrStateObject)), L"Couldn't create DirectX Raytracing state object.\n");
 }
 
@@ -446,9 +470,15 @@ void Core::BuildShaderTables()
                 string meshName = "mesh" + to_string(instanceIndex + m_meshOffsets[i]);
                 Material m = m_geometries[geoName]->DrawArgs[meshName].Material;
                 auto texture = m_templeTextures[m.id].gpuDescriptorHandle;
+                auto normalTexture = m_templeNormalTextures[m.id].gpuDescriptorHandle;
+                auto specularTexture = m_templeSpecularTextures[m.id].gpuDescriptorHandle;
+                auto emittanceTexture = m_templeEmittanceTextures[m.id].gpuDescriptorHandle;
                 memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                 memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                 memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));
+                memcpy(&rootArgs.normalTextureGPUHandle, &normalTexture, sizeof(ib));
+                memcpy(&rootArgs.specularTextureGPUHandle, &specularTexture, sizeof(ib));
+                memcpy(&rootArgs.emittanceTextureGPUHandle, &emittanceTexture, sizeof(ib));
 
                 // Ray types
                 for (UINT r = 0; r < RayType::Count; r++)
@@ -499,6 +529,9 @@ void Core::DoRaytracing()
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, m_reflectionBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, m_normalDepthResourceUAVGpuDescriptor);
+        //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalMap, m_normalMapResourceUAVGpuDescriptor);
+        //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::SpecularMap, m_specularMapResourceUAVGpuDescriptor);
+        //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::EmissiveMap, m_emissiveMapResourceUAVGpuDescriptor);
     };
 
     commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
@@ -525,6 +558,9 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_reflectionBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_normalDepthResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_normalMapResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_specularMapResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_emissiveMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_animateGeometryTime(0.0f),
     m_animateCamera(false),
     m_animateGeometry(true),
@@ -839,24 +875,33 @@ void Core::CreateRaytracingOutputResource() {
         &m_raytracingOutputResourceUAVDescriptorHeapIndex,
         &m_reflectionBufferResourceUAVDescriptorHeapIndex,
         &m_shadowBufferResourceUAVDescriptorHeapIndex,
-        &m_normalDepthResourceUAVDescriptorHeapIndex
+        &m_normalDepthResourceUAVDescriptorHeapIndex,
+        &m_normalMapResourceUAVDescriptorHeapIndex,
+        &m_specularMapResourceUAVDescriptorHeapIndex,
+        &m_emissiveMapResourceUAVDescriptorHeapIndex,
     };
 
     ComPtr<ID3D12Resource>* buffers[] = {
         &m_raytracingOutput,
         &m_reflectionBuffer,
         &m_shadowBuffer,
-        &m_normalDepth
+        &m_normalDepth,
+        &m_normalMap,
+        &m_specularMap,
+        &m_emissiveMap,
     };
 
     D3D12_GPU_DESCRIPTOR_HANDLE* descHandles[] = {
         &m_raytracingOutputResourceUAVGpuDescriptor,
         &m_reflectionBufferResourceUAVGpuDescriptor,
         &m_shadowBufferResourceUAVGpuDescriptor,
-        &m_normalDepthResourceUAVGpuDescriptor
+        &m_normalDepthResourceUAVGpuDescriptor,
+        &m_normalMapResourceUAVGpuDescriptor,
+        &m_specularMapResourceUAVGpuDescriptor,
+        &m_emissiveMapResourceUAVGpuDescriptor,
     };
 
-    for (auto i : range(0, 4)) {
+    for (auto i : range(0, 7)) {
         ThrowIfFailed(device->CreateCommittedResource(
             &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
         NAME_D3D12_OBJECT(*buffers[i]);
@@ -1254,12 +1299,37 @@ void Core::BuildAccelerationStructures() {
         string base = "..\\..\\Models\\SunTemple\\Textures\\";
         base = s4;
         string add = m_materials[i].map_Kd;
+        string normalMapPath = m_materials[i].map_Bump;
+        string specularMapPath = m_materials[i].map_Ks;
+        string emittanceMapPath = m_materials[i].map_Ke;
 
         std::size_t pos = add.find("\\");
         std::string str3 = add.substr(pos + 1);
-        string path = base + str3;        
+        string path = base + str3;
+        print(path);
         if(add != "")
             LoadDDSTexture(device, commandList, wstring(path.begin(), path.end()).c_str(), m_descriptorHeap.get(), &m_templeTextures[i]);
+
+        std::size_t pos2 = normalMapPath.find("\\");
+        std::string str4 = normalMapPath.substr(pos2 + 1);
+        string path2 = base + str4;
+        print(path2);
+        if (normalMapPath != "")
+            LoadDDSTexture(device, commandList, wstring(path2.begin(), path2.end()).c_str(), m_descriptorHeap.get(), &m_templeNormalTextures[i]);
+
+        std::size_t pos3 = specularMapPath.find("\\");
+        std::string str5 = specularMapPath.substr(pos3 + 1);
+        string path3 = base + str5;
+        print(path3);
+        if (specularMapPath != "")
+            LoadDDSTexture(device, commandList, wstring(path3.begin(), path3.end()).c_str(), m_descriptorHeap.get(), &m_templeSpecularTextures[i]);
+
+        std::size_t pos4 = emittanceMapPath.find("\\");
+        std::string str6 = emittanceMapPath.substr(pos4 + 1);
+        string path4 = base + str6;
+        print(path4);
+        if (emittanceMapPath != "")
+            LoadDDSTexture(device, commandList, wstring(path4.begin(), path4.end()).c_str(), m_descriptorHeap.get(), &m_templeEmittanceTextures[i]);
     }
 
     // Kick off acceleration structure construction.

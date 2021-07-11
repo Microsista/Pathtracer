@@ -23,14 +23,27 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     float3 normals[3] = { vertices[0].normal, vertices[1].normal, vertices[2].normal };
     float3 localNormal = HitAttribute(normals, attr);
 
-    float orientation = HitKind() == HIT_KIND_TRIANGLE_FRONT_FACE ? 1 : -1;
-    localNormal *= orientation;
-
     float2 vertexTexCoords[3] = { vertices[0].textureCoordinate, vertices[1].textureCoordinate, vertices[2].textureCoordinate };
     float2 texCoord = HitAttribute(vertexTexCoords, attr);
 
     float3 texSample = l_texDiffuse.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
     material.Kd = texSample;
+
+    float3 normalSample = g_normalMap.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
+    if (length(normalSample) > 0.9f && length(normalSample < 1.1f)) {
+        localNormal = normalSample;
+        localNormal = normalize(localNormal * 2.0 - 1.0);
+    }
+
+    float3 specularSample = g_specularMap.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
+    material.Ks = specularSample;
+
+    float3 emittanceSample = g_emissiveMap.SampleLevel(LinearWrapSampler, texCoord, 0).xyz;
+    material.Ke = emittanceSample;
+
+    float orientation = HitKind() == HIT_KIND_TRIANGLE_FRONT_FACE ? 1 : -1;
+    localNormal *= orientation;
+
     float3 hitPosition = HitWorldPosition();
     float depth = length(g_sceneCB.cameraPosition - hitPosition)/200;
     Info info = Shade(hitPosition, rayPayload, localNormal, material);

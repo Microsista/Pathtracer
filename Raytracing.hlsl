@@ -26,6 +26,9 @@ RWTexture2D<float3> g_renderTarget : register(u0);
 RWTexture2D<float3> g_reflectionBuffer : register(u1);
 RWTexture2D<float3> g_shadowBuffer : register(u2);
 RWTexture2D<float3> g_normalDepth : register(u3);
+Texture2D<float3> g_normalMap : register(t5);
+Texture2D<float3> g_specularMap : register(t6);
+Texture2D<float3> g_emissiveMap : register(t7);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
@@ -142,6 +145,7 @@ Info Shade(
     const float3 Kd = material.Kd;
     const float3 Ks = material.Ks;
     const float3 Kr = material.Kr;
+    const float3 Ke = material.Ke;
     /*const float3 Kt = material.Kt;*/
     const float roughness = material.roughness;
 
@@ -213,6 +217,8 @@ Info Shade(
         g_reflectionBuffer[DTID] = Fr* info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
         //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
     }
+
+    L += float4(Ke.x, Ke.y, Ke.z, 1.0f);
     Info info;
     info.color = L;
     info.inShadow = shadowRayHit;

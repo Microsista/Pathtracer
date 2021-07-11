@@ -143,6 +143,7 @@ struct PrimitiveMaterialBuffer
     XMFLOAT3 Ks; // specular coefficient
     XMFLOAT3 Kr; // reflectance coefficient
     XMFLOAT3 Kt; // transparency coefficient
+    XMFLOAT3 Ke; // emittance coefficient
     XMFLOAT3 opacity; // opacity
     XMFLOAT3 eta; // n1/n2
     float roughness; // roughness

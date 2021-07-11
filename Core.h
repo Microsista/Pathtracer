@@ -124,14 +124,23 @@ private:
     ComPtr<ID3D12Resource> m_reflectionBuffer;
     ComPtr<ID3D12Resource> m_shadowBuffer;
     ComPtr<ID3D12Resource> m_normalDepth;
+    ComPtr<ID3D12Resource> m_normalMap;
+    ComPtr<ID3D12Resource> m_specularMap;
+    ComPtr<ID3D12Resource> m_emissiveMap;
     D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_normalDepthResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_normalMapResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_specularMapResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_emissiveMapResourceUAVGpuDescriptor;
     UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
     UINT m_reflectionBufferResourceUAVDescriptorHeapIndex;
     UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
     UINT m_normalDepthResourceUAVDescriptorHeapIndex;
+    UINT m_normalMapResourceUAVDescriptorHeapIndex;
+    UINT m_specularMapResourceUAVDescriptorHeapIndex;
+    UINT m_emissiveMapResourceUAVDescriptorHeapIndex;
 
     // Shader tables
     static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
@@ -165,6 +174,9 @@ private:
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
     D3DTexture m_stoneTexture[3];
     D3DTexture m_templeTextures[500];
+    D3DTexture m_templeNormalTextures[500];
+    D3DTexture m_templeSpecularTextures[500];
+    D3DTexture m_templeEmittanceTextures[500];
 
     std::unordered_map<int, Material> m_materials;
 

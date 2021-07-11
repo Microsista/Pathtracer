@@ -91,6 +91,8 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 
 	g_renderTarget[DTid.xy] += color;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
+	
+	
 	//g_renderTarget[DTid.xy] = float4(g_inNormalDepth[DTid.xy].x, g_inNormalDepth[DTid.xy].y, g_inNormalDepth[DTid.xy].z, 1.0f);
 	/*float dd = abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2 (1, 0)].x);
 	g_renderTarget[DTid.xy] = float4(dd, dd, dd, 0.0f);*/

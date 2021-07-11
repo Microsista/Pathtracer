@@ -35,6 +35,9 @@ namespace LocalRootSignature {
                 IndexBuffer,
                 VertexBuffer,
                 DiffuseTexture,
+                NormalTexture,
+                SpecularTexture,
+                EmissiveTexture,
                 Count
             };
         }
@@ -48,6 +51,9 @@ namespace LocalRootSignature {
             D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
             D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
             D3D12_GPU_DESCRIPTOR_HANDLE diffuseTextureGPUHandle;
+            D3D12_GPU_DESCRIPTOR_HANDLE normalTextureGPUHandle;
+            D3D12_GPU_DESCRIPTOR_HANDLE specularTextureGPUHandle;
+            D3D12_GPU_DESCRIPTOR_HANDLE emittanceTextureGPUHandle;
         };
     }
 }

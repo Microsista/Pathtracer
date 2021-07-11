@@ -111,6 +111,24 @@ GeometryGenerator::MeshData GeometryGenerator::processMesh(aiMesh* mesh, const a
 		material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 		mat.map_Kd = string(path.C_Str());
 
+		aiString path2;
+		material->GetTexture(aiTextureType_NORMALS, 0, &path2);
+		mat.map_Bump = string(path2.C_Str());
+
+		//print(path2.C_Str());
+
+		aiString path3;
+		material->GetTexture(aiTextureType_SPECULAR, 0, &path3);
+		mat.map_Ks = string(path3.C_Str());
+
+		//print(path3.C_Str());
+
+		aiString path4;
+		material->GetTexture(aiTextureType_EMISSIVE, 0, &path4);
+		mat.map_Ke = string(path4.C_Str());
+
+		//print(path4.C_Str());
+
 		mat.id = mesh->mMaterialIndex;
 
 

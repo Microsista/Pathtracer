@@ -530,6 +530,7 @@ struct Material {
     std::string map_Bump;
     std::string map_Kd;
     std::string map_Ks;
+    std::string map_Ke;
 };
 
 struct AssimpTexture {
