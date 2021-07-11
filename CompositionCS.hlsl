@@ -11,7 +11,7 @@ ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> cb: register(b0);
 static float e = 2.71828182846f;
 
 bool IsWithinBounds(in int2 index, in int2 dimensions) {
-	return index.x >= 0 && index.y >= 0 && index.x < dimensions.x < dimensions.x && index.y < dimensions.y;
+	return index.x >= 0 && index.y >= 0 && index.x < dimensions.x < dimensions.x&& index.y < dimensions.y;
 }
 
 float DepthThreshold(float depth, float2 ddxy, float2 pixelOffset) {
@@ -28,7 +28,7 @@ float DepthThreshold(float depth, float2 ddxy, float2 pixelOffset) {
 [numthreads(8, 8, 1)]
 void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
-	float4 color = float4(0,0,0,0);
+	float4 color = float4(0, 0, 0, 0);
 	float depth = g_inNormalDepth[DTid.xy].x;
 	//float prevDepth = g
 
@@ -57,9 +57,10 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 				y = 0;
 			}
 
-			color += weights[j+blurRadius] * weights[i+blurRadius] * float4(g_reflectionBuffer[DTid.xy + uint2(x, y)], 0.0f);
+			color += weights[j + blurRadius] * weights[i + blurRadius] * float4(g_reflectionBuffer[DTid.xy + uint2(x, y)], 0.0f);
 		}
 	}
+	//color += float4(g_reflectionBuffer[DTid.xy].x, g_reflectionBuffer[DTid.xy].y, g_reflectionBuffer[DTid.xy].z, 1.0f);
 
 	float shadow = 0.0f;
 	int shadowBlurRadius = 6;
@@ -91,10 +92,9 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 
 	g_renderTarget[DTid.xy] += color;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
-	
-	
+
+
 	//g_renderTarget[DTid.xy] = float4(g_inNormalDepth[DTid.xy].x, g_inNormalDepth[DTid.xy].y, g_inNormalDepth[DTid.xy].z, 1.0f);
 	/*float dd = abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2 (1, 0)].x);
 	g_renderTarget[DTid.xy] = float4(dd, dd, dd, 0.0f);*/
 }
-

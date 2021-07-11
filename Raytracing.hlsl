@@ -53,7 +53,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     {
         Info info3;
         info3.color = float4(0, 0, 0, 0);
-        info3.inShadow = 0.0f;
+        info3.inShadow = 1.0f;
         return info3;
     }
 
@@ -65,7 +65,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.0f, 0.0f };
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 1.0f, 1.0f, float3(0, 0, 0) };
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -73,12 +73,51 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
         TraceRayParameters::HitGroup::GeometryStride,
         TraceRayParameters::MissShader::Offset[RayType::Radiance],
         rayDesc, rayPayload);
+    
+
+    float depth = length(g_sceneCB.lightPosition - rayPayload.prevHitPosition) / 200;
+    float c1 = 3.0f, c2 = 3.0f;
+    float attenuation = 1.0f / (1.0f + c1 * depth + c2 * depth * depth);
+
     Info info;
-    info.color = rayPayload.color;
+    info.color = rayPayload.color * attenuation;
     info.inShadow = rayPayload.inShadow;
     info.depth = rayPayload.depth;
     return info;
 }
+//
+//Info TraceReflectionRay(in Ray ray, in UINT currentRayRecursionDepth, in float3 hitPosition)
+//{
+//    if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
+//    {
+//        Info info3;
+//        info3.color = float4(0, 0, 0, 0);
+//        info3.inShadow = 1.0f;
+//        return info3;
+//    }
+//
+//    // Set the ray's extents.
+//    RayDesc rayDesc;
+//    rayDesc.Origin = ray.origin;
+//    rayDesc.Direction = ray.direction;
+//    // Set TMin to a zero value to avoid aliasing artifacts along contact areas.
+//    // Note: make sure to enable face culling so as to avoid surface face fighting.
+//    rayDesc.TMin = 0;
+//    rayDesc.TMax = 10000;
+//    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 1.0f, 1.0f/*, hitPosition*/};
+//    TraceRay(g_scene,
+//        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+//        TraceRayParameters::InstanceMask,
+//        TraceRayParameters::HitGroup::Offset[RayType::Radiance],
+//        TraceRayParameters::HitGroup::GeometryStride,
+//        TraceRayParameters::MissShader::Offset[RayType::Radiance],
+//        rayDesc, rayPayload);
+//    Info info;
+//    info.color = rayPayload.color;
+//    info.inShadow = rayPayload.inShadow;
+//    info.depth = rayPayload.depth;
+//    return info;
+//}
 
 // Trace a shadow ray and return true if it hits any geometry.
 bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, float3 N)
@@ -97,7 +136,7 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
     };
 
     float distToLight = length(ray.direction) - LIGHT_SIZE - 0.01;
-    
+
     float4x4 objectToWorld = BuildInverseLookAtMatrix(ray.origin, normalize(ray.direction));
 
     // Set the ray's extents.
@@ -115,17 +154,17 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
     // Set the initial value to true since closest and any hit shaders are skipped. 
     // Shadow miss shader, if called, will set it to false.
     ShadowRayPayload shadowPayload = { true };
-   /* if (dot(ray.direction, N) > 0) {*/
-        TraceRay(g_scene,
-            RAY_FLAG_CULL_BACK_FACING_TRIANGLES
-            | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
-            | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
-            | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
-            TraceRayParameters::InstanceMask,
-            TraceRayParameters::HitGroup::Offset[RayType::Shadow],
-            TraceRayParameters::HitGroup::GeometryStride,
-            TraceRayParameters::MissShader::Offset[RayType::Shadow],
-            rayDesc, shadowPayload);
+    /* if (dot(ray.direction, N) > 0) {*/
+    TraceRay(g_scene,
+        RAY_FLAG_CULL_BACK_FACING_TRIANGLES
+        | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
+        | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
+        | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
+        TraceRayParameters::InstanceMask,
+        TraceRayParameters::HitGroup::Offset[RayType::Shadow],
+        TraceRayParameters::HitGroup::GeometryStride,
+        TraceRayParameters::MissShader::Offset[RayType::Shadow],
+        rayDesc, shadowPayload);
     //}
 
     return shadowPayload.hit;
@@ -141,7 +180,7 @@ Info Shade(
     float3 V = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
     float3 indirectContribution = 0;
     float4 L = 0;
-  
+
     const float3 Kd = material.Kd;
     const float3 Ks = material.Ks;
     const float3 Kr = material.Kr;
@@ -175,7 +214,7 @@ Info Shade(
     //
     // Ambient
     //
-    
+
     //L += g_sceneCB.lightAmbientColor;
 
     //
@@ -189,7 +228,7 @@ Info Shade(
     // don't cast reflection rays in that case.
     float smallValue = 1e-6f;
     isReflective = dot(V, N) > smallValue ? isReflective : false;
-        
+
     float3 Fo = Ks;
     {
         // Radiance contribution from reflection.
@@ -207,14 +246,14 @@ Info Shade(
         float4x4 objectToWorld = BuildInverseLookAtMatrix(hitPosition, normalize(wi));
 
 
-        RayPayload reflectedRayPayLoad = rayPayload;
+        RayPayload reflectedRayPayload = rayPayload;
         // Ref: eq 24.4, [Ray-tracing from the Ground Up]
         Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
-        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Kd.xyz);
+        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), N, Ks);
 
-        Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
+        Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth/*, hitPosition*/);
         // Trace a reflection ray.
-        g_reflectionBuffer[DTID] = Fr* info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
+        g_reflectionBuffer[DTID] = Fr * info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
         //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
     }
 

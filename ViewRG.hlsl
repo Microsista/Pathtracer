@@ -10,7 +10,11 @@ void MyRaygenShader()
     // Cast a ray into the scene and retrieve a shaded color.
     UINT currentRecursionDepth = 0;
     g_shadowBuffer[DTID] = float3(0, 0, 0);
+    g_renderTarget[DTID] = float4(0, 0, 0, 0);
+    g_reflectionBuffer[DTID] = float3(0, 0, 0);
+
     Info info = TraceRadianceRay(ray, currentRecursionDepth);
+
 
     float3 inShadow = info.inShadow;
     float3 color = info.color;

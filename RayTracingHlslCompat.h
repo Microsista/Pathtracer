@@ -104,6 +104,7 @@ struct RayPayload
     UINT   recursionDepth;
     float inShadow;
     float depth;
+    XMFLOAT3 prevHitPosition;
 };
 
 struct ShadowRayPayload
@@ -166,7 +167,7 @@ namespace MaterialType {
 // Attributes per primitive instance.
 struct PrimitiveInstanceConstantBuffer
 {
-    UINT instanceIndex;  
+    UINT instanceIndex;
 };
 
 // Dynamic attributes per primitive instance.
@@ -342,7 +343,7 @@ namespace AllGeometry {
         HouseMesh25,
         HouseMesh26,
         HouseMesh27,
-    
+
         Count
     };
 
