@@ -5,7 +5,7 @@ void MyRaygenShader()
 {
     uint2 DTID = DispatchRaysIndex().xy;
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
-    Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
+    Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld, g_sceneCB.frameIndex);
 
     // Cast a ray into the scene and retrieve a shaded color.
     UINT currentRecursionDepth = 0;

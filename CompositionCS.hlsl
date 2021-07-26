@@ -7,6 +7,7 @@ Texture2D<float3> g_reflectionBuffer : register(t0);
 Texture2D<float3> g_shadowBuffer : register(t1);
 Texture2D<float3> g_inNormalDepth : register(t2);
 ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> cb: register(b0);
+RWTexture2D<float4> g_prevFrame : register(u1);
 
 static float e = 2.71828182846f;
 
@@ -93,6 +94,40 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 	g_renderTarget[DTid.xy] += color;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
 
+	float screenWeights[] = {
+		 0.09f, 0.12f, 0.18f, 0.2f, 0.18f, 0.12f, 0.09f
+	};
+	float4 screenColor = float4(0, 0, 0, 0);
+	int screenBlurRadius = 3;
+	[unroll]
+	for (int i = -screenBlurRadius; i <= screenBlurRadius; i++) {
+		for (int j = -screenBlurRadius; j <= screenBlurRadius; j++) {
+			int x = j, y = i;
+			if (DTid.x + j < 0)
+				x = 0;
+			if (DTid.x + j > cb.textureDim.x)
+				x = 0;
+			if (DTid.y + i < 0)
+				y = 0;
+			if (DTid.y + i > cb.textureDim.y)
+				y = 0;
+
+			if (abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2(x, y)].x) > 0.01f) {
+				x = 0;
+				y = 0;
+			}
+
+			screenColor += screenWeights[j + screenBlurRadius] * screenWeights[i + screenBlurRadius] * g_renderTarget[DTid.xy + uint2(x, y)].x;
+		}
+	}
+	
+	float4 currColor = screenColor;
+	float4 prevColor = float4(g_prevFrame[DTid.xy]);
+	currColor = (currColor + 10 * prevColor) / 11;
+	g_renderTarget[DTid.xy] = currColor;
+
+	g_prevFrame[DTid.xy] = currColor;// g_renderTarget[DTid.xy];
+	
 
 	//g_renderTarget[DTid.xy] = float4(g_inNormalDepth[DTid.xy].x, g_inNormalDepth[DTid.xy].y, g_inNormalDepth[DTid.xy].z, 1.0f);
 	/*float dd = abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2 (1, 0)].x);

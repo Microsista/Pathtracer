@@ -108,9 +108,64 @@ float2 HitAttribute(float2 vertexAttribute[3], BuiltInTriangleIntersectionAttrib
 }
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
-inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 projectionToWorld)
+inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 projectionToWorld, in int frameIndex)
 {
-    float2 xy = index + 0.5f; // center in the middle of the pixel.
+    float2 offset = float2(0.0f, 0.0f);
+    switch (frameIndex) {
+    case 0:
+        offset = float2(0.2f, 0.2f);
+        break;
+    case 1:
+        offset = float2(0.4f, 0.2f);
+        break;
+    case 2:
+        offset = float2(0.6f, 0.2f);
+        break;
+    case 3:
+        offset = float2(0.8f, 0.2f);
+        break;
+
+    case 4:
+        offset = float2(0.2f, 0.4f);
+        break;
+    case 5:
+        offset = float2(0.4f, 0.4f);
+        break;
+    case 6:
+        offset = float2(0.6f, 0.4f);
+        break;
+    case 7:
+        offset = float2(0.8f, 0.4f);
+        break;
+
+    case 8:
+        offset = float2(0.2f, 0.6f);
+        break;
+    case 9:
+        offset = float2(0.4f, 0.6f);
+        break;
+    case 10:
+        offset = float2(0.6f, 0.6f);
+        break;
+    case 11:
+        offset = float2(0.8f, 0.6f);
+        break;
+
+    case 12:
+        offset = float2(0.2f, 0.8f);
+        break;
+    case 13:
+        offset = float2(0.4f, 0.8f);
+        break;
+    case 14:
+        offset = float2(0.6f, 0.8f);
+        break;
+    case 15:
+        offset = float2(0.8f, 0.8f);
+        break;
+    }
+    //offset = float2(0.5f, 0.5f);
+    float2 xy = index + offset; // center in the middle of the pixel.
     float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
 
     // Invert Y for DirectX-style coordinates.
@@ -158,8 +213,8 @@ float2 TexCoords(in float3 position)
 void CalculateRayDifferentials(out float2 ddx_uv, out float2 ddy_uv, in float2 uv, in float3 hitPosition, in float3 surfaceNormal, in float3 cameraPosition, in float4x4 projectionToWorld)
 {
     // Compute ray differentials by intersecting the tangent plane to the  surface.
-    Ray ddx = GenerateCameraRay(DispatchRaysIndex().xy + uint2(1, 0), cameraPosition, projectionToWorld);
-    Ray ddy = GenerateCameraRay(DispatchRaysIndex().xy + uint2(0, 1), cameraPosition, projectionToWorld);
+    Ray ddx = GenerateCameraRay(DispatchRaysIndex().xy + uint2(1, 0), cameraPosition, projectionToWorld, 0);
+    Ray ddy = GenerateCameraRay(DispatchRaysIndex().xy + uint2(0, 1), cameraPosition, projectionToWorld, 0);
 
     // Compute ray differentials.
     float3 ddx_pos = ddx.origin - ddx.direction * dot(ddx.origin - hitPosition, surfaceNormal) / dot(ddx.direction, surfaceNormal);

@@ -121,6 +121,7 @@ struct SceneConstantBuffer
     XMVECTOR lightDiffuseColor;
     float    reflectance;
     float    elapsedTime;                 // Elapsed application time.
+    int frameIndex;
 };
 
 // Attributes per primitive type.
