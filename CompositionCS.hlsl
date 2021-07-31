@@ -94,7 +94,7 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 	g_renderTarget[DTid.xy] += color;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
 
-	float screenWeights[] = {
+	/*float screenWeights[] = {
 		 0.09f, 0.12f, 0.18f, 0.2f, 0.18f, 0.12f, 0.09f
 	};
 	float4 screenColor = float4(0, 0, 0, 0);
@@ -119,14 +119,15 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 
 			screenColor += screenWeights[j + screenBlurRadius] * screenWeights[i + screenBlurRadius] * g_renderTarget[DTid.xy + uint2(x, y)].x;
 		}
-	}
+	}*/
 	
-	float4 currColor = screenColor;
-	float4 prevColor = float4(g_prevFrame[DTid.xy]);
+	//float4 currColor = screenColor;
+	/*float4 prevColor = float4(g_prevFrame[DTid.xy]);
 	currColor = (currColor + 10 * prevColor) / 11;
-	g_renderTarget[DTid.xy] = currColor;
+	g_renderTarget[DTid.xy] = currColor;*/
+	//g_renderTarget[DTid.xy] = screenColor;
 
-	g_prevFrame[DTid.xy] = currColor;// g_renderTarget[DTid.xy];
+	//g_prevFrame[DTid.xy] = currColor;// g_renderTarget[DTid.xy];
 	
 
 	//g_renderTarget[DTid.xy] = float4(g_inNormalDepth[DTid.xy].x, g_inNormalDepth[DTid.xy].y, g_inNormalDepth[DTid.xy].z, 1.0f);
