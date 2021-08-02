@@ -34,6 +34,10 @@ public:
         return m_camera;
     }
 
+    GameActor* GetLight() {
+        return m_light;
+    }
+
     virtual InputHandler* GetInputHandler() = 0;
 
     // Overridable members.
@@ -73,6 +77,9 @@ protected:
 
     // Camera
     GameActor* m_camera;
+
+    GameActor* m_light;
+
 
 private:
     // Root assets path.

@@ -4,8 +4,17 @@
 #include "Core.h"
 #include "GameActor.h"
 
-void MoveCommand::execute(GameActor& actor, float movementSpeed, float elapsedTime, bool strafe)
+void MoveCommand::execute(GameActor& actor, float movementSpeed, float elapsedTime, int axis)
 {
-    strafe ? actor/*m_inputHandler->GetCore()->GetCamera()*/.Strafe(movementSpeed * elapsedTime) :
-    actor/* m_inputHandler->GetCore()->GetCamera()*/.Walk(movementSpeed * elapsedTime);
+    switch (axis) {
+    case 0:
+        actor.Walk(movementSpeed * elapsedTime);
+        break;
+    case 1:
+        actor.Strafe(movementSpeed * elapsedTime);
+        break;
+    case 2:
+        actor.Fly(movementSpeed * elapsedTime);
+        break;
+    }
 }

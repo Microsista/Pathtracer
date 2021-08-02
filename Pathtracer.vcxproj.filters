@@ -73,6 +73,7 @@
     <ClInclude Include="InputHandler.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -137,6 +138,7 @@
     <ClCompile Include="GameActor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Light.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BxDF.hlsli">

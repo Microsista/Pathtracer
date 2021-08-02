@@ -189,13 +189,34 @@ LRESULT CALLBACK Win32Core::WindowProc(HWND hWnd, UINT message, WPARAM wParam, L
     case WM_KEYDOWN:
         if (pSample)
         {
+            enum {
+                KEY_W = 87,
+                KEY_S = 83,
+                KEY_A = 65,
+                KEY_D = 68,
+
+                KEY_I = 73,
+                KEY_K = 75,
+                KEY_J = 74,
+                KEY_L = 76,
+
+                KEY_U = 85,
+                KEY_O = 79,
+            };
+            GameActor* actor;
+            if (static_cast<UINT8>(wParam) >= 73 && static_cast<UINT8>(wParam) <= 79 || static_cast<UINT8>(wParam) == 85)
+                actor = pSample->GetLight();
+            else {
+                actor = pSample->GetCamera();
+            }
             //pSample->OnKeyDown(static_cast<UINT8>(wParam));
             CommandPack* command = pSample->GetInputHandler()->handleInput(static_cast<UINT8>(wParam));
             if (command)
             {
-                command->command->execute(*pSample->GetCamera(), command->speed, command->elapsedTime, command->strafe);
+                command->command->execute(*actor, command->speed, command->elapsedTime, command->axis);
                 pSample->GetCamera()->UpdateViewMatrix();
                 pSample->UpdateCameraMatrices();
+                //pSample->GetSceneCB()->lightPosition = L
             }
         }
         return 0;

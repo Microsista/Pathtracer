@@ -549,9 +549,9 @@ class Command;
 
 class CommandPack {
 public:
-    CommandPack(Command* cmd, float sp, float time, bool strafe) : command{ cmd }, speed{ sp }, elapsedTime{ time }, strafe{ strafe } {}
+    CommandPack(Command* cmd, float sp, float time, int axis) : command{ cmd }, speed{ sp }, elapsedTime{ time }, axis{ axis } {}
     Command* command;
     float speed;
     float elapsedTime;
-    bool strafe;
+    int axis;
 };

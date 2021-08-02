@@ -593,7 +593,8 @@ void Core::OnKeyDown(UINT8 key)
     //    movementSpeed *= 5;
     //switch (key)
     //{
-    //case 'W': m_camera.Walk(movementSpeed * elapsedTime); break;
+    //case 'W': 
+    // .Walk(movementSpeed * elapsedTime); break;
     //case 'S': m_camera.Walk(-movementSpeed * elapsedTime); break;
     //case 'A': m_camera.Strafe(-movementSpeed * elapsedTime); break;
     //case 'D': m_camera.Strafe(movementSpeed * elapsedTime); break;
@@ -1231,6 +1232,7 @@ void Core::OnUpdate() {
         const XMVECTOR& prevLightPosition = m_sceneCB->lightPosition;
         m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
     }
+    m_sceneCB->lightPosition = m_light->GetPosition();
 
     // Transform the procedural geometry.
     if (m_animateGeometry)

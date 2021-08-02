@@ -9,6 +9,6 @@ public:
 
 		}
 private:
-		virtual void execute(GameActor& actor, float movementSpeed, float elapsedTime, bool strafe) override;
+		virtual void execute(GameActor& actor, float movementSpeed, float elapsedTime, int axis) override;
 };
 

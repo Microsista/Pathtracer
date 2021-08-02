@@ -31,6 +31,7 @@
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="HlslCompat.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MoveCommand.h" />
@@ -53,6 +54,7 @@
     <ClCompile Include="GameActor.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="MoveCommand.cpp" />

@@ -9,8 +9,22 @@
 #include "RayTracingHlslCompat.h"
 #include "DXSampleHelper.h"
 
-InputHandler::InputHandler(Core* core) : m_core{ core }, keyW{ new MoveCommand(this) }, keyS{ new MoveCommand(this) }, keyA{ new MoveCommand(this) },
-keyD{ new MoveCommand(this) }, key{}
+InputHandler::InputHandler(Core* core) :
+    m_core{ core },
+    keyW{ new MoveCommand(this) },
+    keyS{ new MoveCommand(this) },
+    keyA{ new MoveCommand(this) },
+    keyD{ new MoveCommand(this) },
+
+    keyI{ new MoveCommand(this) },
+    keyK{ new MoveCommand(this) },
+    keyJ{ new MoveCommand(this) },
+    keyL{ new MoveCommand(this) },
+
+    keyU{ new MoveCommand(this) },
+    keyO{ new MoveCommand(this) },
+
+    key{}
 {
 }
 
@@ -38,10 +52,20 @@ CommandPack* InputHandler::handleInput(unsigned char key)
         movementSpeed *= 5;
 
     this->key = key;
-    if (isPressed(KEY_W)) return new CommandPack( keyW, movementSpeed, elapsedTime, false );
-    else if (isPressed(KEY_S)) return new CommandPack( keyS, -movementSpeed, elapsedTime, false );
-    else if (isPressed(KEY_A)) return new CommandPack( keyA, -movementSpeed, elapsedTime, true );
-    else if (isPressed(KEY_D)) return new CommandPack( keyD, movementSpeed, elapsedTime, true );
+    if (isPressed(KEY_W)) return new CommandPack( keyW, movementSpeed, elapsedTime, 0 );
+    else if (isPressed(KEY_S)) return new CommandPack( keyS, -movementSpeed, elapsedTime, 0 );
+    else if (isPressed(KEY_A)) return new CommandPack( keyA, -movementSpeed, elapsedTime, 1 );
+    else if (isPressed(KEY_D)) return new CommandPack( keyD, movementSpeed, elapsedTime, 1 );
+
+    else if (isPressed(KEY_I)) return new CommandPack( keyI, movementSpeed, elapsedTime, 0 );
+    else if (isPressed(KEY_K)) return new CommandPack( keyK, -movementSpeed, elapsedTime, 0 );
+    else if (isPressed(KEY_J)) return new CommandPack( keyJ, -movementSpeed, elapsedTime, 1 );
+    else if (isPressed(KEY_L)) return new CommandPack( keyL, movementSpeed, elapsedTime, 1 );
+
+    else if (isPressed(KEY_U)) return new CommandPack( keyU, -movementSpeed, elapsedTime, 2 );
+    else if (isPressed(KEY_O)) return new CommandPack( keyO, movementSpeed, elapsedTime, 2 );
+
+
 
     return NULL;
 

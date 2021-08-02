@@ -9,7 +9,15 @@ class InputHandler
 				KEY_W = 87,
 				KEY_S = 83,
 				KEY_A = 65,
-				KEY_D = 68
+				KEY_D = 68,
+
+				KEY_I = 73,
+				KEY_K = 75,
+				KEY_J = 74,
+				KEY_L = 76,
+
+				KEY_U = 85,
+				KEY_O = 79,
 		};
 
 public:
@@ -34,6 +42,14 @@ private:
 		Command* keyS;
 		Command* keyA;
 		Command* keyD;
+
+		Command* keyI;
+		Command* keyK;
+		Command* keyJ;
+		Command* keyL;
+
+		Command* keyU;
+		Command* keyO;
 
 		Core* m_core;
 };

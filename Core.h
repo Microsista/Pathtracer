@@ -45,6 +45,10 @@ public:
         return m_camera;
     }
 
+    GameActor* GetLight() {
+        return m_light;
+    }
+
     StepTimer* GetTimer() {
         return &m_timer;
     }

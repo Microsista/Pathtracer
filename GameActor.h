@@ -4,9 +4,11 @@ class GameActor
 public:
 		virtual void Strafe(float speed) = 0;
 		virtual void Walk(float speed) = 0;
-		virtual void RotateY(float dx) = 0;
-		virtual void Pitch(float dy) = 0;
-		virtual void SetPosition(float x, float y, float z) = 0;
+		virtual void Fly(float speed) {};
+
+		virtual void RotateY(float dx) {};
+		virtual void Pitch(float dy) {};
+		virtual void SetPosition(float x, float y, float z) {};
 		virtual void SetLens(float fovY, float aspect, float zn, float zf) {}
 
 		virtual void UpdateViewMatrix() {}

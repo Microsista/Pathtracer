@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DXCore.h"
+#include "Light.h"
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -12,7 +13,8 @@ DXCore::DXCore(UINT width, UINT height, std::wstring name) :
     m_aspectRatio(0.0f),
     m_enableUI(true),
     m_adapterIDoverride(UINT_MAX),
-    m_camera(new Camera)
+    m_camera(new Camera),
+    m_light(new Light)
 {
     WCHAR assetsPath[512];
     GetAssetsPath(assetsPath, _countof(assetsPath));
