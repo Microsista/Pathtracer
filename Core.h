@@ -13,6 +13,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+class InputHandler;
+
 namespace App {
     static const UINT FrameCount = 3;
 }
@@ -34,6 +36,10 @@ public:
     virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
     virtual void OnDestroy();
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
+
+    InputHandler* GetInputHandler() override {
+        return m_inputHandler;
+    }
 
 private:
     void UpdateCameraMatrices();
@@ -185,4 +191,6 @@ private:
 
     std::vector<int> m_meshSizes;
     std::vector<int> m_meshOffsets;
+
+    InputHandler* m_inputHandler;
 };

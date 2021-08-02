@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Win32Application.h"
+#include "InputHandler.h"
 
 HWND Win32Core::m_hwnd = nullptr;
 bool Win32Core::m_fullscreenMode = false;
@@ -187,7 +188,8 @@ LRESULT CALLBACK Win32Core::WindowProc(HWND hWnd, UINT message, WPARAM wParam, L
     case WM_KEYDOWN:
         if (pSample)
         {
-            pSample->OnKeyDown(static_cast<UINT8>(wParam));
+            //pSample->OnKeyDown(static_cast<UINT8>(wParam));
+            pSample->GetInputHandler()->handleInput(static_cast<UINT8>(wParam));
         }
         return 0;
 

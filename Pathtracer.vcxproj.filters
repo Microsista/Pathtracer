@@ -61,6 +61,15 @@
     <ClInclude Include="Win32Application.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Command.h">
+      <Filter>Source\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveCommand.h">
+      <Filter>Source\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="InputHandler.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -77,6 +86,9 @@
     </Filter>
     <Filter Include="Scripts">
       <UniqueIdentifier>{5a30275c-8441-47a8-97bb-e09142c4a523}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Commands">
+      <UniqueIdentifier>{a6e448ad-ff66-4f54-9c68-4ac35d0d6861}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +120,15 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Win32Application.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>Source\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveCommand.cpp">
+      <Filter>Source\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="InputHandler.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

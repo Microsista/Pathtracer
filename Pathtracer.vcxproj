@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Command.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeviceResources.h" />
@@ -28,8 +29,10 @@
     <ClInclude Include="DXSampleHelper.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="HlslCompat.h" />
+    <ClInclude Include="InputHandler.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="PerformanceTimers.h" />
     <ClInclude Include="range.hpp" />
     <ClInclude Include="RayTracingHlslCompat.h" />
@@ -42,12 +45,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Math.cpp" />
+    <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="PerformanceTimers.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Win32Application.cpp" />

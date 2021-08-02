@@ -5,6 +5,7 @@
 #include "Obj/Debug/CompiledShaders/RadianceMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/ShadowMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
+#include "InputHandler.h"
 
 #include "Geometry.h"
 
@@ -570,7 +571,8 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_descriptorsAllocated(0),
     m_descriptorSize(0),
     m_missShaderTableStrideInBytes(UINT_MAX),
-    m_hitGroupShaderTableStrideInBytes(UINT_MAX)
+    m_hitGroupShaderTableStrideInBytes(UINT_MAX),
+    m_inputHandler(new InputHandler(this))
 {
     UpdateForSizeChange(width, height);
 }

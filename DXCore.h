@@ -6,6 +6,8 @@
 #include "DeviceResources.h"
 #include "Camera.h"
 
+class InputHandler;
+
 class DXCore : public DX::IDeviceNotify
 {
 public:
@@ -26,6 +28,8 @@ public:
     virtual void OnLeftButtonDown(UINT /*x*/, UINT /*y*/) {}
     virtual void OnLeftButtonUp(UINT /*x*/, UINT /*y*/) {}
     virtual void OnDisplayChanged() {}
+
+    virtual InputHandler* GetInputHandler() = 0;
 
     // Overridable members.
     virtual void ParseCommandLineArgs(_In_reads_(argc) WCHAR* argv[], int argc);
