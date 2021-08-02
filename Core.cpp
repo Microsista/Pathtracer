@@ -579,41 +579,41 @@ Core::Core(UINT width, UINT height, std::wstring name) :
 
 void Core::OnKeyDown(UINT8 key)
 {
-    // rotation
-    float elapsedTime = static_cast<float>(m_timer.GetElapsedSeconds());
-    float secondsToRotateAround = 0.1f;
-    float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
-    const XMVECTOR& prevLightPosition = m_sceneCB->lightPosition;
-    XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-    XMMATRIX rotateClockwise = XMMatrixRotationY(XMConvertToRadians(-angleToRotateBy));
-    
-    auto speed = 100.0f;
-    auto movementSpeed = 100.0f;
-    if (GetKeyState(VK_SHIFT))
-        movementSpeed *= 5;
-    switch (key)
-    {
-    case 'W': m_camera.Walk(movementSpeed * elapsedTime); break;
-    case 'S': m_camera.Walk(-movementSpeed * elapsedTime); break;
-    case 'A': m_camera.Strafe(-movementSpeed * elapsedTime); break;
-    case 'D': m_camera.Strafe(movementSpeed * elapsedTime); break;
-    case 'Q': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate); break;
-    case 'E': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotateClockwise); break;
-    case 'I': m_sceneCB->lightPosition += speed * Directions::FORWARD * elapsedTime; break;
-    case 'J': m_sceneCB->lightPosition += speed * Directions::LEFT * elapsedTime; break;
-    case 'K': m_sceneCB->lightPosition += speed * Directions::BACKWARD * elapsedTime; break;
-    case 'L': m_sceneCB->lightPosition += speed * Directions::RIGHT * elapsedTime; break;
-    case 'U': m_sceneCB->lightPosition += speed * Directions::DOWN * elapsedTime; break;
-    case 'O': m_sceneCB->lightPosition += speed * Directions::UP * elapsedTime;  break;
-    case '1':
-        XMFLOAT4 equal;
-        XMStoreFloat4(&equal, XMVectorEqual(m_sceneCB->lightPosition, XMVECTOR{ 0.0f, 0.0f, 0.0f }));
-        equal.x ? m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 18.0f, -20.0f, 0.0f } : m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
-        break;
-    case '2': m_orbitalCamera = !m_orbitalCamera; break;
-    }
-    m_camera.UpdateViewMatrix();
-    UpdateCameraMatrices();
+    //// rotation
+    //float elapsedTime = static_cast<float>(m_timer.GetElapsedSeconds());
+    //float secondsToRotateAround = 0.1f;
+    //float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
+    //const XMVECTOR& prevLightPosition = m_sceneCB->lightPosition;
+    //XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
+    //XMMATRIX rotateClockwise = XMMatrixRotationY(XMConvertToRadians(-angleToRotateBy));
+    //
+    //auto speed = 100.0f;
+    //auto movementSpeed = 100.0f;
+    //if (GetKeyState(VK_SHIFT))
+    //    movementSpeed *= 5;
+    //switch (key)
+    //{
+    //case 'W': m_camera.Walk(movementSpeed * elapsedTime); break;
+    //case 'S': m_camera.Walk(-movementSpeed * elapsedTime); break;
+    //case 'A': m_camera.Strafe(-movementSpeed * elapsedTime); break;
+    //case 'D': m_camera.Strafe(movementSpeed * elapsedTime); break;
+    //case 'Q': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate); break;
+    //case 'E': m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotateClockwise); break;
+    //case 'I': m_sceneCB->lightPosition += speed * Directions::FORWARD * elapsedTime; break;
+    //case 'J': m_sceneCB->lightPosition += speed * Directions::LEFT * elapsedTime; break;
+    //case 'K': m_sceneCB->lightPosition += speed * Directions::BACKWARD * elapsedTime; break;
+    //case 'L': m_sceneCB->lightPosition += speed * Directions::RIGHT * elapsedTime; break;
+    //case 'U': m_sceneCB->lightPosition += speed * Directions::DOWN * elapsedTime; break;
+    //case 'O': m_sceneCB->lightPosition += speed * Directions::UP * elapsedTime;  break;
+    //case '1':
+    //    XMFLOAT4 equal;
+    //    XMStoreFloat4(&equal, XMVectorEqual(m_sceneCB->lightPosition, XMVECTOR{ 0.0f, 0.0f, 0.0f }));
+    //    equal.x ? m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 18.0f, -20.0f, 0.0f } : m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
+    //    break;
+    //case '2': m_orbitalCamera = !m_orbitalCamera; break;
+    //}
+    //m_camera.UpdateViewMatrix();
+    //UpdateCameraMatrices();
 }
 
 void Core::OnMouseMove(int x, int y)
@@ -621,11 +621,11 @@ void Core::OnMouseMove(int x, int y)
     float dx = XMConvertToRadians(0.25f * static_cast<float>(x - m_lastMousePosition.x));
     float dy = XMConvertToRadians(0.25f * static_cast<float>(y - m_lastMousePosition.y));
 
-    m_camera.RotateY(dx);
-    m_camera.Pitch(dy);
+    m_camera->RotateY(dx);
+    m_camera->Pitch(dy);
 
 
-    m_camera.UpdateViewMatrix();
+    m_camera->UpdateViewMatrix();
     UpdateCameraMatrices();
 
     m_lastMousePosition.x = x;
@@ -668,12 +668,12 @@ void Core::UpdateCameraMatrices() {
         XMMATRIX viewProj = view * proj;
         m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
     } else {
-        m_sceneCB->cameraPosition = m_camera.GetPosition();
+        m_sceneCB->cameraPosition = m_camera->GetPosition();
         float fovAngleY = 45.0f;
-        XMMATRIX view = m_camera.GetView();
-        XMMATRIX proj = m_camera.GetProj();
+        XMMATRIX view = m_camera->GetView();
+        XMMATRIX proj = m_camera->GetProj();
         XMMATRIX viewProj = view * proj;
-        m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, XMMatrixMultiply(m_camera.GetView(), m_camera.GetProj()));
+        m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, XMMatrixMultiply(m_camera->GetView(), m_camera->GetProj()));
     }
 }
 
@@ -724,7 +724,7 @@ void Core::InitializeScene() {
 
     // Setup camera.
     {
-        m_camera.SetPosition(0.0f, 2.0f, -15.0f);
+        m_camera->SetPosition(0.0f, 2.0f, -15.0f);
         m_eye = { 0.0f, 1.6f, -10.0f, 1.0f };
         m_at = { 0.0f, 0.0f, 0.0f, 1.0f };  
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
@@ -735,7 +735,7 @@ void Core::InitializeScene() {
         XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
         m_eye = XMVector3Transform(m_eye, rotate);
         m_up = XMVector3Transform(m_up, rotate);
-        m_camera.UpdateViewMatrix();
+        m_camera->UpdateViewMatrix();
         UpdateCameraMatrices();
     }
 

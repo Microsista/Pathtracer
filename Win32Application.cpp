@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Win32Application.h"
 #include "InputHandler.h"
+#include "Command.h"
 
 HWND Win32Core::m_hwnd = nullptr;
 bool Win32Core::m_fullscreenMode = false;
@@ -189,7 +190,13 @@ LRESULT CALLBACK Win32Core::WindowProc(HWND hWnd, UINT message, WPARAM wParam, L
         if (pSample)
         {
             //pSample->OnKeyDown(static_cast<UINT8>(wParam));
-            pSample->GetInputHandler()->handleInput(static_cast<UINT8>(wParam));
+            CommandPack* command = pSample->GetInputHandler()->handleInput(static_cast<UINT8>(wParam));
+            if (command)
+            {
+                command->command->execute(*pSample->GetCamera(), command->speed, command->elapsedTime, command->strafe);
+                pSample->GetCamera()->UpdateViewMatrix();
+                pSample->UpdateCameraMatrices();
+            }
         }
         return 0;
 

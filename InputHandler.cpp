@@ -2,9 +2,9 @@
 #include "InputHandler.h"
 
 #include "MoveCommand.h"
-#include "MoveLightCommand.h"
-#include "ResetLightPositionCommand.h"
-#include "RotateLightCommand.h"
+//#include "MoveLightCommand.h"
+//#include "ResetLightPositionCommand.h"
+//#include "RotateLightCommand.h"
 #include "Core.h"
 #include "RayTracingHlslCompat.h"
 #include "DXSampleHelper.h"
@@ -21,8 +21,9 @@ InputHandler::~InputHandler() {
 		delete keyD;
 }
 
-void InputHandler::handleInput(unsigned char key)
+CommandPack* InputHandler::handleInput(unsigned char key)
 {
+    print(key);
     // rotation
     float elapsedTime = static_cast<float>(m_core->GetTimer()->GetElapsedSeconds());
     float secondsToRotateAround = 0.1f;
@@ -37,11 +38,12 @@ void InputHandler::handleInput(unsigned char key)
         movementSpeed *= 5;
 
     this->key = key;
-    if (isPressed(KEY_W)) keyW->execute(movementSpeed, elapsedTime);
-    else if (isPressed(KEY_S)) keyS->execute(movementSpeed, elapsedTime);
-    else if (isPressed(KEY_A)) keyA->execute(movementSpeed, elapsedTime);
-    else if (isPressed(KEY_D)) keyD->execute(movementSpeed, elapsedTime);
+    if (isPressed(KEY_W)) return new CommandPack( keyW, movementSpeed, elapsedTime, false );
+    else if (isPressed(KEY_S)) return new CommandPack( keyS, -movementSpeed, elapsedTime, false );
+    else if (isPressed(KEY_A)) return new CommandPack( keyA, -movementSpeed, elapsedTime, true );
+    else if (isPressed(KEY_D)) return new CommandPack( keyD, movementSpeed, elapsedTime, true );
 
+    return NULL;
 
 
    /* switch (key)
@@ -64,9 +66,5 @@ void InputHandler::handleInput(unsigned char key)
         equal.x ? m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 18.0f, -20.0f, 0.0f } : m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
         break;
     case '2': m_orbitalCamera = !m_orbitalCamera; break;
-    }*/
-    m_core->GetCamera()->UpdateViewMatrix();
-    m_core->UpdateCameraMatrices();
-
-		
+    }*/		
 }

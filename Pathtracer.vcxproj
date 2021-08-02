@@ -27,6 +27,7 @@
     <ClInclude Include="DirectXRaytracingHelper.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="DXSampleHelper.h" />
+    <ClInclude Include="GameActor.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="HlslCompat.h" />
     <ClInclude Include="InputHandler.h" />
@@ -49,6 +50,7 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="DXCore.cpp" />
+    <ClCompile Include="GameActor.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="Main.cpp" />

@@ -7,6 +7,7 @@
 #include "Camera.h"
 
 class InputHandler;
+class GameActor;
 
 class DXCore : public DX::IDeviceNotify
 {
@@ -29,6 +30,10 @@ public:
     virtual void OnLeftButtonUp(UINT /*x*/, UINT /*y*/) {}
     virtual void OnDisplayChanged() {}
 
+    GameActor* GetCamera() {
+        return m_camera;
+    }
+
     virtual InputHandler* GetInputHandler() = 0;
 
     // Overridable members.
@@ -45,6 +50,8 @@ public:
     void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
     void SetWindowBounds(int left, int top, int right, int bottom);
     std::wstring GetAssetFullPath(LPCWSTR assetName);
+
+    virtual void UpdateCameraMatrices() = 0;
 
 protected:
     void SetCustomWindowText(LPCWSTR text);
@@ -65,7 +72,7 @@ protected:
     std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
     // Camera
-    Camera m_camera;
+    GameActor* m_camera;
 
 private:
     // Root assets path.

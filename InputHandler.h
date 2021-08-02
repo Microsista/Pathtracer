@@ -6,10 +6,10 @@ class Core;
 class InputHandler
 {
 		enum {
-				KEY_W,
-				KEY_S,
-				KEY_A,
-				KEY_D
+				KEY_W = 87,
+				KEY_S = 83,
+				KEY_A = 65,
+				KEY_D = 68
 		};
 
 public:
@@ -17,7 +17,7 @@ public:
 
 		~InputHandler();
 
-		void handleInput(unsigned char key);
+		CommandPack* handleInput(unsigned char key);
 
 		bool isPressed(unsigned char key) {
 				return key == this->key ? 1 : 0;

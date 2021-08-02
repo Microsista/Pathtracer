@@ -11,7 +11,8 @@ DXCore::DXCore(UINT width, UINT height, std::wstring name) :
     m_title(name),
     m_aspectRatio(0.0f),
     m_enableUI(true),
-    m_adapterIDoverride(UINT_MAX)
+    m_adapterIDoverride(UINT_MAX),
+    m_camera(new Camera)
 {
     WCHAR assetsPath[512];
     GetAssetsPath(assetsPath, _countof(assetsPath));
@@ -29,7 +30,7 @@ void DXCore::UpdateForSizeChange(UINT clientWidth, UINT clientHeight)
     m_width = clientWidth;
     m_height = clientHeight;
     m_aspectRatio = static_cast<float>(clientWidth) / static_cast<float>(clientHeight);
-    m_camera.SetLens(0.25f * DirectX::XM_PI, m_aspectRatio, 1.0f, 1000.0f);
+    m_camera->SetLens(0.25f * DirectX::XM_PI, m_aspectRatio, 1.0f, 1000.0f);
 }
 
 // Helper function for resolving the full path of assets.

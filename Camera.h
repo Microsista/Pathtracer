@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Math.h"
+#include "GameActor.h"
 
-class Camera
+class Camera : public GameActor
 {
 public:
 	Camera();
@@ -43,15 +44,15 @@ public:
 	void LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
 
 	// Get View/Proj matrices.
-	DirectX::XMMATRIX GetView() const;
-	DirectX::XMMATRIX GetProj() const;
+	DirectX::XMMATRIX GetView() const override;
+	DirectX::XMMATRIX GetProj() const override;
 
 	DirectX::XMFLOAT4X4 GetView4x4f() const;
 	DirectX::XMFLOAT4X4 GetProj4x4f() const;
 
 	// Strafe/Walk the camera a distance d.
-	void Strafe(float d);
-	void Walk(float d);
+	void Strafe(float d) override;
+	void Walk(float d) override;
 
 	// Rotate the camera.
 	void Pitch(float angle);

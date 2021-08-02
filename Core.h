@@ -41,8 +41,8 @@ public:
         return m_inputHandler;
     }
 
-    Camera* GetCamera() {
-        return &m_camera;
+    GameActor* GetCamera() {
+        return m_camera;
     }
 
     StepTimer* GetTimer() {

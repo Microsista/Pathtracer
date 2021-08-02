@@ -67,8 +67,11 @@
     <ClInclude Include="MoveCommand.h">
       <Filter>Source\Commands</Filter>
     </ClInclude>
+    <ClInclude Include="GameActor.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="InputHandler.h">
-      <Filter>Source</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +132,9 @@
       <Filter>Source\Commands</Filter>
     </ClCompile>
     <ClCompile Include="InputHandler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameActor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

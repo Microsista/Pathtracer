@@ -544,3 +544,14 @@ struct Transform {
     DirectX::XMFLOAT3 scale;
     float rotation;
 };
+
+class Command;
+
+class CommandPack {
+public:
+    CommandPack(Command* cmd, float sp, float time, bool strafe) : command{ cmd }, speed{ sp }, elapsedTime{ time }, strafe{ strafe } {}
+    Command* command;
+    float speed;
+    float elapsedTime;
+    bool strafe;
+};
