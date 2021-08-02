@@ -9,6 +9,6 @@ public:
 
 		}
 private:
-		virtual void execute() override  {}
+		virtual void execute(float movementSpeed, float elapsedTime) override;
 };
 

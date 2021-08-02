@@ -41,8 +41,20 @@ public:
         return m_inputHandler;
     }
 
-private:
+    Camera* GetCamera() {
+        return &m_camera;
+    }
+
+    StepTimer* GetTimer() {
+        return &m_timer;
+    }
+
+    ConstantBuffer<SceneConstantBuffer>* GetSceneCB() {
+        return &m_sceneCB;
+    }
+
     void UpdateCameraMatrices();
+private:
     void InitializeScene();
     void RecreateD3D();
     void DoRaytracing();
