@@ -11,6 +11,8 @@ public:
 		virtual void SetPosition(float x, float y, float z) {};
 		virtual void SetLens(float fovY, float aspect, float zn, float zf) {}
 
+		virtual bool isCamera() const = 0;
+
 		virtual void UpdateViewMatrix() {}
 		virtual DirectX::XMVECTOR GetPosition() const { return DirectX::XMVECTOR(); }
 		virtual DirectX::XMMATRIX GetView() const { return DirectX::XMMATRIX(); }

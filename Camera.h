@@ -9,6 +9,10 @@ public:
 	Camera();
 	~Camera();
 
+	bool isCamera() const override {
+			return true;
+	}
+
 	// Get/Set world camera position.
 	DirectX::XMVECTOR GetPosition() const;
 	DirectX::XMFLOAT3 GetPosition3f() const;

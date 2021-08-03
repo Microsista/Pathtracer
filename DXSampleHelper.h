@@ -555,3 +555,25 @@ public:
     float elapsedTime;
     int axis;
 };
+
+enum TerrainEnum {
+    TERRAIN_GRASS,
+    TERRAIN_HILL,
+    TERRAIN_RIVER
+};
+
+enum TerrainTexture {
+    GRASS_TEXTURE,
+    HILL_TEXTURE,
+    RIVER_TEXTURE
+};
+
+enum Event {
+    FALL = 0,
+    BURN
+};
+
+enum Achievement {
+    ACHIEVEMENT_FELL_OFF_GROUND = 0,
+    ACHIEVEMENT_BURNED
+};

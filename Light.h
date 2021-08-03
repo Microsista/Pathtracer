@@ -14,6 +14,10 @@ public:
 				return XMLoadFloat4(&pos);
 		}
 
+		bool isCamera() const override {
+				return false;
+		}
+
 private:
 		DirectX::XMFLOAT3 mPosition = { 0.0f, 0.0f, 0.0f };
 		DirectX::XMFLOAT3 mRight = { 1.0f, 0.0f, 0.0f };
