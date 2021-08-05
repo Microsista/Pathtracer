@@ -125,6 +125,8 @@ private:
     ComPtr<ID3D12Resource> m_shadowBuffer;
     ComPtr<ID3D12Resource> m_normalDepth;
     ComPtr<ID3D12Resource> m_prevFrame;
+    ComPtr<ID3D12Resource> m_prevReflection;
+    ComPtr<ID3D12Resource> m_prevShadow;
     ComPtr<ID3D12Resource> m_normalMap;
     ComPtr<ID3D12Resource> m_specularMap;
     ComPtr<ID3D12Resource> m_emissiveMap;
@@ -133,6 +135,8 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_normalDepthResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_prevFrameResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_prevReflectionResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_prevShadowResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_normalMapResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_specularMapResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_emissiveMapResourceUAVGpuDescriptor;
@@ -141,6 +145,8 @@ private:
     UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
     UINT m_normalDepthResourceUAVDescriptorHeapIndex;
     UINT m_prevFrameResourceUAVDescriptorHeapIndex;
+    UINT m_prevReflectionResourceUAVDescriptorHeapIndex;
+    UINT m_prevShadowResourceUAVDescriptorHeapIndex;
     UINT m_normalMapResourceUAVDescriptorHeapIndex;
     UINT m_specularMapResourceUAVDescriptorHeapIndex;
     UINT m_emissiveMapResourceUAVDescriptorHeapIndex;

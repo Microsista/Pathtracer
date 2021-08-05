@@ -563,6 +563,8 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_specularMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_emissiveMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_prevFrameResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_prevReflectionResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_prevShadowResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_animateGeometryTime(0.0f),
     m_animateCamera(false),
     m_animateGeometry(true),
@@ -882,6 +884,8 @@ void Core::CreateRaytracingOutputResource() {
         &m_specularMapResourceUAVDescriptorHeapIndex,
         &m_emissiveMapResourceUAVDescriptorHeapIndex,
         &m_prevFrameResourceUAVDescriptorHeapIndex,
+        &m_prevReflectionResourceUAVDescriptorHeapIndex,
+        &m_prevShadowResourceUAVDescriptorHeapIndex,
     };
 
     ComPtr<ID3D12Resource>* buffers[] = {
@@ -893,6 +897,8 @@ void Core::CreateRaytracingOutputResource() {
         &m_specularMap,
         &m_emissiveMap,
         &m_prevFrame,
+        &m_prevReflection,
+        &m_prevShadow,
     };
 
     D3D12_GPU_DESCRIPTOR_HANDLE* descHandles[] = {
@@ -904,9 +910,11 @@ void Core::CreateRaytracingOutputResource() {
         &m_specularMapResourceUAVGpuDescriptor,
         &m_emissiveMapResourceUAVGpuDescriptor,
         &m_prevFrameResourceUAVGpuDescriptor,
+        &m_prevReflectionResourceUAVGpuDescriptor,
+        &m_prevShadowResourceUAVGpuDescriptor,
     };
 
-    for (auto i : range(0, 8)) {
+    for (auto i : range(0, 10)) {
         ThrowIfFailed(device->CreateCommittedResource(
             &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
         //NAME_D3D12_OBJECT(*buffers[i]);
@@ -1005,21 +1013,25 @@ void Core::Compose() {
     auto commandList = m_deviceResources->GetCommandList();
     auto device = m_deviceResources->GetD3DDevice();
 
-    CD3DX12_DESCRIPTOR_RANGE ranges[5];
+    CD3DX12_DESCRIPTOR_RANGE ranges[7];
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
     ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
     ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
+    ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+    ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
     
 
-    CD3DX12_ROOT_PARAMETER rootParameters[6];
+    CD3DX12_ROOT_PARAMETER rootParameters[8];
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
     rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
     rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
     rootParameters[3].InitAsConstantBufferView(0, 0);
     rootParameters[4].InitAsDescriptorTable(1, &ranges[3]);
     rootParameters[5].InitAsDescriptorTable(1, &ranges[4]);
+    rootParameters[6].InitAsDescriptorTable(1, &ranges[5]);
+    rootParameters[7].InitAsDescriptorTable(1, &ranges[6]);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
@@ -1047,6 +1059,8 @@ void Core::Compose() {
     commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
     commandList->SetComputeRootDescriptorTable(4, m_normalDepthResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(5, m_prevFrameResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(6, m_prevReflectionResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
 
     auto outputSize = m_deviceResources->GetOutputSize();
     commandList->Dispatch(outputSize.right/8, outputSize.bottom/8, 1);

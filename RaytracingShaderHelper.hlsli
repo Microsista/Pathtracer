@@ -111,59 +111,66 @@ float2 HitAttribute(float2 vertexAttribute[3], BuiltInTriangleIntersectionAttrib
 inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 projectionToWorld, in int frameIndex)
 {
     float2 offset = float2(0.0f, 0.0f);
-    switch (frameIndex) {
-    case 0:
-        offset = float2(0.2f, 0.2f);
-        break;
-    case 1:
-        offset = float2(0.4f, 0.2f);
-        break;
-    case 2:
-        offset = float2(0.6f, 0.2f);
-        break;
-    case 3:
-        offset = float2(0.8f, 0.2f);
-        break;
+    float o[] = { 0.125f, 0.375f, 0.625f, 0.875f };
+    //float o[] = { 0.0625f, 0.1875f, 0.3125f, 0.4375f, 0.5625f, 0.6875f, 0.8125f, 0.9375f };
+   /* float o[16];
+    for (int i = 0; i < 16; i++)
+    {
+        o[i] = 0.03125f + i * 0.0625f;
+    }*/
 
-    case 4:
-        offset = float2(0.2f, 0.4f);
-        break;
-    case 5:
-        offset = float2(0.4f, 0.4f);
-        break;
-    case 6:
-        offset = float2(0.6f, 0.4f);
-        break;
-    case 7:
-        offset = float2(0.8f, 0.4f);
-        break;
+    offset = float2(o[frameIndex % 4], o[frameIndex / 4]);
 
-    case 8:
-        offset = float2(0.2f, 0.6f);
-        break;
-    case 9:
-        offset = float2(0.4f, 0.6f);
-        break;
-    case 10:
-        offset = float2(0.6f, 0.6f);
-        break;
-    case 11:
-        offset = float2(0.8f, 0.6f);
-        break;
-
-    case 12:
-        offset = float2(0.2f, 0.8f);
-        break;
-    case 13:
-        offset = float2(0.4f, 0.8f);
-        break;
-    case 14:
-        offset = float2(0.6f, 0.8f);
-        break;
-    case 15:
-        offset = float2(0.8f, 0.8f);
-        break;
-    }
+    /*switch (frameIndex) {
+        case 0:
+            offset = float2(o[0], o[0]);
+            break;
+        case 1:
+            offset = float2(o[1], o[0]);
+            break;
+        case 2:
+            offset = float2(o[2], o[0]);
+            break;
+        case 3:
+            offset = float2(o[3], o[0]);
+            break;
+        case 4:
+            offset = float2(o[0], o[1]);
+            break;
+        case 5:
+            offset = float2(o[1], o[1]);
+            break;
+        case 6:
+            offset = float2(o[2], o[1]);
+            break;
+        case 7:
+            offset = float2(o[3], o[1]);
+            break;
+        case 8:
+            offset = float2(o[0], o[2]);
+            break;
+        case 9:
+            offset = float2(o[1], o[2]);
+            break;
+        case 10:
+            offset = float2(o[2], o[2]);
+            break;
+        case 11:
+            offset = float2(o[3], o[2]);
+            break;
+        case 12:
+            offset = float2(o[0], o[3]);
+            break;
+        case 13:
+            offset = float2(o[1], o[3]);
+            break;
+        case 14:
+            offset = float2(o[2], o[3]);
+            break;
+        case 15:
+            offset = float2(o[3], o[3]);
+            break;
+        }*/
     //offset = float2(0.5f, 0.5f);
     float2 xy = index + offset; // center in the middle of the pixel.
     float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;

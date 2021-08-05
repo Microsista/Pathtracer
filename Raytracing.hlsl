@@ -120,7 +120,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
 //}
 
 // Trace a shadow ray and return true if it hits any geometry.
-bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, float3 N)
+bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, float3 N, int frameIndex)
 {
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
@@ -129,7 +129,7 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
 
     // Soft shadows
     uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
-    uint RNGState = RNG::SeedThread(threadId);
+    uint RNGState = RNG::SeedThread(threadId + RNG::SeedThread(frameIndex));
     float2 noiseUV = {
         2 * RNG::Random01(RNGState) - 1,            // [0, 1) -> [-1, 1)
         2 * RNG::Random01(RNGState) - 1
@@ -175,7 +175,7 @@ Info Shade(
     float3 hitPosition,
     RayPayload rayPayload,
     float3 N,
-    in PrimitiveMaterialBuffer material)
+    in PrimitiveMaterialBuffer material, in int frameIndex)
 {
     float3 V = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
     float3 indirectContribution = 0;
@@ -195,7 +195,7 @@ Info Shade(
     // Compute coordinate system for sphere sampling. [PBR, 14.2.2] 
     Ray shadowRay = { hitPosition, g_sceneCB.lightPosition.xyz - hitPosition };
     // Trace a shadow ray.
-    bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth, N);
+    bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth, N, frameIndex);
     uint2 DTID = DispatchRaysIndex().xy;
     //
     // Diffuse and specular
@@ -239,7 +239,7 @@ Info Shade(
         //g_reflectionBuffer[DTID] = Fr;
         // Fuzzy reflections
         uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
-        uint RNGState = RNG::SeedThread(threadId);
+        uint RNGState = RNG::SeedThread(threadId + RNG::SeedThread(frameIndex));
         float2 noiseUV = {
             2 * RNG::Random01(RNGState) - 1,            // [0, 1) -> [-1, 1)
             2 * RNG::Random01(RNGState) - 1
