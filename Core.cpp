@@ -59,12 +59,13 @@ void Core::CreateRootSignatures() {
 
     // Global Root Signature
     {
-        CD3DX12_DESCRIPTOR_RANGE ranges[5] = {};
+        CD3DX12_DESCRIPTOR_RANGE ranges[6] = {};
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
         ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
         ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4);
+        ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 5);
         //ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
         //ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);
         //ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
@@ -78,6 +79,7 @@ void Core::CreateRootSignatures() {
         rootParameters[GlobalRootSignature::Slot::ShadowBuffer].InitAsDescriptorTable(1, &ranges[2]);
         rootParameters[GlobalRootSignature::Slot::NormalDepth].InitAsDescriptorTable(1, &ranges[3]);
         rootParameters[GlobalRootSignature::Slot::MotionVector].InitAsDescriptorTable(1, &ranges[4]);
+        rootParameters[GlobalRootSignature::Slot::PrevHitPosition].InitAsDescriptorTable(1, &ranges[5]);
        /* rootParameters[GlobalRootSignature::Slot::NormalMap].InitAsDescriptorTable(1, &ranges[4]);
         rootParameters[GlobalRootSignature::Slot::SpecularMap].InitAsDescriptorTable(1, &ranges[5]);
         rootParameters[GlobalRootSignature::Slot::EmissiveMap].InitAsDescriptorTable(1, &ranges[6]);*/
@@ -532,6 +534,7 @@ void Core::DoRaytracing()
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, m_normalDepthResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, m_motionVectorResourceUAVGpuDescriptor);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, m_prevHitPositionResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalMap, m_normalMapResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::SpecularMap, m_specularMapResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::EmissiveMap, m_emissiveMapResourceUAVGpuDescriptor);
@@ -563,6 +566,7 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_normalDepthResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_motionVectorResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_prevHitPositionResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_normalMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_specularMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_emissiveMapResourceUAVDescriptorHeapIndex(UINT_MAX),
@@ -885,6 +889,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_shadowBufferResourceUAVDescriptorHeapIndex,
         &m_normalDepthResourceUAVDescriptorHeapIndex,
         &m_motionVectorResourceUAVDescriptorHeapIndex,
+        &m_prevHitPositionResourceUAVDescriptorHeapIndex,
         &m_normalMapResourceUAVDescriptorHeapIndex,
         &m_specularMapResourceUAVDescriptorHeapIndex,
         &m_emissiveMapResourceUAVDescriptorHeapIndex,
@@ -899,6 +904,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_shadowBuffer,
         &m_normalDepth,
         &m_motionVector,
+        &m_prevHitPosition,
         &m_normalMap,
         &m_specularMap,
         &m_emissiveMap,
@@ -913,6 +919,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_shadowBufferResourceUAVGpuDescriptor,
         &m_normalDepthResourceUAVGpuDescriptor,
         &m_motionVectorResourceUAVGpuDescriptor,
+        &m_prevHitPositionResourceUAVGpuDescriptor,
         &m_normalMapResourceUAVGpuDescriptor,
         &m_specularMapResourceUAVGpuDescriptor,
         &m_emissiveMapResourceUAVGpuDescriptor,

@@ -13,6 +13,7 @@ namespace GlobalRootSignature {
             ShadowBuffer,
             NormalDepth,
             MotionVector,
+            PrevHitPosition,
             Count
         };
     }

@@ -16,10 +16,12 @@ void MyRaygenShader()
     Info info = TraceRadianceRay(ray, currentRecursionDepth);
 
     float _depth;
-    float2 motionVector = CalculateMotionVector(info.GBuffer._virtualHitPosition, _depth, DTID);
+    float2 motionVector = CalculateMotionVector(g_previousFrameHitPosition[DTID], _depth, DTID);
     g_rtTextureSpaceMotionVector[DTID] = motionVector;
     //g_rtReprojectedNormalDepth[DTid] = EncodeNormalDepth(DecodeNormal(rayPayload.AOGBuffer._encodedNormal), _depth);
+    
 
+    //g_previousFrameHitPosition[DispatchRaysIndex().xy] = info.prevHit;
     float3 inShadow = info.inShadow;
     float3 color = info.color;
     g_shadowBuffer[DTID] = inShadow;

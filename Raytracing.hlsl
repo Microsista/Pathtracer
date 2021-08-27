@@ -11,6 +11,7 @@ static const float LIGHT_SIZE = 0.6f;
 
 struct Info {
     float4 color;
+    float3 prevHit;
     float inShadow;
     float depth;
     GeometryBuffer GBuffer;
@@ -28,9 +29,13 @@ RWTexture2D<float3> g_reflectionBuffer : register(u1);
 RWTexture2D<float3> g_shadowBuffer : register(u2);
 RWTexture2D<float3> g_normalDepth : register(u3);
 RWTexture2D<float2> g_rtTextureSpaceMotionVector : register(u4);
+RWTexture2D<float3> g_previousFrameHitPosition : register(u5);
+
 Texture2D<float3> g_normalMap : register(t5);
 Texture2D<float3> g_specularMap : register(t6);
 Texture2D<float3> g_emissiveMap : register(t7);
+
+//StructuredBuffer<float3x4> g_prevFrameBottomLevelASInstanceTransform : register(t8);
 
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
@@ -86,6 +91,8 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     info.color = rayPayload.color * attenuation;
     info.inShadow = rayPayload.inShadow;
     info.depth = rayPayload.depth;
+  /*  info.GBuffer._virtualHitPosition = 0;*/
+    info.prevHit = rayPayload.prevHitPosition;
     return info;
 }
 //
@@ -173,12 +180,47 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
     return shadowPayload.hit;
 }
 
+//float3 GetWorldHitPositionInPreviousFrame(
+//    in float3 hitObjectPosition,
+//    in uint BLASInstanceIndex,
+//    in uint3 vertexIndices,
+//    in BuiltInTriangleIntersectionAttributes attr,
+//    out float3x4 _BLASTransform)
+//{
+//    // Variables prefixed with underscore _ denote values in the previous frame.
+//
+//    // Calculate hit object position of the hit in the previous frame.
+//    float3 _hitObjectPosition;
+//    //if (l_materialCB.isVertexAnimated)
+//    //{
+//    //    float3 _vertices[3] = {
+//    //        l_verticesPrevFrame[vertexIndices[0]].position,
+//    //        l_verticesPrevFrame[vertexIndices[1]].position,
+//    //        l_verticesPrevFrame[vertexIndices[2]].position };
+//    //    _hitObjectPosition = HitAttribute(_vertices, attr);
+//    //}
+//    //else // non-vertex animated geometry 
+//    //{
+//        _hitObjectPosition = hitObjectPosition;
+//    //}
+//
+//    // Transform the hit object position to world space.
+//    _BLASTransform = g_prevFrameBottomLevelASInstanceTransform[BLASInstanceIndex];
+//    return mul(_BLASTransform, float4(_hitObjectPosition, 1));
+//}
+
+// Retrieve hit object space position.
+float3 HitObjectPosition()
+{
+    return ObjectRayOrigin() + RayTCurrent() * ObjectRayDirection();
+}
+
 //nshade
 Info Shade(
     float3 hitPosition,
     RayPayload rayPayload,
     float3 N,
-    in PrimitiveMaterialBuffer material, in int frameIndex)
+    in PrimitiveMaterialBuffer material, in int frameIndex, in BuiltInTriangleIntersectionAttributes attr, uint3 indices)
 {
     float3 V = normalize(g_sceneCB.cameraPosition.xyz - hitPosition);
     float3 indirectContribution = 0;
@@ -272,6 +314,9 @@ Info Shade(
     Info info;
     info.color = L;
     info.inShadow = shadowRayHit;
+
+    //float3x4 _BLASTransform;
+    //info.GBuffer._virtualHitPosition = GetWorldHitPositionInPreviousFrame(HitObjectPosition(), InstanceIndex(), indices, attr, _BLASTransform);
 
     Info info2;
     info2.color = float4(l_materialCB.albedo.x, l_materialCB.albedo.y, l_materialCB.albedo.z, 0.0f);
