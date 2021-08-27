@@ -59,11 +59,12 @@ void Core::CreateRootSignatures() {
 
     // Global Root Signature
     {
-        CD3DX12_DESCRIPTOR_RANGE ranges[4] = {};
+        CD3DX12_DESCRIPTOR_RANGE ranges[5] = {};
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
         ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
+        ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4);
         //ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
         //ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);
         //ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
@@ -76,6 +77,7 @@ void Core::CreateRootSignatures() {
         rootParameters[GlobalRootSignature::Slot::ReflectionBuffer].InitAsDescriptorTable(1, &ranges[1]);
         rootParameters[GlobalRootSignature::Slot::ShadowBuffer].InitAsDescriptorTable(1, &ranges[2]);
         rootParameters[GlobalRootSignature::Slot::NormalDepth].InitAsDescriptorTable(1, &ranges[3]);
+        rootParameters[GlobalRootSignature::Slot::MotionVector].InitAsDescriptorTable(1, &ranges[4]);
        /* rootParameters[GlobalRootSignature::Slot::NormalMap].InitAsDescriptorTable(1, &ranges[4]);
         rootParameters[GlobalRootSignature::Slot::SpecularMap].InitAsDescriptorTable(1, &ranges[5]);
         rootParameters[GlobalRootSignature::Slot::EmissiveMap].InitAsDescriptorTable(1, &ranges[6]);*/
@@ -529,6 +531,7 @@ void Core::DoRaytracing()
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, m_reflectionBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, m_normalDepthResourceUAVGpuDescriptor);
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, m_motionVectorResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalMap, m_normalMapResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::SpecularMap, m_specularMapResourceUAVGpuDescriptor);
         //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::EmissiveMap, m_emissiveMapResourceUAVGpuDescriptor);
@@ -559,6 +562,7 @@ Core::Core(UINT width, UINT height, std::wstring name) :
     m_reflectionBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_normalDepthResourceUAVDescriptorHeapIndex(UINT_MAX),
+    m_motionVectorResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_normalMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_specularMapResourceUAVDescriptorHeapIndex(UINT_MAX),
     m_emissiveMapResourceUAVDescriptorHeapIndex(UINT_MAX),
@@ -880,6 +884,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_reflectionBufferResourceUAVDescriptorHeapIndex,
         &m_shadowBufferResourceUAVDescriptorHeapIndex,
         &m_normalDepthResourceUAVDescriptorHeapIndex,
+        &m_motionVectorResourceUAVDescriptorHeapIndex,
         &m_normalMapResourceUAVDescriptorHeapIndex,
         &m_specularMapResourceUAVDescriptorHeapIndex,
         &m_emissiveMapResourceUAVDescriptorHeapIndex,
@@ -893,6 +898,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_reflectionBuffer,
         &m_shadowBuffer,
         &m_normalDepth,
+        &m_motionVector,
         &m_normalMap,
         &m_specularMap,
         &m_emissiveMap,
@@ -906,6 +912,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_reflectionBufferResourceUAVGpuDescriptor,
         &m_shadowBufferResourceUAVGpuDescriptor,
         &m_normalDepthResourceUAVGpuDescriptor,
+        &m_motionVectorResourceUAVGpuDescriptor,
         &m_normalMapResourceUAVGpuDescriptor,
         &m_specularMapResourceUAVGpuDescriptor,
         &m_emissiveMapResourceUAVGpuDescriptor,
@@ -913,8 +920,8 @@ void Core::CreateRaytracingOutputResource() {
         &m_prevReflectionResourceUAVGpuDescriptor,
         &m_prevShadowResourceUAVGpuDescriptor,
     };
-
-    for (auto i : range(0, 10)) {
+    int size = ARRAYSIZE(buffers);
+    for (auto i : range(0, size)) {
         ThrowIfFailed(device->CreateCommittedResource(
             &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
         //NAME_D3D12_OBJECT(*buffers[i]);

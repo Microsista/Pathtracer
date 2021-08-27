@@ -13,6 +13,7 @@ struct Info {
     float4 color;
     float inShadow;
     float depth;
+    GeometryBuffer GBuffer;
 };
 
 
@@ -26,9 +27,11 @@ RWTexture2D<float3> g_renderTarget : register(u0);
 RWTexture2D<float3> g_reflectionBuffer : register(u1);
 RWTexture2D<float3> g_shadowBuffer : register(u2);
 RWTexture2D<float3> g_normalDepth : register(u3);
+RWTexture2D<float2> g_rtTextureSpaceMotionVector : register(u4);
 Texture2D<float3> g_normalMap : register(t5);
 Texture2D<float3> g_specularMap : register(t6);
 Texture2D<float3> g_emissiveMap : register(t7);
+
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
@@ -280,6 +283,48 @@ Info Shade(
     //return  == 1.0f ? info : info2;
 }
 
+
+
+
+
+// Generate camera's forward direction ray
+inline float3 GenerateForwardCameraRayDirection(in float4x4 projectionToWorldWithCameraAtOrigin)
+{
+    float2 screenPos = float2(0, 0);
+
+    // Unproject the pixel coordinate into a world positon.
+    float4 world = mul(float4(screenPos, 0, 1), projectionToWorldWithCameraAtOrigin);
+    return normalize(world.xyz);
+}
+
+float2 ClipSpaceToTexturePosition(in float4 clipSpacePosition)
+{
+    float3 NDCposition = clipSpacePosition.xyz / clipSpacePosition.w;   // Perspective divide to get Normal Device Coordinates: {[-1,1], [-1,1], (0, 1]}
+    NDCposition.y = -NDCposition.y;                                     // Invert Y for DirectX-style coordinates.
+    float2 texturePosition = (NDCposition.xy + 1) * 0.5f;               // [-1,1] -> [0, 1]
+    return texturePosition;
+}
+
+// Calculate a texture space motion vector from previous to current frame.
+float2 CalculateMotionVector(
+    in float3 _hitPosition,
+    out float _depth,
+    in uint2 DTid)
+{
+    // Variables prefixed with underscore _ denote values in the previous frame.
+    float3 _hitViewPosition = _hitPosition - g_sceneCB.prevFrameCameraPosition;
+    float3 _cameraDirection = GenerateForwardCameraRayDirection(g_sceneCB.prevFrameProjToViewCameraAtOrigin);
+    _depth = dot(_hitViewPosition, _cameraDirection);
+
+    // Calcualte screen space position of the hit in the previous frame.
+    float4 _clipSpacePosition = mul(float4(_hitPosition, 1), g_sceneCB.prevFrameViewProj);
+    float2 _texturePosition = ClipSpaceToTexturePosition(_clipSpacePosition);
+
+    float2 xy = DispatchRaysIndex().xy + 0.5f; // Center in the middle of the pixel.
+    float2 texturePosition = xy / DispatchRaysDimensions().xy;
+
+    return texturePosition - _texturePosition;
+}
 
 
 

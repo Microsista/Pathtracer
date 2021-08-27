@@ -16,6 +16,10 @@ typedef UINT Index;
 #define MAX_RAY_RECURSION_DEPTH 3    // ~ primary rays + reflections + shadow rays from reflected geometry.
 #define SAMPLER_FILTER D3D12_FILTER_ANISOTROPIC
 
+struct GeometryBuffer {
+    XMFLOAT3 _virtualHitPosition;
+};
+
 struct AtrousWaveletTransformFilterConstantBuffer
 {
     XMUINT2 textureDim;
@@ -122,6 +126,10 @@ struct SceneConstantBuffer
     float    reflectance;
     float    elapsedTime;                 // Elapsed application time.
     int frameIndex;
+
+    XMFLOAT3 prevFrameCameraPosition;
+    XMMATRIX prevFrameProjToViewCameraAtOrigin;
+    XMMATRIX prevFrameViewProj;
 };
 
 // Attributes per primitive type.

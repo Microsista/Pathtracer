@@ -12,6 +12,7 @@ namespace GlobalRootSignature {
             ReflectionBuffer,
             ShadowBuffer,
             NormalDepth,
+            MotionVector,
             Count
         };
     }

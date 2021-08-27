@@ -124,6 +124,7 @@ private:
     ComPtr<ID3D12Resource> m_reflectionBuffer;
     ComPtr<ID3D12Resource> m_shadowBuffer;
     ComPtr<ID3D12Resource> m_normalDepth;
+    ComPtr<ID3D12Resource> m_motionVector;
     ComPtr<ID3D12Resource> m_prevFrame;
     ComPtr<ID3D12Resource> m_prevReflection;
     ComPtr<ID3D12Resource> m_prevShadow;
@@ -134,6 +135,7 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_normalDepthResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_motionVectorResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_prevFrameResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_prevReflectionResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_prevShadowResourceUAVGpuDescriptor;
@@ -144,12 +146,14 @@ private:
     UINT m_reflectionBufferResourceUAVDescriptorHeapIndex;
     UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
     UINT m_normalDepthResourceUAVDescriptorHeapIndex;
+    UINT m_motionVectorResourceUAVDescriptorHeapIndex;
     UINT m_prevFrameResourceUAVDescriptorHeapIndex;
     UINT m_prevReflectionResourceUAVDescriptorHeapIndex;
     UINT m_prevShadowResourceUAVDescriptorHeapIndex;
     UINT m_normalMapResourceUAVDescriptorHeapIndex;
     UINT m_specularMapResourceUAVDescriptorHeapIndex;
     UINT m_emissiveMapResourceUAVDescriptorHeapIndex;
+   
 
     // Shader tables
     static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
