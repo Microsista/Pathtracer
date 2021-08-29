@@ -6,10 +6,13 @@ RWTexture2D<float4> g_renderTarget : register(u0);
 Texture2D<float3> g_reflectionBuffer : register(t0);
 Texture2D<float3> g_shadowBuffer : register(t1);
 Texture2D<float3> g_inNormalDepth : register(t2);
+
+
 ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> cb: register(b0);
 RWTexture2D<float4> g_prevFrame : register(u1);
 RWTexture2D<float4> g_prevReflection : register(u2);
 RWTexture2D<float4> g_prevShadow : register(u3);
+RWTexture2D<float2> g_rtTextureSpaceMotionVector : register(u4);
 
 static float e = 2.71828182846f;
 
@@ -64,7 +67,8 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 		}
 	}
 	//color += float4(g_reflectionBuffer[DTid.xy].x, g_reflectionBuffer[DTid.xy].y, g_reflectionBuffer[DTid.xy].z, 1.0f);
-	color = (color + 10 * g_prevReflection[DTid.xy]) / 11;
+	float4 prevReflection = g_prevReflection[DTid.xy - ((g_rtTextureSpaceMotionVector[DTid.xy].xy - float2(0.5f, 0.5f)) * float2(1920, 1080))];
+	color = (color + 1 * prevReflection) / 2;
 
 	g_prevReflection[DTid.xy] = color;
 
@@ -142,8 +146,8 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 	//	}
 	//}
 
-
-	screenColor = (screenColor + 10 * g_prevFrame[DTid.xy]) / 11;
+	float4 prevColor = g_prevFrame[DTid.xy - ((g_rtTextureSpaceMotionVector[DTid.xy].xy - float2(0.5f, 0.5f))* float2(1920, 1080)/5)];
+	screenColor = (screenColor + 10 * prevColor) / 11;
 	g_renderTarget[DTid.xy] = screenColor;
 
 	g_prevFrame[DTid.xy] = screenColor;

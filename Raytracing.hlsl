@@ -361,11 +361,11 @@ float2 CalculateMotionVector(
     float3 _cameraDirection = GenerateForwardCameraRayDirection(g_sceneCB.prevFrameProjToViewCameraAtOrigin);
     _depth = dot(_hitViewPosition, _cameraDirection);
 
-    // Calcualte screen space position of the hit in the previous frame.
+    // Calculate screen space position of the hit in the previous frame.
     float4 _clipSpacePosition = mul(float4(_hitPosition, 1), g_sceneCB.prevFrameViewProj);
     float2 _texturePosition = ClipSpaceToTexturePosition(_clipSpacePosition);
 
-    float2 xy = DispatchRaysIndex().xy + 0.5f; // Center in the middle of the pixel.
+    float2 xy = DispatchRaysIndex().xy + 0.5f;   // Center in the middle of the pixel.
     float2 texturePosition = xy / DispatchRaysDimensions().xy;
 
     return texturePosition - _texturePosition;

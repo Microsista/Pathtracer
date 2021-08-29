@@ -542,6 +542,22 @@ void Core::DoRaytracing()
 
     commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
 
+    XMFLOAT3 tempEye;
+    XMStoreFloat3(&tempEye, m_camera.GetPosition());
+    /*print("Eye: ");
+    print(tempEye.x);
+    print(tempEye.y);
+    print(tempEye.z);
+    print("\n");*/
+
+    print("Diff eye: ");
+    print(m_sceneCB->prevFrameCameraPosition.x - tempEye.x);
+    print(m_sceneCB->prevFrameCameraPosition.y - tempEye.y);
+    print(m_sceneCB->prevFrameCameraPosition.z - tempEye.z);
+    print("\n");
+
+
+
     // Copy dynamic buffers to GPU.
     {
         m_sceneCB.CopyStagingToGpu(frameIndex);
@@ -551,12 +567,23 @@ void Core::DoRaytracing()
         commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::TriangleAttributeBuffer, m_trianglePrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
     }
 
+ 
+
     // Bind the heaps, acceleration structure and dispatch rays.  
     D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
     SetCommonPipelineState(commandList);
     commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, m_topLevelAS->GetGPUVirtualAddress());
     DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc);
     m_sceneCB->frameIndex = (m_sceneCB->frameIndex +1) % 16;
+
+    XMStoreFloat3(&m_sceneCB->prevFrameCameraPosition, m_camera.GetPosition());
+    XMMATRIX prevViewCameraAtOrigin = XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 1), XMVectorSetW(m_camera.GetLook() - m_camera.GetPosition(), 1), m_camera.GetUp());
+    XMMATRIX prevView, prevProj;
+    prevView = m_camera.GetView();
+    prevProj = m_camera.GetProj();
+    m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+    XMMATRIX viewProjCameraAtOrigin = prevViewCameraAtOrigin * prevProj;
+    m_sceneCB->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr, viewProjCameraAtOrigin);
 }
 
 Core::Core(UINT width, UINT height, std::wstring name) :
@@ -1027,17 +1054,19 @@ void Core::Compose() {
     auto commandList = m_deviceResources->GetCommandList();
     auto device = m_deviceResources->GetD3DDevice();
 
-    CD3DX12_DESCRIPTOR_RANGE ranges[7];
+    CD3DX12_DESCRIPTOR_RANGE ranges[8];
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
     ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
     ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
+   
     ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
     ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
     ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
+    ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4); // motion vector
     
 
-    CD3DX12_ROOT_PARAMETER rootParameters[8];
+    CD3DX12_ROOT_PARAMETER rootParameters[9];
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
     rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
     rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
@@ -1046,6 +1075,7 @@ void Core::Compose() {
     rootParameters[5].InitAsDescriptorTable(1, &ranges[4]);
     rootParameters[6].InitAsDescriptorTable(1, &ranges[5]);
     rootParameters[7].InitAsDescriptorTable(1, &ranges[6]);
+    rootParameters[8].InitAsDescriptorTable(1, &ranges[7]);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
@@ -1075,6 +1105,7 @@ void Core::Compose() {
     commandList->SetComputeRootDescriptorTable(5, m_prevFrameResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(6, m_prevReflectionResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
 
     auto outputSize = m_deviceResources->GetOutputSize();
     commandList->Dispatch(outputSize.right/8, outputSize.bottom/8, 1);
