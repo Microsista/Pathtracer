@@ -67,8 +67,8 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 		}
 	}
 	//color += float4(g_reflectionBuffer[DTid.xy].x, g_reflectionBuffer[DTid.xy].y, g_reflectionBuffer[DTid.xy].z, 1.0f);
-	float4 prevReflection = g_prevReflection[DTid.xy - ((g_rtTextureSpaceMotionVector[DTid.xy].xy - float2(0.5f, 0.5f)) * float2(1920, 1080))];
-	color = (color + 1 * prevReflection) / 2;
+	float4 prevReflection = g_prevReflection[DTid.xy - g_rtTextureSpaceMotionVector[DTid.xy]];
+	//color = (color + 1 * prevReflection) / 2;
 
 	g_prevReflection[DTid.xy] = color;
 
@@ -145,8 +145,14 @@ void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadI
 	//		screenColor += screenWeights[j + screenBlurRadius] * screenWeights[i + screenBlurRadius] * g_renderTarget[DTid.xy + uint2(x, y)];
 	//	}
 	//}
-
-	float4 prevColor = g_prevFrame[DTid.xy - ((g_rtTextureSpaceMotionVector[DTid.xy].xy - float2(0.5f, 0.5f))* float2(1920, 1080)/5)];
+	//int2 offset = ((g_rtTextureSpaceMotionVector[DTid.xy] * 2.0f) - 1) * float2(1920, 1080);
+	//if (offset.x < 5) offset.x = 0;
+	//if (offset.y < 3) offset.y = 0;
+	//offset -= 0.5f;
+	//offset *= 2.0f;
+	//offset *= float2(1920, 1080);
+	float4 prevColor = g_prevFrame[DTid.xy];
+	if (g_rtTextureSpaceMotionVector[DTid.xy].x == 0.0f) prevColor = screenColor;
 	screenColor = (screenColor + 10 * prevColor) / 11;
 	g_renderTarget[DTid.xy] = screenColor;
 
