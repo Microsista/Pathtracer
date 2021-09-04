@@ -1,8 +1,7 @@
 #include "Raytracing.hlsl"
 
 [shader("miss")]
-void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
+void MyMissShader_ShadowRay(inout ShadowRayPayload payload)
 {
-    rayPayload.hit = false;
-    uint2 DTID = DispatchRaysIndex().xy;
+    payload.hit = false;
 }

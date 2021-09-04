@@ -1,8 +1,7 @@
 #include "Raytracing.hlsl"
 
 [shader("miss")]
-void MyMissShader(inout RayPayload rayPayload)
+void MyMissShader(inout RayPayload payload)
 {
-    float4 backgroundColor = float4(BackgroundColor);
-    rayPayload.color = backgroundColor;
+    payload.color = BackgroundColor;
 }

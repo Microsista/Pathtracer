@@ -544,19 +544,6 @@ void Core::DoRaytracing()
 
     XMFLOAT3 tempEye;
     XMStoreFloat3(&tempEye, m_camera.GetPosition());
-    /*print("Eye: ");
-    print(tempEye.x);
-    print(tempEye.y);
-    print(tempEye.z);
-    print("\n");*/
-
-    print("Diff eye: ");
-    print(m_sceneCB->prevFrameCameraPosition.x - tempEye.x);
-    print(m_sceneCB->prevFrameCameraPosition.y - tempEye.y);
-    print(m_sceneCB->prevFrameCameraPosition.z - tempEye.z);
-    print("\n");
-
-
 
     // Copy dynamic buffers to GPU.
     {
@@ -566,8 +553,6 @@ void Core::DoRaytracing()
         m_trianglePrimitiveAttributeBuffer.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::TriangleAttributeBuffer, m_trianglePrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
     }
-
- 
 
     // Bind the heaps, acceleration structure and dispatch rays.  
     D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
@@ -581,7 +566,7 @@ void Core::DoRaytracing()
     XMMATRIX prevView, prevProj;
     prevView = m_camera.GetView();
     prevProj = m_camera.GetProj();
-    m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+    //m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
     XMMATRIX viewProjCameraAtOrigin = prevViewCameraAtOrigin * prevProj;
     m_sceneCB->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr, viewProjCameraAtOrigin);
 }
@@ -1066,7 +1051,7 @@ void Core::Compose() {
     ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4); // motion vector
     
 
-    CD3DX12_ROOT_PARAMETER rootParameters[9];
+    CD3DX12_ROOT_PARAMETER rootParameters[10];
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
     rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
     rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
@@ -1076,6 +1061,7 @@ void Core::Compose() {
     rootParameters[6].InitAsDescriptorTable(1, &ranges[5]);
     rootParameters[7].InitAsDescriptorTable(1, &ranges[6]);
     rootParameters[8].InitAsDescriptorTable(1, &ranges[7]);
+    rootParameters[9].InitAsConstantBufferView(1);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
     SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
@@ -1107,8 +1093,16 @@ void Core::Compose() {
     commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
     commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
 
+    //m_sceneCB.CopyStagingToGpu(frameIndex);
+    commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
+
     auto outputSize = m_deviceResources->GetOutputSize();
     commandList->Dispatch(outputSize.right/8, outputSize.bottom/8, 1);
+
+    XMMATRIX prevView, prevProj;
+    prevView = m_camera.GetView();
+    prevProj = m_camera.GetProj();
+    m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
 }
 
 void Core::OnRender() {

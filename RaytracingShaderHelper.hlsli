@@ -5,7 +5,22 @@
 
 #define INFINITY (1.0/0.0)
 
+//debug
+//if (DTid.x < 50 && DTid.y < 50) {
+//    g_renderTarget[DTid.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
+//    return;
+//}
 
+
+inline bool vecEqual(const float4 lhs, const float4 rhs) { return !any(lhs - rhs > 0.001f); }
+
+bool matEqual(const float4x4 lhs, const float4x4 rhs) {
+    int4 result;
+    for (int i = 0; i < 4; i++) {
+        result[i] = (int)vecEqual(lhs[i], rhs[i]);
+    }
+    return all(result);
+}
 
 struct Ray
 {

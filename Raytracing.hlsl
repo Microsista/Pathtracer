@@ -9,15 +9,6 @@
 
 static const float LIGHT_SIZE = 0.6f;
 
-struct Info {
-    float4 color;
-    float3 prevHit;
-    float inShadow;
-    float depth;
-    GeometryBuffer GBuffer;
-};
-
-
 //
 // Resources
 //
@@ -55,14 +46,18 @@ Texture2D<float3> l_texDiffuse : register(t3);
 //***************************************************************************
 
 // Trace a radiance ray into the scene and returns a shaded color.
-Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
+RayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
 {
+    RayPayload rayPayload;
+    rayPayload.color = float4(0, 0, 0, 0);
+    rayPayload.recursionDepth = currentRayRecursionDepth + 1;
+    rayPayload.inShadow = 1.0f;
+    rayPayload.depth = 1.0f;
+    rayPayload.prevHitPosition = float3(0.0f, 0.0f, 0.0f);
+
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
-        Info info3;
-        info3.color = float4(0, 0, 0, 0);
-        info3.inShadow = 1.0f;
-        return info3;
+        return rayPayload;
     }
 
     // Set the ray's extents.
@@ -73,7 +68,7 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 1.0f, 1.0f, float3(0, 0, 0) };
+    
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -86,48 +81,10 @@ Info TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     float depth = length(g_sceneCB.lightPosition - rayPayload.prevHitPosition) / 200;
     float c1 = 3.0f, c2 = 3.0f;
     float attenuation = 1.0f / (1.0f + c1 * depth + c2 * depth * depth);
+    rayPayload.color *= attenuation;
 
-    Info info;
-    info.color = rayPayload.color * attenuation;
-    info.inShadow = rayPayload.inShadow;
-    info.depth = rayPayload.depth;
-  /*  info.GBuffer._virtualHitPosition = 0;*/
-    info.prevHit = rayPayload.prevHitPosition;
-    return info;
+    return rayPayload;
 }
-//
-//Info TraceReflectionRay(in Ray ray, in UINT currentRayRecursionDepth, in float3 hitPosition)
-//{
-//    if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
-//    {
-//        Info info3;
-//        info3.color = float4(0, 0, 0, 0);
-//        info3.inShadow = 1.0f;
-//        return info3;
-//    }
-//
-//    // Set the ray's extents.
-//    RayDesc rayDesc;
-//    rayDesc.Origin = ray.origin;
-//    rayDesc.Direction = ray.direction;
-//    // Set TMin to a zero value to avoid aliasing artifacts along contact areas.
-//    // Note: make sure to enable face culling so as to avoid surface face fighting.
-//    rayDesc.TMin = 0;
-//    rayDesc.TMax = 10000;
-//    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 1.0f, 1.0f/*, hitPosition*/};
-//    TraceRay(g_scene,
-//        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-//        TraceRayParameters::InstanceMask,
-//        TraceRayParameters::HitGroup::Offset[RayType::Radiance],
-//        TraceRayParameters::HitGroup::GeometryStride,
-//        TraceRayParameters::MissShader::Offset[RayType::Radiance],
-//        rayDesc, rayPayload);
-//    Info info;
-//    info.color = rayPayload.color;
-//    info.inShadow = rayPayload.inShadow;
-//    info.depth = rayPayload.depth;
-//    return info;
-//}
 
 // Trace a shadow ray and return true if it hits any geometry.
 bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, float3 N, int frameIndex)
@@ -180,35 +137,6 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth, 
     return shadowPayload.hit;
 }
 
-//float3 GetWorldHitPositionInPreviousFrame(
-//    in float3 hitObjectPosition,
-//    in uint BLASInstanceIndex,
-//    in uint3 vertexIndices,
-//    in BuiltInTriangleIntersectionAttributes attr,
-//    out float3x4 _BLASTransform)
-//{
-//    // Variables prefixed with underscore _ denote values in the previous frame.
-//
-//    // Calculate hit object position of the hit in the previous frame.
-//    float3 _hitObjectPosition;
-//    //if (l_materialCB.isVertexAnimated)
-//    //{
-//    //    float3 _vertices[3] = {
-//    //        l_verticesPrevFrame[vertexIndices[0]].position,
-//    //        l_verticesPrevFrame[vertexIndices[1]].position,
-//    //        l_verticesPrevFrame[vertexIndices[2]].position };
-//    //    _hitObjectPosition = HitAttribute(_vertices, attr);
-//    //}
-//    //else // non-vertex animated geometry 
-//    //{
-//        _hitObjectPosition = hitObjectPosition;
-//    //}
-//
-//    // Transform the hit object position to world space.
-//    _BLASTransform = g_prevFrameBottomLevelASInstanceTransform[BLASInstanceIndex];
-//    return mul(_BLASTransform, float4(_hitObjectPosition, 1));
-//}
-
 // Retrieve hit object space position.
 float3 HitObjectPosition()
 {
@@ -216,7 +144,7 @@ float3 HitObjectPosition()
 }
 
 //nshade
-Info Shade(
+RayPayload Shade(
     float3 hitPosition,
     RayPayload rayPayload,
     float3 N,
@@ -247,20 +175,10 @@ Info Shade(
     //
     float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
     L += float4(BxDF::DirectLighting::Shade(Kd, N, wi, V, false, g_sceneCB, Kd, Ks, roughness), 0.0f);
-    if (shadowRayHit)
-        L += float4(0.0f, 0.0f, 0.0f, 1.0f);
-    else
-        L += float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     //
     // INDIRECT ILLUMINATION
     //
-
-    //
-    // Ambient
-    //
-
-    //L += g_sceneCB.lightAmbientColor;
 
     //
     // Reflected component
@@ -281,7 +199,7 @@ Info Shade(
         float3 Fr = (1 - (Fo.x + Fo.y + Fo.z)/1.1f ) * BxDF::Specular::Reflection::Sample_Fr(V, wi, N, Fo);    // Calculates wi
         Fr = 1 - Fr;
         Fr = dot(1, Fr)/3;
-        //g_reflectionBuffer[DTID] = Fr;
+
         // Fuzzy reflections
         uint threadId = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x;
         uint RNGState = RNG::SeedThread(threadId + RNG::SeedThread(frameIndex));
@@ -296,8 +214,8 @@ Info Shade(
         // Ref: eq 24.4, [Ray-tracing from the Ground Up]
         Ray reflectionRay = { HitWorldPosition(), normalize(Disk::Sample(noiseUV, roughness, 10, objectToWorld)) };
         
-        Info info2 = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth/*, hitPosition*/);
-        //g_reflectionBuffer[DTID] = Fr;
+        RayPayload payload = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
+   
         // Trace a reflection ray.
         if (dot(N, V) < 0)
             N *= -1;
@@ -305,31 +223,16 @@ Info Shade(
         float F = (Fo.x + Fo.y + Fo.z * 3.5f) / 3;
         float3 fresnel = FresnelReflectanceSchlick(WorldRayDirection(), N, F);
 
-        g_reflectionBuffer[DTID] = fresnel * info2.color; // TraceReflectedGBufferRay(hitPosition, wi, N, objectNormal, reflectedRayPayLoad);
-        //g_reflectionBuffer[DTID] = fresnel;
-        //UpdateAOGBufferOnLargerDiffuseComponent(rayPayload, reflectedRayPayLoad, Fr);
+        g_reflectionBuffer[DTID] = fresnel * payload.color;
     }
 
     L += float4(Ke.x, Ke.y, Ke.z, 1.0f);
-    Info info;
-    info.color = L;
+    RayPayload info{};
+    info.color = l_materialCB.shaded ? L : l_materialCB.albedo;
     info.inShadow = shadowRayHit;
 
-    //float3x4 _BLASTransform;
-    //info.GBuffer._virtualHitPosition = GetWorldHitPositionInPreviousFrame(HitObjectPosition(), InstanceIndex(), indices, attr, _BLASTransform);
-
-    Info info2;
-    info2.color = float4(l_materialCB.albedo.x, l_materialCB.albedo.y, l_materialCB.albedo.z, 0.0f);
-    info2.inShadow = shadowRayHit;
-    if (l_materialCB.shaded)
-        return info;
-    else
-        return info2;
-    //return  == 1.0f ? info : info2;
+    return info;
 }
-
-
-
 
 
 // Generate camera's forward direction ray
@@ -370,7 +273,6 @@ float2 CalculateMotionVector(
 
     return texturePosition - _texturePosition;
 }
-
 
 
 
