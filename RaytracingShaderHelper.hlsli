@@ -133,7 +133,7 @@ inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 
     {
         o[i] = 0.03125f + i * 0.0625f;
     }*/
-
+    //frameIndex = 0;
     offset = float2(o[frameIndex % 4], o[frameIndex / 4]);
 
     /*switch (frameIndex) {

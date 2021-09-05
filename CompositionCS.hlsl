@@ -15,6 +15,8 @@ Texture2D<float3> g_inNormalDepth : register(t2);
 ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> cb: register(b0);
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b1);
 
+RWTexture2D<float2> motionBuffer : register(u4);
+
 [numthreads(8, 8, 1)]
 void main(uint3 DTid : SV_DispatchThreadID) {
 	float4 reflection = 0.0f;
@@ -46,23 +48,39 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 		}
 	}
 
-	if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
+	/*if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
 		g_prevReflection[DTid.xy] = reflection;
 		g_prevShadow[DTid.xy] = shadow;
 		g_renderTarget[DTid.xy] += reflection;
 		g_renderTarget[DTid.xy] *= (-shadow + 1);
 		g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
-	}
+	}*/
 
-	reflection = (reflection + 7 * g_prevReflection[DTid.xy]) / 8;
+	//reflection = (reflection + 7 * g_prevReflection[DTid.xy]) / 8;
 	g_renderTarget[DTid.xy] += reflection;
 
-	shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
+	//shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
+	float2 m = (motionBuffer[DTid.xy] - 0.5f) *cb.textureDim;
+	if (m.x < 0.1f) m.x = 0.0f;
+	if (m.y < 0.1f) m.y = 0.0f;
 
-	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy]) / 8;
+	g_renderTarget[DTid.xy] =(g_renderTarget[DTid.xy] + 7 * g_prevFrame[int2(m  + float2(DTid.xy))]) / 8;
 
 	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 	g_prevReflection[DTid.xy] = reflection;
 	g_prevShadow[DTid.xy] = shadow;
+	//if (m.x >= 0.1f)
+	//{
+	//	g_renderTarget[DTid.xy] = 1.0f;
+	//}
+	//else if (m.x < -0.1f)
+	//{
+	//	g_renderTarget[DTid.xy] = 0.0f;
+	//}
+	//else
+	//{
+	//	g_renderTarget[DTid.xy] = 0.5f;
+	//}
+	//g_renderTarget[DTid.xy] = float4(motionBuffer[DTid.xy], 0.0f, 1.0f);
 }
