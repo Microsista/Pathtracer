@@ -61,11 +61,9 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 
 	//shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
-	float2 m = (motionBuffer[DTid.xy] - 0.5f) *cb.textureDim;
-	if (m.x < 0.1f) m.x = 0.0f;
-	if (m.y < 0.1f) m.y = 0.0f;
-
-	g_renderTarget[DTid.xy] =(g_renderTarget[DTid.xy] + 7 * g_prevFrame[int2(m  + float2(DTid.xy))]) / 8;
+	float2 m = (motionBuffer[DTid.xy] - 0.5f) * 2.0f * cb.textureDim;
+	if (m.x < 8 && m.x > -8) m.x = 0.0f;
+	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy - float2(m.x / 2, 0)]) / 8;
 
 	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 	g_prevReflection[DTid.xy] = reflection;
