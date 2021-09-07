@@ -19,7 +19,7 @@ RWTexture2D<float3> g_renderTarget : register(u0);
 RWTexture2D<float3> g_reflectionBuffer : register(u1);
 RWTexture2D<float3> g_shadowBuffer : register(u2);
 RWTexture2D<float3> g_normalDepth : register(u3);
-RWTexture2D<float2> g_rtTextureSpaceMotionVector : register(u4);
+RWTexture2D<int4> g_rtTextureSpaceMotionVector : register(u4);
 RWTexture2D<float3> g_previousFrameHitPosition : register(u5);
 
 Texture2D<float3> g_normalMap : register(t5);

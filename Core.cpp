@@ -5,6 +5,7 @@
 #include "Obj/Debug/CompiledShaders/RadianceMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/ShadowMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
+#include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
 #include "Geometry.h"
 
@@ -893,6 +894,7 @@ void Core::CreateRaytracingOutputResource() {
     auto backbufferFormat = m_deviceResources->GetBackBufferFormat();
 
     auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(backbufferFormat, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+    auto uavDesc2 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_SINT, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
     auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
     UINT* heapIndices[] = {
@@ -941,9 +943,8 @@ void Core::CreateRaytracingOutputResource() {
     };
     int size = ARRAYSIZE(buffers);
     for (auto i : range(0, size)) {
-        ThrowIfFailed(device->CreateCommittedResource(
-            &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
-        //NAME_D3D12_OBJECT(*buffers[i]);
+        ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, i == 4 ? &uavDesc2 : &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
+
 
         D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
         *heapIndices[i] = AllocateDescriptor(&uavDescriptorHandle, *heapIndices[i]);
@@ -1105,6 +1106,76 @@ void Core::Compose() {
     m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
 }
 
+void Core::Blur() {
+    auto commandList = m_deviceResources->GetCommandList();
+    auto device = m_deviceResources->GetD3DDevice();
+
+    CD3DX12_DESCRIPTOR_RANGE ranges[8];
+    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+    ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
+    ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
+
+    ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
+    ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+    ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
+    ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4); // motion vector
+
+
+    CD3DX12_ROOT_PARAMETER rootParameters[10];
+    rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
+    rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
+    rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
+    rootParameters[3].InitAsConstantBufferView(0, 0);
+    rootParameters[4].InitAsDescriptorTable(1, &ranges[3]);
+    rootParameters[5].InitAsDescriptorTable(1, &ranges[4]);
+    rootParameters[6].InitAsDescriptorTable(1, &ranges[5]);
+    rootParameters[7].InitAsDescriptorTable(1, &ranges[6]);
+    rootParameters[8].InitAsDescriptorTable(1, &ranges[7]);
+    rootParameters[9].InitAsConstantBufferView(1);
+
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+    SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_blurRootSig, L"Root signature: BlurCS");
+
+    // create pso
+    D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
+    descComputePSO.pRootSignature = m_blurRootSig.Get();
+    descComputePSO.CS = CD3DX12_SHADER_BYTECODE((void*)g_pBlurCS, ARRAYSIZE(g_pBlurCS));
+
+    ThrowIfFailed(device->CreateComputePipelineState(&descComputePSO, IID_PPV_ARGS(&m_blurPSO[0])));
+    m_blurPSO[0]->SetName(L"PSO: BlurCS");
+
+    commandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
+    commandList->SetComputeRootSignature(m_blurRootSig.Get());
+    commandList->SetPipelineState(m_blurPSO[0].Get());
+    m_blurPSO[0]->AddRef();
+
+    commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
+    commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
+    //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
+
+    auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+    m_filterCB.CopyStagingToGpu(frameIndex);
+    commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
+    commandList->SetComputeRootDescriptorTable(4, m_normalDepthResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(5, m_prevFrameResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(6, m_prevReflectionResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
+    commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
+
+    //m_sceneCB.CopyStagingToGpu(frameIndex);
+    commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
+
+    auto outputSize = m_deviceResources->GetOutputSize();
+    commandList->Dispatch(outputSize.right / 8, outputSize.bottom / 8, 1);
+
+    XMMATRIX prevView, prevProj;
+    prevView = m_camera.GetView();
+    prevProj = m_camera.GetProj();
+    m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+}
+
 void Core::OnRender() {
     if (!m_deviceResources->IsWindowVisible())
     {
@@ -1123,6 +1194,7 @@ void Core::OnRender() {
 
     DoRaytracing();
     Compose();
+    Blur();
     CopyRaytracingOutputToBackbuffer();
 
     // End frame.

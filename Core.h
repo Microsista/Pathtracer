@@ -31,6 +31,7 @@ public:
     virtual void OnUpdate();
     virtual void OnRender();
     virtual void Compose();
+    virtual void Blur();
     virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
     virtual void OnDestroy();
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
@@ -85,11 +86,13 @@ private:
     ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
     ComPtr<ID3D12StateObject> m_dxrStateObject;
     ComPtr<ID3D12PipelineState> m_composePSO[1];
+    ComPtr<ID3D12PipelineState> m_blurPSO[1];
 
     // Root signatures
     ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
     ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
     ComPtr<ID3D12RootSignature> m_composeRootSig;
+    ComPtr<ID3D12RootSignature> m_blurRootSig;
 
 
     // Descriptors
@@ -186,6 +189,7 @@ private:
 
     std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
     std::shared_ptr<DX::DescriptorHeap> m_composeHeap;
+    std::shared_ptr<DX::DescriptorHeap> m_blurHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
     D3DTexture m_stoneTexture[3];

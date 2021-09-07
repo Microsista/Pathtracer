@@ -19,16 +19,16 @@ RWTexture2D<int4> motionBuffer : register(u4);
 
 [numthreads(8, 8, 1)]
 void main(uint3 DTid : SV_DispatchThreadID) {
-	float4 reflection = 0.0f;
-	float shadow = 0.0f;
+	/*float4 reflection = 0.0f;
+	float shadow = 0.0f;*/
 
 	int2 offset = motionBuffer[DTid.xy].xy;
 
-	int blurRadius = 4;
+	int blurRadius = 11;
 	float weights[] = {
 		0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f
 	};
-	for (int i = -blurRadius; i <= blurRadius; i++) {
+	/*for (int i = -blurRadius; i <= blurRadius; i++) {
 		for (int j = -blurRadius; j <= blurRadius; j++) {
 			int x = j, y = i;
 			if (DTid.x + j < 0)
@@ -48,32 +48,32 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 			reflection += weights[j + blurRadius] * weights[i + blurRadius] * float4(g_reflectionBuffer[DTid.xy + uint2(x, y)], 0.0f);
 			shadow += weights[j + blurRadius] * weights[i + blurRadius] * g_shadowBuffer[DTid.xy + uint2(x, y)].x;
 		}
-	}
+	}*/
 	
 
-	if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
+	/*if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
 		g_prevReflection[DTid.xy] = reflection;
 		g_prevShadow[DTid.xy] = shadow;
 		g_renderTarget[DTid.xy] += reflection;
 		g_renderTarget[DTid.xy] *= (-shadow + 1);
 		g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
-	}
+	}*/
 
 	//reflection = (reflection + 7 * g_prevReflection[DTid.xy]) / 8;
-	g_renderTarget[DTid.xy] += reflection;
+	//g_renderTarget[DTid.xy] += reflection;
 
-	//shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
-	g_renderTarget[DTid.xy] *= (-shadow + 1);
-	
-	//if (offset.x < 0) offset.x += 10;
-	if (offset.y < 0) offset.y += 3;
-	/*if (DTid.x - offset.x > cb.textureDim.x) offset.x = 0;
-	if (DTid.y - offset.y > cb.textureDim.y) offset.y = 0;
-	if (DTid.x - offset.x < 0) offset.x = 0;
-	if (DTid.y - offset.y < 0) offset.y = 0;*/
-	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy/* + offset*/]) / 8;
-
-	/*if (offset.x != 0 || offset.y != 0) {
+	////shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
+	//g_renderTarget[DTid.xy] *= (-shadow + 1);
+	//
+	////if (offset.x < 0) offset.x += 10;
+	//if (offset.y < 0) offset.y += 3;
+	///*if (DTid.x - offset.x > cb.textureDim.x) offset.x = 0;
+	//if (DTid.y - offset.y > cb.textureDim.y) offset.y = 0;
+	//if (DTid.x - offset.x < 0) offset.x = 0;
+	//if (DTid.y - offset.y < 0) offset.y = 0;*/
+	//g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy + offset]) / 8;
+	float4 color = 0.0f;
+	if (offset.x != 0 || offset.y != 0) {
 		for (int i = -blurRadius; i <= blurRadius; i++) {
 			for (int j = -blurRadius; j <= blurRadius; j++) {
 				int x = j, y = i;
@@ -91,14 +91,20 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 					y = 0;
 				}
 
-				g_renderTarget[DTid.xy] += weights[j + blurRadius] * weights[i + blurRadius] * g_renderTarget[DTid.xy + uint2(x, y)];
+				color += 1.0f/(blurRadius * 2 + 1)/ (blurRadius * 2 + 1) * g_renderTarget[DTid.xy + uint2(x, y)];
 			}
 		}
-	}*/
+		//g_renderTarget[DTid.xy] = color;
+	}
+	
+	motionBuffer[DTid.xy] = int4(0, 0, 0, 0);
+
+
+	/*motionBuffer[DTid.xy] = int4(0, 0, 0, 0);
 
 	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 	g_prevReflection[DTid.xy] = reflection;
-	g_prevShadow[DTid.xy] = shadow;
+	g_prevShadow[DTid.xy] = shadow;*/
 	//if (m.x >= 0.1f)
 	//{
 	//	g_renderTarget[DTid.xy] = 1.0f;

@@ -144,5 +144,8 @@
     <FxCompile Include="RadianceCH.hlsl">
       <Filter>HLSL Source</Filter>
     </FxCompile>
+    <FxCompile Include="BlurCS.hlsl">
+      <Filter>HLSL Source</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
