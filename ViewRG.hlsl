@@ -15,9 +15,7 @@ void MyRaygenShader() {
     g_shadowBuffer[dtid] = payload.inShadow;
     g_normalDepth[dtid] = payload.depth;
 
-    float3 worldPosition = ray.origin + ray.direction * payload.depth;
-    double4 currentFramePosition = mul(double4(worldPosition, 1.0f), inverse(g_sceneCB.projectionToWorld));
-    double4 previousFramePosition = mul(double4(worldPosition, 1.0f), g_sceneCB.prevFrameViewProj);
-    g_rtTextureSpaceMotionVector[dtid] = int4(0, 0, 0, 0);
+    float4 currentFramePosition = mul(float4(payload.hitPosition, 1.0f), inverse(g_sceneCB.projectionToWorld));
+    float4 previousFramePosition = mul(float4(payload.hitPosition, 1.0f), g_sceneCB.prevFrameViewProj);
     g_rtTextureSpaceMotionVector[dtid] = int4((previousFramePosition.xy / previousFramePosition.w - currentFramePosition.xy / currentFramePosition.w) * int2(960, -540), 0, 0);
 }

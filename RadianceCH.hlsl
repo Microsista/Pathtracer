@@ -45,11 +45,16 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     localNormal *= orientation;
 
     float3 hitPosition = HitWorldPosition();
-    float depth = length(g_sceneCB.cameraPosition - hitPosition) / 200;
+    float depth = RayTCurrent();
 
     RayPayload info = Shade(hitPosition, rayPayload, localNormal, material, g_sceneCB.frameIndex, attr, indices);
     rayPayload.color = info.color;
     rayPayload.inShadow = info.inShadow;
     rayPayload.depth = depth;
     rayPayload.prevHitPosition = hitPosition;
+    if (rayPayload.recursionDepth == 1) rayPayload.hitPosition = hitPosition;
+
+    /*float c1 = 0.01f, c2 = 0.001f;
+    float attenuation = 1.0f / (1.0f + c1 * depth + c2 * depth * depth);
+    rayPayload.color *= attenuation;*/
 }

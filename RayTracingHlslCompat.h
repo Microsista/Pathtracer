@@ -109,6 +109,7 @@ struct RayPayload
     float inShadow;
     float depth;
     XMFLOAT3 prevHitPosition;
+    XMFLOAT3 hitPosition;
 };
 
 struct ShadowRayPayload

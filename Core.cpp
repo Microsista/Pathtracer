@@ -1194,6 +1194,7 @@ void Core::OnRender() {
 
     DoRaytracing();
     Compose();
+    m_dxrCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(m_prevFrame.Get()));
     Blur();
     CopyRaytracingOutputToBackbuffer();
 

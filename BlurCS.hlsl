@@ -72,33 +72,33 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 	//if (DTid.x - offset.x < 0) offset.x = 0;
 	//if (DTid.y - offset.y < 0) offset.y = 0;*/
 	//g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy + offset]) / 8;
-	float4 color = 0.0f;
-	if (offset.x != 0 || offset.y != 0) {
-		for (int i = -blurRadius; i <= blurRadius; i++) {
-			for (int j = -blurRadius; j <= blurRadius; j++) {
-				int x = j, y = i;
-				if (DTid.x + j < 0)
-					x = 0;
-				if (DTid.x + j > cb.textureDim.x)
-					x = 0;
-				if (DTid.y + i < 0)
-					y = 0;
-				if (DTid.y + i > cb.textureDim.y)
-					y = 0;
+	//float4 color = 0.0f;
+	//if (offset.x != 0 || offset.y != 0) {
+	//	for (int i = -blurRadius; i <= blurRadius; i++) {
+	//		for (int j = -blurRadius; j <= blurRadius; j++) {
+	//			int x = j, y = i;
+	//			if (DTid.x + j < 0)
+	//				x = 0;
+	//			if (DTid.x + j > cb.textureDim.x)
+	//				x = 0;
+	//			if (DTid.y + i < 0)
+	//				y = 0;
+	//			if (DTid.y + i > cb.textureDim.y)
+	//				y = 0;
 
-				if (abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2(x, y)].x) > 0.01f) {
-					x = 0;
-					y = 0;
-				}
+	//			if (abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2(x, y)].x) > 0.01f) {
+	//				x = 0;
+	//				y = 0;
+	//			}
 
-				color += 1.0f/(blurRadius * 2 + 1)/ (blurRadius * 2 + 1) * g_renderTarget[DTid.xy + uint2(x, y)];
-			}
-		}
-		//g_renderTarget[DTid.xy] = color;
-	}
+	//			color += 1.0f/(blurRadius * 2 + 1)/ (blurRadius * 2 + 1) * g_renderTarget[DTid.xy + uint2(x, y)];
+	//		}
+	//	}
+	//	//g_renderTarget[DTid.xy] = color;
+	//}
 	
 	motionBuffer[DTid.xy] = int4(0, 0, 0, 0);
-
+	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 
 	/*motionBuffer[DTid.xy] = int4(0, 0, 0, 0);
 

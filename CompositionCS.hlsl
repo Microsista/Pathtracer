@@ -51,13 +51,13 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 	}
 	
 
-	if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
-		g_prevReflection[DTid.xy] = reflection;
-		g_prevShadow[DTid.xy] = shadow;
-		g_renderTarget[DTid.xy] += reflection;
-		g_renderTarget[DTid.xy] *= (-shadow + 1);
-		g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
-	}
+	//if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
+	//	g_prevReflection[DTid.xy] = reflection;
+	//	g_prevShadow[DTid.xy] = shadow;
+	//	g_renderTarget[DTid.xy] += reflection;
+	//	g_renderTarget[DTid.xy] *= (-shadow + 1);
+	//	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
+	//}
 
 	//reflection = (reflection + 7 * g_prevReflection[DTid.xy]) / 8;
 	g_renderTarget[DTid.xy] += reflection;
@@ -66,12 +66,12 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
 	
 	//if (offset.x < 0) offset.x += 10;
-	if (offset.y < 0) offset.y += 3;
-	/*if (DTid.x - offset.x > cb.textureDim.x) offset.x = 0;
-	if (DTid.y - offset.y > cb.textureDim.y) offset.y = 0;
-	if (DTid.x - offset.x < 0) offset.x = 0;
-	if (DTid.y - offset.y < 0) offset.y = 0;*/
-	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy/* + offset*/]) / 8;
+	//if (offset.y < 0) offset.y /= 2;
+	if (DTid.x + offset.x > cb.textureDim.x) offset.x = 0;
+	if (DTid.y + offset.y > cb.textureDim.y) offset.y = 0;
+	if (DTid.x + offset.x < 0) offset.x = 0;
+	if (DTid.y + offset.y < 0) offset.y = 0;
+	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy + offset]) / 8;
 
 	/*if (offset.x != 0 || offset.y != 0) {
 		for (int i = -blurRadius; i <= blurRadius; i++) {
@@ -96,7 +96,7 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 		}
 	}*/
 
-	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
+	//g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 	g_prevReflection[DTid.xy] = reflection;
 	g_prevShadow[DTid.xy] = shadow;
 	//if (m.x >= 0.1f)
