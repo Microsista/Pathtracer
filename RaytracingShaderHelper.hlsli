@@ -15,7 +15,7 @@
 inline bool vecEqual(const float4 lhs, const float4 rhs) { return !any(lhs - rhs > 0.001f); }
 
 bool matEqual(const float4x4 lhs, const float4x4 rhs) {
-    int4 result;
+    int4 result = 0;
     for (int i = 0; i < 4; i++) {
         result[i] = (int)vecEqual(lhs[i], rhs[i]);
     }
@@ -321,7 +321,7 @@ namespace Sphere
     Vector3f Sample(const Point2f u, float radius, float4x4 ObjectToWorld) {
         Point3f pObj = Point3f(0, 0, 0) + radius * UniformSampleSphere(u);
         pObj *= radius / length(pObj - Point3f(0, 0, 0));
-        return mul(pObj, ObjectToWorld);
+        return mul(float4(pObj, 1.0f), ObjectToWorld).xyz;
     }
 }
 

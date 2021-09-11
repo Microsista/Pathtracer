@@ -49,67 +49,16 @@ void main(uint3 DTid : SV_DispatchThreadID) {
 			shadow += weights[j + blurRadius] * weights[i + blurRadius] * g_shadowBuffer[DTid.xy + uint2(x, y)].x;
 		}
 	}
-	
 
-	//if (!matEqual(inverse(g_sceneCB.projectionToWorld), g_sceneCB.prevFrameViewProj)) {
-	//	g_prevReflection[DTid.xy] = reflection;
-	//	g_prevShadow[DTid.xy] = shadow;
-	//	g_renderTarget[DTid.xy] += reflection;
-	//	g_renderTarget[DTid.xy] *= (-shadow + 1);
-	//	g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
-	//}
-
-	//reflection = (reflection + 7 * g_prevReflection[DTid.xy]) / 8;
 	g_renderTarget[DTid.xy] += reflection;
-
-	//shadow = (shadow + 7 * g_prevShadow[DTid.xy].x) / 8;
 	g_renderTarget[DTid.xy] *= (-shadow + 1);
 	
-	//if (offset.x < 0) offset.x += 10;
-	//if (offset.y < 0) offset.y /= 2;
 	if (DTid.x + offset.x > cb.textureDim.x) offset.x = 0;
 	if (DTid.y + offset.y > cb.textureDim.y) offset.y = 0;
 	if (DTid.x + offset.x < 0) offset.x = 0;
 	if (DTid.y + offset.y < 0) offset.y = 0;
 	g_renderTarget[DTid.xy] = (g_renderTarget[DTid.xy] + 7 * g_prevFrame[DTid.xy + offset]) / 8;
 
-	/*if (offset.x != 0 || offset.y != 0) {
-		for (int i = -blurRadius; i <= blurRadius; i++) {
-			for (int j = -blurRadius; j <= blurRadius; j++) {
-				int x = j, y = i;
-				if (DTid.x + j < 0)
-					x = 0;
-				if (DTid.x + j > cb.textureDim.x)
-					x = 0;
-				if (DTid.y + i < 0)
-					y = 0;
-				if (DTid.y + i > cb.textureDim.y)
-					y = 0;
-
-				if (abs(g_inNormalDepth[DTid.xy].x - g_inNormalDepth[DTid.xy + uint2(x, y)].x) > 0.01f) {
-					x = 0;
-					y = 0;
-				}
-
-				g_renderTarget[DTid.xy] += weights[j + blurRadius] * weights[i + blurRadius] * g_renderTarget[DTid.xy + uint2(x, y)];
-			}
-		}
-	}*/
-
-	//g_prevFrame[DTid.xy] = g_renderTarget[DTid.xy];
 	g_prevReflection[DTid.xy] = reflection;
 	g_prevShadow[DTid.xy] = shadow;
-	//if (m.x >= 0.1f)
-	//{
-	//	g_renderTarget[DTid.xy] = 1.0f;
-	//}
-	//else if (m.x < -0.1f)
-	//{
-	//	g_renderTarget[DTid.xy] = 0.0f;
-	//}
-	//else
-	//{
-	//	g_renderTarget[DTid.xy] = 0.5f;
-	//}
-	//g_renderTarget[DTid.xy] = float4(motionBuffer[DTid.xy], 0.0f, 1.0f);
 }

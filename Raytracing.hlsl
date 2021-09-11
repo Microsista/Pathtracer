@@ -26,14 +26,9 @@ Texture2D<float3> g_normalMap : register(t5);
 Texture2D<float3> g_specularMap : register(t6);
 Texture2D<float3> g_emissiveMap : register(t7);
 
-//StructuredBuffer<float3x4> g_prevFrameBottomLevelASInstanceTransform : register(t8);
-
-
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 
 SamplerState LinearWrapSampler : register(s0);
-
-//RWTexture2D<float3> GBUFFER_POSITION : register(u1);
 
 // Local
 StructuredBuffer<Index> l_indices : register(t1);
