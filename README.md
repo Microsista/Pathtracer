@@ -11,5 +11,5 @@ Features include:
 - Diffuse interreflections
 - PBR materials
 - Textures and intricate geometry
-- Denoising
+- Spatio-temporal Variance Guided Filtering for denoising
 - Lua scripting
