@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math.h"
+import Math;
 
 class Camera
 {

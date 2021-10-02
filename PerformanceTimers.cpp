@@ -8,6 +8,8 @@
 #include <exception>
 #include <stdexcept>
 
+import DXSampleHelper;
+
 using namespace DirectX;
 using namespace DX;
 

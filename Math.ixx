@@ -1,6 +1,8 @@
-#pragma once
+#include <cstdlib>
+#include <DirectXMath.h>
+export module Math;
 
-class MathHelper
+export class MathHelper
 {
 public:
 	// returns a random float in [0, 1).
@@ -63,6 +65,5 @@ public:
 			1.0f);
 	}
 
-	static const float Infinity;
-	
+	inline static const float Infinity = FLT_MAX;
 };

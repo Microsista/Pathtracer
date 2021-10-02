@@ -1,10 +1,10 @@
-
 #pragma once
 
-#include "DXSampleHelper.h"
 #include "Win32Application.h"
 #include "DeviceResources.h"
 #include "Camera.h"
+
+import DXSampleHelper;
 
 class DXCore : public DX::IDeviceNotify
 {

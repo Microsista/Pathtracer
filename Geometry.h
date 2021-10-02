@@ -9,9 +9,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "DXSampleHelper.h"
-
-
+import DXSampleHelper;
 
 class GeometryGenerator
 {

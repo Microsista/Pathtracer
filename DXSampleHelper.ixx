@@ -1,45 +1,55 @@
-#pragma once
-
+module;
 #include <DDSTextureLoader.h>
+#include <wrl.h>
+#include <string>
+#include <sstream>
+#include <stdexcept>
+#include <DirectXMath.h>
+#include "d3dx12.h"
+
+export module DXSampleHelper;
 
 using Microsoft::WRL::ComPtr;
 
-inline void print(double var) {
-    std::ostringstream ss;
-    ss << var;
-    std::string s(ss.str());
-    s += "\n";
+export {
+    inline void print(double var) {
+        std::ostringstream ss;
+        ss << var;
+        std::string s(ss.str());
+        s += "\n";
 
-    OutputDebugStringA(s.c_str());
-}
-
-inline void print(std::string str) {
-    std::ostringstream ss;
-    ss << str;
-    std::string s(ss.str());
-    s += "\n";
-
-    OutputDebugStringA(s.c_str());
-}
-
-class HrException : public std::runtime_error
-{
-    inline std::string HrToString(HRESULT hr)
-    {
-        char s_str[64] = {};
-        sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
-        return std::string(s_str);
+        OutputDebugStringA(s.c_str());
     }
-public:
-    HrException(HRESULT hr) : std::runtime_error(HrToString(hr)), m_hr(hr) {}
-    HRESULT Error() const { return m_hr; }
-private:
-    const HRESULT m_hr;
-};
+
+    inline void print(std::string str) {
+        std::ostringstream ss;
+        ss << str;
+        std::string s(ss.str());
+        s += "\n";
+
+        OutputDebugStringA(s.c_str());
+    }
+
+    class HrException : public std::runtime_error
+    {
+        inline std::string HrToString(HRESULT hr)
+        {
+            char s_str[64] = {};
+            sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
+            return std::string(s_str);
+        }
+    public:
+        HrException(HRESULT hr) : std::runtime_error(HrToString(hr)), m_hr(hr) {}
+        HRESULT Error() const { return m_hr; }
+    private:
+        const HRESULT m_hr;
+    };
+}
 
 #define SAFE_RELEASE(p) if (p) (p)->Release()
 
-inline void ThrowIfFailed(HRESULT hr)
+
+export inline void ThrowIfFailed(HRESULT hr)
 {
     if (FAILED(hr))
     {
@@ -47,7 +57,7 @@ inline void ThrowIfFailed(HRESULT hr)
     }
 }
 
-inline void ThrowIfFailed(HRESULT hr, const wchar_t* msg)
+export inline void ThrowIfFailed(HRESULT hr, const wchar_t* msg)
 {
     if (FAILED(hr))
     {
@@ -56,18 +66,20 @@ inline void ThrowIfFailed(HRESULT hr, const wchar_t* msg)
     }
 }
 
-inline void ThrowIfFalse(bool value)
-{
-    ThrowIfFailed(value ? S_OK : E_FAIL);
+
+export {
+    inline void ThrowIfFalse(bool value)
+    {
+        ThrowIfFailed(value ? S_OK : E_FAIL);
+    }
+
+    inline void ThrowIfFalse(bool value, const wchar_t* msg)
+    {
+        ThrowIfFailed(value ? S_OK : E_FAIL, msg);
+    }
 }
 
-inline void ThrowIfFalse(bool value, const wchar_t* msg)
-{
-    ThrowIfFailed(value ? S_OK : E_FAIL, msg);
-}
-
-
-inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
+export inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
 {
     if (path == nullptr)
     {
@@ -88,7 +100,8 @@ inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
     }
 }
 
-inline HRESULT ReadDataFromFile(LPCWSTR filename, BYTE** data, UINT* size)
+
+export inline HRESULT ReadDataFromFile(LPCWSTR filename, BYTE** data, UINT* size)
 {
     using namespace Microsoft::WRL;
 
@@ -128,13 +141,14 @@ inline HRESULT ReadDataFromFile(LPCWSTR filename, BYTE** data, UINT* size)
     return S_OK;
 }
 
+
 // Assign a name to the object to aid with debugging.
 #if defined(_DEBUG) || defined(DBG)
-inline void SetName(ID3D12Object* pObject, LPCWSTR name)
+export inline void SetName(ID3D12Object* pObject, LPCWSTR name)
 {
     pObject->SetName(name);
 }
-inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
+export inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
 {
     WCHAR fullName[50];
     if (swprintf_s(fullName, L"%s[%u]", name, index) > 0)
@@ -143,10 +157,10 @@ inline void SetNameIndexed(ID3D12Object* pObject, LPCWSTR name, UINT index)
     }
 }
 #else
-inline void SetName(ID3D12Object*, LPCWSTR)
+export inline void SetName(ID3D12Object*, LPCWSTR)
 {
 }
-inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
+export inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
 {
 }
 #endif
@@ -154,19 +168,19 @@ inline void SetNameIndexed(ID3D12Object*, LPCWSTR, UINT)
 #define NAME_D3D12_OBJECT(x) SetName((x).Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed((x)[n].Get(), L#x, n)
 
-inline UINT Align(UINT size, UINT alignment)
+export inline UINT Align(UINT size, UINT alignment)
 {
     return (size + (alignment - 1)) & ~(alignment - 1);
 }
 
-inline UINT CalculateConstantBufferByteSize(UINT byteSize)
+export inline UINT CalculateConstantBufferByteSize(UINT byteSize)
 {
     // Constant buffer size is required to be aligned.
     return Align(byteSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 }
 
 #ifdef D3D_COMPILE_STANDARD_FILE_INCLUDE
-inline Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
+export inline Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
     const std::wstring& filename,
     const D3D_SHADER_MACRO* defines,
     const std::string& entrypoint,
@@ -195,10 +209,10 @@ inline Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
 #endif
 
 // Resets all elements in a ComPtr array.
-template<class T>
+export template<class T>
 void ResetComPtrArray(T* comPtrArray)
 {
-    for (auto &i : *comPtrArray)
+    for (auto& i : *comPtrArray)
     {
         i.Reset();
     }
@@ -206,16 +220,16 @@ void ResetComPtrArray(T* comPtrArray)
 
 
 // Resets all elements in a unique_ptr array.
-template<class T>
+export template<class T>
 void ResetUniquePtrArray(T* uniquePtrArray)
 {
-    for (auto &i : *uniquePtrArray)
+    for (auto& i : *uniquePtrArray)
     {
         i.reset();
     }
 }
 
-class GpuUploadBuffer
+export class GpuUploadBuffer
 {
 public:
     ComPtr<ID3D12Resource> GetResource() { return m_resource; }
@@ -257,14 +271,14 @@ protected:
     }
 };
 
-struct D3DBuffer
+export struct D3DBuffer
 {
     ComPtr<ID3D12Resource> resource;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptorHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptorHandle;
 };
 
-struct D3DTexture
+export struct D3DTexture
 {
     ComPtr<ID3D12Resource> resource;
     ComPtr<ID3D12Resource> upload;      // TODO: release after initialization
@@ -282,7 +296,7 @@ struct D3DTexture
 //    cb.staging.var = ... ; | cb->var = ... ; 
 //    cb.CopyStagingToGPU(...);
 //    Set...View(..., cb.GputVirtualAddress());
-template <class T>
+export template <class T>
 class ConstantBuffer : public GpuUploadBuffer
 {
     uint8_t* m_mappedConstantData;
@@ -324,7 +338,7 @@ public:
 //    sb[index].var = ... ; 
 //    sb.CopyStagingToGPU(...);
 //    Set...View(..., sb.GputVirtualAddress());
-template <class T>
+export template <class T>
 class StructuredBuffer : public GpuUploadBuffer
 {
     T* m_mappedBuffers;
@@ -362,7 +376,7 @@ public:
     }
 };
 
-namespace DX
+export namespace DX
 {
     class DescriptorHeap
     {
@@ -383,7 +397,7 @@ namespace DX
             return m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         }
 
-        DescriptorHeap(){}
+        DescriptorHeap() {}
 
         DescriptorHeap(ID3D12Device5* device, UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type)
         {
@@ -442,7 +456,7 @@ namespace DX
     };
 }
 
-inline void CreateTextureSRV(
+export inline void CreateTextureSRV(
     ID3D12Device5* device,
     ID3D12Resource* resource,
     DX::DescriptorHeap* descriptorHeap,
@@ -468,7 +482,7 @@ inline void CreateTextureSRV(
 
 // Loads a DDS texture and issues upload on the commandlist. 
 // The caller is expected to execute the commandList.
-inline void LoadDDSTexture(
+export inline void LoadDDSTexture(
     ID3D12Device5* device,
     ID3D12GraphicsCommandList4* commandList,
     const wchar_t* filename,
@@ -486,23 +500,26 @@ inline void LoadDDSTexture(
 
     const UINT64 uploadBufferSize = GetRequiredIntermediateSize(*ppResource, 0, static_cast<UINT>(subresources.size()));
 
+    auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    auto buffer = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
     // Create the GPU upload buffer.
     ThrowIfFailed(
         device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+            &heapProps,
             D3D12_HEAP_FLAG_NONE,
-            &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+            &buffer,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(ppUpload)));
 
     UpdateSubresources(commandList, *ppResource, *ppUpload, 0, 0, static_cast<UINT>(subresources.size()), subresources.data());
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(*ppResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(*ppResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    commandList->ResourceBarrier(1, &transition);
 
     CreateTextureSRV(device, *ppResource, descriptorHeap, descriptorHeapIndex, cpuHandle, gpuHandle, srvDimension);
 }
 
-inline void LoadDDSTexture(
+export inline void LoadDDSTexture(
     ID3D12Device5* device,
     ID3D12GraphicsCommandList4* commandList,
     const wchar_t* filename,
@@ -513,7 +530,7 @@ inline void LoadDDSTexture(
     LoadDDSTexture(device, commandList, filename, descriptorHeap, &tex->resource, &tex->upload, &tex->heapIndex, &tex->cpuDescriptorHandle, &tex->gpuDescriptorHandle, srvDimension);
 }
 
-struct Material {
+export struct Material {
     Material() {}
 
     unsigned int id;
@@ -533,13 +550,13 @@ struct Material {
     std::string map_Ke;
 };
 
-struct AssimpTexture {
+export struct AssimpTexture {
     unsigned int id;
     std::string type;
     std::string path;
 };
 
-struct Transform {
+export struct Transform {
     DirectX::XMFLOAT3 translation;
     DirectX::XMFLOAT3 scale;
     float rotation;

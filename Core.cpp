@@ -422,7 +422,7 @@ void Core::BuildShaderTables()
     // Get shader identifiers.
     UINT shaderIDSize;
     {
-        ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
+        Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
         ThrowIfFailed(m_dxrStateObject.As(&stateObjectProperties));
         GetShaderIDs(stateObjectProperties.Get());
         shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
@@ -832,9 +832,9 @@ void Core::CreateDeviceDependentResources() {
     CreateRaytracingOutputResource();
 }
 
-void Core::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName = nullptr) {
-    ComPtr<ID3DBlob> blob;
-    ComPtr<ID3DBlob> error;
+void Core::SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, Microsoft::WRL::ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName = nullptr) {
+    Microsoft::WRL::ComPtr<ID3DBlob> blob;
+    Microsoft::WRL::ComPtr<ID3DBlob> error;
 
     ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
     ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig))));
@@ -912,7 +912,7 @@ void Core::CreateRaytracingOutputResource() {
         &m_prevShadowResourceUAVDescriptorHeapIndex,
     };
 
-    ComPtr<ID3D12Resource>* buffers[] = {
+    Microsoft::WRL::ComPtr<ID3D12Resource>* buffers[] = {
         &m_raytracingOutput,
         &m_reflectionBuffer,
         &m_shadowBuffer,
@@ -1194,7 +1194,9 @@ void Core::OnRender() {
 
     DoRaytracing();
     Compose();
-    m_dxrCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(m_prevFrame.Get()));
+
+    auto uav = CD3DX12_RESOURCE_BARRIER::UAV(m_prevFrame.Get());
+    m_dxrCommandList->ResourceBarrier(1, &uav);
     Blur();
     CopyRaytracingOutputToBackbuffer();
 
@@ -1485,8 +1487,8 @@ AccelerationStructureBuffers Core::BuildTopLevelAS(AccelerationStructureBuffers 
 {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
-    ComPtr<ID3D12Resource> scratch;
-    ComPtr<ID3D12Resource> topLevelAS;
+    Microsoft::WRL::ComPtr<ID3D12Resource> scratch;
+    Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAS;
 
     // Get required sizes for an acceleration structure.
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
@@ -1507,7 +1509,7 @@ AccelerationStructureBuffers Core::BuildTopLevelAS(AccelerationStructureBuffers 
     }
 
     // Create instance descs for the bottom-level acceleration structures.
-    ComPtr<ID3D12Resource> instanceDescsResource;
+    Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescsResource;
     {
         D3D12_RAYTRACING_INSTANCE_DESC instanceDescs[BottomLevelASType::Count] = {};
         D3D12_GPU_VIRTUAL_ADDRESS bottomLevelASaddresses[BottomLevelASType::Count] =
@@ -1540,7 +1542,7 @@ AccelerationStructureBuffers Core::BuildTopLevelAS(AccelerationStructureBuffers 
     return topLevelASBuffers;
 }
 
-template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource) {
+template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, Microsoft::WRL::ComPtr<ID3D12Resource>* instanceDescsResource) {
     Transform transforms[] = {
         { XMFLOAT3(500.0f, 0.0f, 0.0f),     XMFLOAT3(1.0f, 1.0f, 1.0f),     0 },
         { XMFLOAT3(0.0f, 0.0f, 0.0f),       XMFLOAT3(1.0f, 1.0f, 1.0f),     0 },
@@ -1570,8 +1572,8 @@ template <class InstanceDescType, class BLASPtrType> void Core::BuildBottomLevel
 AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags) {
     auto device = m_deviceResources->GetD3DDevice();
     auto commandList = m_deviceResources->GetCommandList();
-    ComPtr<ID3D12Resource> scratch;
-    ComPtr<ID3D12Resource> bottomLevelAS;
+    Microsoft::WRL::ComPtr<ID3D12Resource> scratch;
+    Microsoft::WRL::ComPtr<ID3D12Resource> bottomLevelAS;
 
     // Get the size requirements for the scratch and AS buffers.
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};

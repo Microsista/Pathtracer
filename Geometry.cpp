@@ -3,6 +3,8 @@
 #include <algorithm>
 #include "Math.h"
 
+import Math;
+
 using namespace DirectX;
 using namespace std;
 

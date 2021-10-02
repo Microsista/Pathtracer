@@ -48,7 +48,7 @@ private:
     void ReleaseDeviceDependentResources();
     void ReleaseWindowSizeDependentResources();
     void CreateRaytracingInterfaces();
-    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName);
+    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, Microsoft::WRL::ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName);
     void CreateRootSignatures();
     void CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
     void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
@@ -61,7 +61,7 @@ private:
     void BuildGeometry();
     void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs);
     template <class InstanceDescType, class BLASPtrType>
-    void BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource);
+    void BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, Microsoft::WRL::ComPtr<ID3D12Resource>* instanceDescsResource);
     AccelerationStructureBuffers BuildBottomLevelAS(const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDesc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
     AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
     void BuildAccelerationStructures();
@@ -82,17 +82,17 @@ private:
     
     UINT m_geoOffset = 0;
     // DirectX Raytracing (DXR) attributes
-    ComPtr<ID3D12Device5> m_dxrDevice;
-    ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
-    ComPtr<ID3D12StateObject> m_dxrStateObject;
-    ComPtr<ID3D12PipelineState> m_composePSO[1];
-    ComPtr<ID3D12PipelineState> m_blurPSO[1];
+    Microsoft::WRL::ComPtr<ID3D12Device5> m_dxrDevice;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
+    Microsoft::WRL::ComPtr<ID3D12StateObject> m_dxrStateObject;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_composePSO[1];
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_blurPSO[1];
 
     // Root signatures
-    ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
-    ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
-    ComPtr<ID3D12RootSignature> m_composeRootSig;
-    ComPtr<ID3D12RootSignature> m_blurRootSig;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
 
 
     // Descriptors
@@ -119,22 +119,22 @@ private:
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
 
     // Acceleration structure
-    ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
-    ComPtr<ID3D12Resource> m_topLevelAS;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
 
     // Raytracing output
-    ComPtr<ID3D12Resource> m_raytracingOutput;
-    ComPtr<ID3D12Resource> m_reflectionBuffer;
-    ComPtr<ID3D12Resource> m_shadowBuffer;
-    ComPtr<ID3D12Resource> m_normalDepth;
-    ComPtr<ID3D12Resource> m_motionVector;
-    ComPtr<ID3D12Resource> m_prevHitPosition;
-    ComPtr<ID3D12Resource> m_prevFrame;
-    ComPtr<ID3D12Resource> m_prevReflection;
-    ComPtr<ID3D12Resource> m_prevShadow;
-    ComPtr<ID3D12Resource> m_normalMap;
-    ComPtr<ID3D12Resource> m_specularMap;
-    ComPtr<ID3D12Resource> m_emissiveMap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_reflectionBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_shadowBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_normalDepth;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_motionVector;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevHitPosition;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevFrame;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevReflection;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevShadow;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_normalMap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_specularMap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_emissiveMap;
     D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
@@ -167,11 +167,11 @@ private:
     static const wchar_t* c_closestHitShaderName;
     static const wchar_t* c_missShaderNames[RayType::Count];
 
-    ComPtr<ID3D12Resource> m_missShaderTable;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
-    ComPtr<ID3D12Resource> m_hitGroupShaderTable;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_hitGroupShaderTable;
     UINT m_hitGroupShaderTableStrideInBytes;
-    ComPtr<ID3D12Resource> m_rayGenShaderTable;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
 
     // Application state
     DX::GPUTimer m_gpuTimers[GpuTimers::Count];

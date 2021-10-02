@@ -19,16 +19,10 @@
     <ClInclude Include="DXCore.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="DXSampleHelper.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="HlslCompat.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Math.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
@@ -98,9 +92,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Math.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="PerformanceTimers.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -110,6 +101,8 @@
     <ClCompile Include="Win32Application.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Math.ixx" />
+    <ClCompile Include="DXSampleHelper.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BxDF.hlsli">

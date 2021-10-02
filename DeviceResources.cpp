@@ -5,6 +5,8 @@
 using namespace DX;
 using namespace std;
 
+import DXSampleHelper;
+
 using Microsoft::WRL::ComPtr;
 
 namespace

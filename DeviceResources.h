@@ -103,7 +103,7 @@ namespace DX
 
         UINT                                                m_adapterIDoverride;
         UINT                                                m_backBufferIndex;
-        ComPtr<IDXGIAdapter1>                               m_adapter;
+        Microsoft::WRL::ComPtr<IDXGIAdapter1>                               m_adapter;
         UINT                                                m_adapterID;
         std::wstring                                        m_adapterDescription;
 

@@ -5,9 +5,9 @@
 
 struct AccelerationStructureBuffers
 {
-    ComPtr<ID3D12Resource> scratch;
-    ComPtr<ID3D12Resource> accelerationStructure;
-    ComPtr<ID3D12Resource> instanceDesc;    // Used only for top-level AS
+    Microsoft::WRL::ComPtr<ID3D12Resource> scratch;
+    Microsoft::WRL::ComPtr<ID3D12Resource> accelerationStructure;
+    Microsoft::WRL::ComPtr<ID3D12Resource> instanceDesc;    // Used only for top-level AS
     UINT64                 ResultDataMaxSizeInBytes;
 };
 
@@ -273,7 +273,7 @@ inline void PrintStateObjectDesc(const D3D12_STATE_OBJECT_DESC* desc)
 // Returns bool whether the device supports DirectX Raytracing tier.
 inline bool IsDirectXRaytracingSupported(IDXGIAdapter1* adapter)
 {
-    ComPtr<ID3D12Device> testDevice;
+    Microsoft::WRL::ComPtr<ID3D12Device> testDevice;
     D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupportData = {};
 
     return SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&testDevice)))
