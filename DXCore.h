@@ -2,8 +2,8 @@
 
 #include "Win32Application.h"
 #include "DeviceResources.h"
-#include "Camera.h"
 
+import Camera;
 import DXSampleHelper;
 
 class DXCore : public DX::IDeviceNotify
