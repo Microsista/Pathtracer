@@ -25,9 +25,6 @@
     <ClInclude Include="Mesh.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="PerformanceTimers.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="range.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -86,9 +83,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="PerformanceTimers.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -98,6 +92,7 @@
     <ClCompile Include="Math.ixx" />
     <ClCompile Include="DXSampleHelper.ixx" />
     <ClCompile Include="Geometry.ixx" />
+    <ClCompile Include="PerformanceTimers.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BxDF.hlsli">

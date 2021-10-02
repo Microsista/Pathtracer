@@ -4,7 +4,6 @@
 #include "StepTimer.h"
 #include "RaytracingSceneDefines.h"
 #include "DirectXRaytracingHelper.h"
-#include "PerformanceTimers.h"
 #include "Mesh.h"
 #include "Texture.h"
 
@@ -12,6 +11,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+import PerformanceTimers;
 
 namespace App {
     static const UINT FrameCount = 3;
