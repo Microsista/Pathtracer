@@ -7,7 +7,7 @@
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
-#include "Geometry.h"
+import Geometry;
 
 extern "C" {
 #include "Lua542/include/lua.h"

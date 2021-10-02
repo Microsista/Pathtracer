@@ -19,9 +19,6 @@
     <ClInclude Include="DXCore.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="HlslCompat.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -86,9 +83,6 @@
     <ClCompile Include="DXCore.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Geometry.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -103,6 +97,7 @@
     </ClCompile>
     <ClCompile Include="Math.ixx" />
     <ClCompile Include="DXSampleHelper.ixx" />
+    <ClCompile Include="Geometry.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BxDF.hlsli">
