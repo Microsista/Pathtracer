@@ -885,7 +885,7 @@ void Core::CreateAuxilaryDeviceResources() {
 
     for (auto& gpuTimer : m_gpuTimers)
     {
-        gpuTimer.RestoreDevice(device, commandQueue, FrameCount);
+        gpuTimer.RestoreDevice(device, commandQueue, FrameCount, m_deviceResources->GetCommandList(), m_deviceResources->GetCommandAllocator());
     }
 }
 
@@ -1375,8 +1375,7 @@ void Core::BuildAccelerationStructures() {
     auto commandQueue = m_deviceResources->GetCommandQueue();
     auto commandAllocator = m_deviceResources->GetCommandAllocator();
 
-    // Reset the command list for the acceleration structure construction.
-    commandList->Reset(commandAllocator, nullptr);
+   
 
     // Build bottom-level AS.
     AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count];

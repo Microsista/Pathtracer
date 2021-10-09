@@ -163,12 +163,12 @@ export namespace DX
             m_maxframeCount(0)
         {}
 
-        GPUTimer(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT maxFrameCount) :
+        GPUTimer(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator) :
             m_gpuFreqInv(1.f),
             m_avg{},
             m_timing{}
         {
-            RestoreDevice(device, commandQueue, maxFrameCount);
+            RestoreDevice(device, commandQueue, maxFrameCount, commandList, commandAllocator);
         }
 
         GPUTimer(const GPUTimer&) = delete;
@@ -183,6 +183,7 @@ export namespace DX
         void BeginFrame(_In_ ID3D12GraphicsCommandList* commandList)
         {
             UNREFERENCED_PARAMETER(commandList);
+            //commandList->BeginQuery(m_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
         }
         void EndFrame(_In_ ID3D12GraphicsCommandList* commandList)
         {
@@ -269,7 +270,7 @@ export namespace DX
             m_buffer.Reset();
         }
 
-        void RestoreDevice(_In_ ID3D12Device* device, _In_ ID3D12CommandQueue* commandQueue, UINT maxFrameCount)
+        void RestoreDevice(_In_ ID3D12Device* device, _In_ ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator)
         {
             assert(device != 0 && commandQueue != 0);
             m_maxframeCount = maxFrameCount;
@@ -304,6 +305,11 @@ export namespace DX
             desc.Count = c_timerSlots;
             ThrowIfFailed(device->CreateQueryHeap(&desc, IID_GRAPHICS_PPV_ARGS(m_heap.ReleaseAndGetAddressOf())));
             m_heap->SetName(L"GPUTimerHeap");
+             // Reset the command list for the acceleration structure construction.
+            commandList->Reset(commandAllocator, nullptr);
+
+            for (int i = 0; i < c_timerSlots; i++)
+                commandList->EndQuery(m_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, i);
 
             auto readBack = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 
