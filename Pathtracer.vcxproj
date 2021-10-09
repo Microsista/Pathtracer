@@ -34,8 +34,12 @@
     <ClInclude Include="RayTracingHlslCompat.h" />
     <ClInclude Include="RaytracingSceneDefines.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StepTimer.h" />
-    <ClInclude Include="Texture.h" />
+    <ClCompile Include="StepTimer.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Texture.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClInclude Include="WicTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>

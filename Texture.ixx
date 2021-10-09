@@ -1,6 +1,10 @@
-#pragma once
+module;
+#include <string>
+#include <d3d12.h>
+#include <wrl/client.h>
+export module Texture;
 
-struct Texture
+export struct Texture
 {
 	// Unique material name for lookup.
 	std::string Name;

@@ -2,11 +2,9 @@ module;
 #include "DeviceResources.h"
 #include "stdafx.h"
 #include "DXCore.h"
-#include "StepTimer.h"
 #include "RaytracingSceneDefines.h"
 #include "DirectXRaytracingHelper.h"
 #include "Mesh.h"
-#include "Texture.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -27,6 +25,8 @@ extern "C" {
 
 export module Core;
 import DXCore;
+import StepTimer;
+import Texture;
 
 import Geometry;
 import PerformanceTimers;

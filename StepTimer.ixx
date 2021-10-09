@@ -1,8 +1,9 @@
-
-#pragma once
+module;
+#include <wrl.h>
+export module StepTimer;
 
 // Helper class for animation and simulation timing.
-class StepTimer
+export class StepTimer
 {
 public:
     StepTimer() :

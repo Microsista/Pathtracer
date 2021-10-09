@@ -28,12 +28,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="StepTimer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="WicTextureLoader.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -78,6 +72,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="DXCore.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="StepTimer.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.ixx">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
