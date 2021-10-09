@@ -62,7 +62,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core.cpp">
+    <ClCompile Include="Program.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Camera.ixx">

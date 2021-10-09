@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.ixx" />
-    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Program.cpp" />
     <ClCompile Include="DXSampleHelper.ixx" />
     <ClCompile Include="Geometry.ixx" />
     <ClCompile Include="Math.ixx" />

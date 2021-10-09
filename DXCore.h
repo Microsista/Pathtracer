@@ -5,7 +5,7 @@ import DXSampleHelper;
 
 class DXCore;
 
-class Win32Core
+class Application
 {
 public:
     static int Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow);
@@ -133,7 +133,7 @@ protected:
     void SetCustomWindowText(LPCWSTR text)
     {
         std::wstring windowText = m_title + L": " + text;
-        SetWindowText(Win32Core::GetHwnd(), windowText.c_str());
+        SetWindowText(Application::GetHwnd(), windowText.c_str());
     }
 
     // Viewport dimensions.
@@ -168,7 +168,7 @@ using namespace std;
 
 using Microsoft::WRL::ComPtr;
 
-int Win32Core::Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow)
+int Application::Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow)
 {
     try
     {
@@ -239,7 +239,7 @@ int Win32Core::Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow)
 }
 
 // Convert a styled window into a fullscreen borderless window and back again.
-void Win32Core::ToggleFullscreenWindow(IDXGISwapChain* pSwapChain)
+void Application::ToggleFullscreenWindow(IDXGISwapChain* pSwapChain)
 {
     if (m_fullscreenMode)
     {
@@ -317,7 +317,7 @@ void Win32Core::ToggleFullscreenWindow(IDXGISwapChain* pSwapChain)
 }
 
 // Main message handler for the sample.
-LRESULT CALLBACK Win32Core::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     DXCore* pSample = reinterpret_cast<DXCore*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 

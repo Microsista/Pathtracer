@@ -329,17 +329,17 @@ namespace DX
 
                 // DXGI does not allow creating a swapchain targeting a window which has fullscreen styles(no border + topmost).
                 // Temporarily remove the topmost property for creating the swapchain.
-                bool prevIsFullscreen = Win32Core::IsFullscreen();
+                bool prevIsFullscreen = Application::IsFullscreen();
                 if (prevIsFullscreen)
                 {
-                    Win32Core::SetWindowZorderToTopMost(false);
+                    Application::SetWindowZorderToTopMost(false);
                 }
 
                 ThrowIfFailed(m_dxgiFactory->CreateSwapChainForHwnd(m_commandQueue.Get(), m_window, &swapChainDesc, &fsSwapChainDesc, nullptr, &swapChain));
 
                 if (prevIsFullscreen)
                 {
-                    Win32Core::SetWindowZorderToTopMost(true);
+                    Application::SetWindowZorderToTopMost(true);
                 }
 
                 ThrowIfFailed(swapChain.As(&m_swapChain));

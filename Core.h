@@ -111,7 +111,7 @@ public:
         m_deviceResources = std::make_unique<DeviceResources>(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, FrameCount,
             D3D_FEATURE_LEVEL_11_0, DeviceResources::c_RequireTearingSupport, m_adapterIDoverride);
         m_deviceResources->RegisterDeviceNotify(this);
-        m_deviceResources->SetWindow(Win32Core::GetHwnd(), m_width, m_height);
+        m_deviceResources->SetWindow(Application::GetHwnd(), m_width, m_height);
         m_deviceResources->InitializeDXGIAdapter();
 
         ThrowIfFalse(IsDirectXRaytracingSupported(m_deviceResources->GetAdapter()),
