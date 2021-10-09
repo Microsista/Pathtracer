@@ -65,20 +65,21 @@
     <ClCompile Include="Core.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceResources.cpp">
+    <ClCompile Include="Camera.ixx">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="DXCore.cpp">
+    <ClCompile Include="DXSampleHelper.ixx">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="Geometry.ixx">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Math.ixx" />
-    <ClCompile Include="DXSampleHelper.ixx" />
-    <ClCompile Include="Geometry.ixx" />
-    <ClCompile Include="PerformanceTimers.ixx" />
-    <ClCompile Include="Camera.ixx" />
+    <ClCompile Include="Math.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimers.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="BxDF.hlsli">

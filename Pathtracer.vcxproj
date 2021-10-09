@@ -37,11 +37,8 @@
   <ItemGroup>
     <ClCompile Include="Camera.ixx" />
     <ClCompile Include="Core.cpp" />
-    <ClCompile Include="DeviceResources.cpp" />
-    <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="DXSampleHelper.ixx" />
     <ClCompile Include="Geometry.ixx" />
-    <ClCompile Include="Main.cpp" />
     <ClCompile Include="Math.ixx" />
     <ClCompile Include="PerformanceTimers.ixx" />
   </ItemGroup>

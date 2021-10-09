@@ -1607,3 +1607,13 @@ AccelerationStructureBuffers Core::BuildBottomLevelAS(const vector<D3D12_RAYTRAC
     bottomLevelASBuffers.ResultDataMaxSizeInBytes = bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes;
     return bottomLevelASBuffers;
 }
+
+#ifdef _WIN32
+#pragma comment(lib, "lua542/liblua54.a")
+#endif
+
+_Use_decl_annotations_
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+    Core* app = new Core(1920, 1080, L"Real-time pathtracer by Karol Jampolski");
+    return Win32Core::Run(app, hInstance, nCmdShow);
+}
