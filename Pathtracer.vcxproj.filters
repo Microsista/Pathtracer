@@ -7,13 +7,7 @@
     <ClInclude Include="DeviceResources.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXRaytracingHelper.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="HlslCompat.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="range.hpp">
@@ -78,6 +72,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Texture.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXRaytracingHelper.ixx">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

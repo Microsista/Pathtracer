@@ -1,6 +1,16 @@
-#pragma once
+module;
+#include <d3d12.h>
+#include <DirectXCollision.h>
+#include <string>
+#include <wrl.h>
+#include <unordered_map>
+export module Mesh;
 
-class MeshGeometry
+import Helper;
+import DXSampleHelper;
+
+
+export class MeshGeometry
 {
 public:
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const

@@ -3,9 +3,6 @@ module;
 #include "stdafx.h"
 #include "DXCore.h"
 #include "RaytracingSceneDefines.h"
-#include "DirectXRaytracingHelper.h"
-#include "Mesh.h"
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -23,10 +20,14 @@ extern "C" {
 #include "Lua542/include/lualib.h"
 }
 
+#define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
+
 export module Core;
 import DXCore;
 import StepTimer;
 import Texture;
+import Helper;
+import Mesh;
 
 import Geometry;
 import PerformanceTimers;
