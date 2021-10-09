@@ -1,6 +1,6 @@
-#pragma once
+module;
+#include "DeviceResources.h"
 #include "stdafx.h"
-
 #include "DXCore.h"
 #include "StepTimer.h"
 #include "RaytracingSceneDefines.h"
@@ -8,7 +8,6 @@
 #include "Mesh.h"
 #include "Texture.h"
 
-// assimp includes
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -20,13 +19,24 @@
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
-import Geometry;
-
 extern "C" {
 #include "Lua542/include/lua.h"
 #include "Lua542/include/lauxlib.h"
 #include "Lua542/include/lualib.h"
 }
+
+export module Core;
+import DXCore;
+
+import Geometry;
+import PerformanceTimers;
+
+namespace App {
+    static const UINT FrameCount = 3;
+}
+
+export {
+
 
 bool CheckLua(lua_State* L, int r) {
     if (r != LUA_OK) {
@@ -55,11 +65,9 @@ using namespace DX;
 using namespace util::lang;
 
 
-import PerformanceTimers;
 
-namespace App {
-    static const UINT FrameCount = 3;
-}
+
+
 
 namespace Directions {
     auto FORWARD = DirectX::XMVECTOR{ 0.0f, 0.0f, 1.0f };
@@ -1720,3 +1728,4 @@ private:
     std::vector<int> m_meshSizes;
     std::vector<int> m_meshOffsets;
 };
+}

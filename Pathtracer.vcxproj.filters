@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Core.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -11,9 +8,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="DirectXRaytracingHelper.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="DXCore.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="HlslCompat.h">
@@ -78,6 +72,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="PerformanceTimers.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Core.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCore.ixx">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

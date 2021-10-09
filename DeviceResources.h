@@ -1,11 +1,8 @@
-//
-// DeviceResources.h - A wrapper for the Direct3D 12 device and swapchain
-//
-
 #pragma once
 
+#include <wrl/client.h>
+#include "stdafx.h"
 
-using namespace DX;
 using namespace std;
 
 import DXSampleHelper;
@@ -24,6 +21,40 @@ namespace
         default:                                return fmt;
         }
     }
+};
+
+class DXCore;
+
+class Application
+{
+public:
+    static int Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow);
+    static void ToggleFullscreenWindow(IDXGISwapChain* pOutput = nullptr);
+    static void SetWindowZorderToTopMost(bool setToTopMost)
+    {
+        RECT windowRect;
+        GetWindowRect(m_hwnd, &windowRect);
+
+        SetWindowPos(
+            m_hwnd,
+            (setToTopMost) ? HWND_TOPMOST : HWND_NOTOPMOST,
+            windowRect.left,
+            windowRect.top,
+            windowRect.right - windowRect.left,
+            windowRect.bottom - windowRect.top,
+            SWP_FRAMECHANGED | SWP_NOACTIVATE);
+    }
+    static HWND GetHwnd() { return m_hwnd; }
+    static bool IsFullscreen() { return m_fullscreenMode; }
+
+protected:
+    static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+private:
+    static inline HWND m_hwnd = nullptr;
+    static inline bool m_fullscreenMode = false;
+    static const UINT m_windowStyle = WS_OVERLAPPEDWINDOW;
+    static inline RECT m_windowRect;
 };
 
 namespace DX
