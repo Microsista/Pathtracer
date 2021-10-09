@@ -1,16 +1,52 @@
 #pragma once
 
-#include "Win32Application.h"
-#include "DeviceResources.h"
-
 import Camera;
 import DXSampleHelper;
+
+class DXCore;
+
+class Win32Core
+{
+public:
+    static int Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow);
+    static void ToggleFullscreenWindow(IDXGISwapChain* pOutput = nullptr);
+    static void SetWindowZorderToTopMost(bool setToTopMost);
+    static HWND GetHwnd() { return m_hwnd; }
+    static bool IsFullscreen() { return m_fullscreenMode; }
+
+protected:
+    static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+private:
+    static HWND m_hwnd;
+    static bool m_fullscreenMode;
+    static const UINT m_windowStyle = WS_OVERLAPPEDWINDOW;
+    static RECT m_windowRect;
+};
+
+#include "DeviceResources.h"
 
 class DXCore : public DX::IDeviceNotify
 {
 public:
-    DXCore(UINT width, UINT height, std::wstring name);
-    virtual ~DXCore();
+    DXCore(UINT width, UINT height, std::wstring name) :
+        m_width(width),
+        m_height(height),
+        m_windowBounds{ 0,0,0,0 },
+        m_title(name),
+        m_aspectRatio(0.0f),
+        m_enableUI(true),
+        m_adapterIDoverride(UINT_MAX)
+    {
+        WCHAR assetsPath[512];
+        GetAssetsPath(assetsPath, _countof(assetsPath));
+        m_assetsPath = assetsPath;
+
+        UpdateForSizeChange(width, height);
+    }
+    virtual ~DXCore()
+    {
+    }
 
     virtual void OnInit() = 0;
     virtual void OnUpdate() = 0;
@@ -28,7 +64,28 @@ public:
     virtual void OnDisplayChanged() {}
 
     // Overridable members.
-    virtual void ParseCommandLineArgs(_In_reads_(argc) WCHAR* argv[], int argc);
+    virtual void ParseCommandLineArgs(_In_reads_(argc) WCHAR* argv[], int argc)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            // -disableUI
+            if (_wcsnicmp(argv[i], L"-disableUI", wcslen(argv[i])) == 0 ||
+                _wcsnicmp(argv[i], L"/disableUI", wcslen(argv[i])) == 0)
+            {
+                m_enableUI = false;
+            }
+            // -forceAdapter [id]
+            else if (_wcsnicmp(argv[i], L"-forceAdapter", wcslen(argv[i])) == 0 ||
+                _wcsnicmp(argv[i], L"/forceAdapter", wcslen(argv[i])) == 0)
+            {
+                ThrowIfFalse(i + 1 < argc, L"Incorrect argument format passed in.");
+
+                m_adapterIDoverride = _wtoi(argv[i + 1]);
+                i++;
+            }
+        }
+
+    }
 
     // Accessors.
     UINT GetWidth() const { return m_width; }
@@ -38,11 +95,28 @@ public:
     virtual IDXGISwapChain* GetSwapchain() { return nullptr; }
     DX::DeviceResources* GetDeviceResources() const { return m_deviceResources.get(); }
 
-    void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
-    void SetWindowBounds(int left, int top, int right, int bottom);
-    std::wstring GetAssetFullPath(LPCWSTR assetName);
+    void UpdateForSizeChange(UINT clientWidth, UINT clientHeight)
+    {
+        m_width = clientWidth;
+        m_height = clientHeight;
+        m_aspectRatio = static_cast<float>(clientWidth) / static_cast<float>(clientHeight);
+        m_camera.SetLens(0.25f * DirectX::XM_PI, m_aspectRatio, 1.0f, 1000.0f);
+    }
+    void SetWindowBounds(int left, int top, int right, int bottom)
+    {
+        m_windowBounds.left = static_cast<LONG>(left);
+        m_windowBounds.top = static_cast<LONG>(top);
+        m_windowBounds.right = static_cast<LONG>(right);
+        m_windowBounds.bottom = static_cast<LONG>(bottom);
+    }
+    // Helper function for resolving the full path of assets.
+    std::wstring GetAssetFullPath(LPCWSTR assetName)
+    {
+        return m_assetsPath + assetName;
+    }
 
 protected:
+    // Helper function for setting the window's title text.
     void SetCustomWindowText(LPCWSTR text);
 
     // Viewport dimensions.

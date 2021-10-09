@@ -1,6 +1,6 @@
 #include "stdafx.h"
+#include "DXCore.h"
 #include "DeviceResources.h"
-#include "Win32Application.h"
 
 using namespace DX;
 using namespace std;

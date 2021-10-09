@@ -43,9 +43,6 @@
     <ClInclude Include="WicTextureLoader.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Win32Application.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -75,12 +72,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Win32Application.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Math.ixx" />
