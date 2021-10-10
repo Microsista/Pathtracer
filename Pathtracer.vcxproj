@@ -33,17 +33,14 @@
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClInclude Include="range.hpp" />
     <ClInclude Include="RayTracingHlslCompat.h" />
     <ClCompile Include="RaytracingSceneDefines.ixx" />
-    <ClInclude Include="stdafx.h" />
     <ClCompile Include="StepTimer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="Texture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClInclude Include="WicTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.ixx" />
