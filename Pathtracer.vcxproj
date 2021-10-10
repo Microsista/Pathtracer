@@ -30,13 +30,12 @@
     <ClCompile Include="DXCore.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClInclude Include="HlslCompat.h" />
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClInclude Include="range.hpp" />
     <ClInclude Include="RayTracingHlslCompat.h" />
-    <ClInclude Include="RaytracingSceneDefines.h" />
+    <ClCompile Include="RaytracingSceneDefines.ixx" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="StepTimer.ixx">
       <FileType>Document</FileType>

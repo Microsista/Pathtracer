@@ -6,6 +6,7 @@
 #include "RaytracingShaderHelper.hlsli"
 #include "RandomNumberGenerator.hlsli"
 #include "BxDF.hlsli"
+#include "RayTracingHlslCompat.h"
 
 static const float LIGHT_SIZE = 0.6f;
 

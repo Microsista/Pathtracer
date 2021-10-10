@@ -1,14 +1,29 @@
 #ifndef RAYTRACINGHLSLCOMPAT_H
 #define RAYTRACINGHLSLCOMPAT_H
 
-#ifdef HLSL
-#include "HlslCompat.h"
-typedef UINT Index;
-#else
-using namespace DirectX;
 
-// Shader will use byte encoding to access vertex indices.
+#ifdef HLSL
+typedef uint Index;
+typedef float2 XMFLOAT2;
+typedef float3 XMFLOAT3;
+typedef float4 XMFLOAT4;
+typedef float4 XMVECTOR;
+typedef float4x4 XMMATRIX;
+typedef uint UINT;
+typedef uint2 XMUINT2;
+typedef uint3 XMUINT3;
+typedef int2 XMINT2;
+typedef int BOOL;
+#else
+#include <DirectXMath.h>
+#include <d3d12.h>
+//
+//
+//// Shader will use byte encoding to access vertex indices.
+#include <Windows.h>
 typedef UINT Index;
+//
+using namespace DirectX;
 #endif
 
 // PERFORMANCE TIP: Set max recursion depth as low as needed

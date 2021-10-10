@@ -12,6 +12,8 @@
 //}
 
 
+
+
 inline bool vecEqual(const float4 lhs, const float4 rhs) { return !any(lhs - rhs > 0.001f); }
 
 bool matEqual(const float4x4 lhs, const float4x4 rhs) {
@@ -248,7 +250,7 @@ void CalculateRayDifferentials(out float2 ddx_uv, out float2 ddy_uv, in float2 u
 }
 
 // Forward declaration.
-float CheckersTextureBoxFilter(in float2 uv, in float2 dpdx, in float2 dpdy, in UINT ratio);
+float CheckersTextureBoxFilter(in float2 uv, in float2 dpdx, in float2 dpdy, in uint ratio);
 
 // Return analytically integrated checkerboard texture (box filter).
 float AnalyticalCheckersTexture(in float3 hitPosition, in float3 surfaceNormal, in float3 cameraPosition, in float4x4 projectionToWorld)
@@ -271,7 +273,7 @@ float3 FresnelReflectanceSchlick(in float3 I, in float3 N, in float3 f0)
 // Analytically integrated checkerboard grid (box filter).
 // Ref: http://iquilezles.org/www/articles/filterableprocedurals/filterableprocedurals.htm
 // ratio - Center fill to border ratio.
-float CheckersTextureBoxFilter(in float2 uv, in float2 dpdx, in float2 dpdy, in UINT ratio)
+float CheckersTextureBoxFilter(in float2 uv, in float2 dpdx, in float2 dpdy, in uint ratio)
 {
     float2 w = max(abs(dpdx), abs(dpdy));   // Filter kernel
     float2 a = uv + 0.5 * w;

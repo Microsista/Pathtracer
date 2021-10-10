@@ -7,16 +7,10 @@
     <ClInclude Include="DeviceResources.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="HlslCompat.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="range.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="RayTracingHlslCompat.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="RaytracingSceneDefines.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -78,6 +72,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="DirectXRaytracingHelper.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingSceneDefines.ixx">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
