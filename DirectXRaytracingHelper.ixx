@@ -8,6 +8,7 @@ module;
 #include "d3dx12.h"
 #include <iomanip>
 #include <dxgi1_6.h>
+#include <Windows.h>
 export module Helper;
 
 import DXSampleHelper;

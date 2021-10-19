@@ -10,6 +10,7 @@ export module ShaderTable;
 
 import DXSampleHelper;
 import ShaderRecord;
+import GpuUploadBuffer;
 
 export class ShaderTable : public GpuUploadBuffer
 {

@@ -54,7 +54,6 @@ export module PerformanceTimers;
 import DXSampleHelper;
 
 using namespace DirectX;
-using namespace DX;
 using Microsoft::WRL::ComPtr;
 
 namespace

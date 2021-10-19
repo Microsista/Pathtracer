@@ -1,87 +1,124 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceResources.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="RayTracingHlslCompat.hlsli">
-      <Filter>HLSL Source</Filter>
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
       <UniqueIdentifier>{c00b4901-b39d-434c-9b50-936689304642}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HLSL Source">
-      <UniqueIdentifier>{34c03a23-d6f4-42d6-a93a-6a232e06e763}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scripts">
       <UniqueIdentifier>{5a30275c-8441-47a8-97bb-e09142c4a523}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{596921fb-81bb-436e-b8af-93de2b3d92a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Program.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="DXSampleHelper.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Geometry.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Math.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="PerformanceTimers.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Core.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="DXCore.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="StepTimer.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Texture.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="DirectXRaytracingHelper.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="RaytracingSceneDefines.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Directions.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Globals.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Descriptors.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ShaderTable.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ShaderRecord.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="AccelerationStructureBuffers.ixx">
-      <Filter>Source</Filter>
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuUploadBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpTexture.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DTexture.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapInterface.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCoreInterface.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResources.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="DeviceResourcesInterface.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="IDeviceNotify.ixx">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,27 +126,30 @@
       <Filter>Scripts</Filter>
     </None>
     <None Include="RaytracingShaderHelper.hlsli">
-      <Filter>HLSL Source</Filter>
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="d3dx12.h">
+      <Filter>Headers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="RadianceMS.hlsl">
-      <Filter>HLSL Source</Filter>
-    </FxCompile>
-    <FxCompile Include="Raytracing.hlsl">
-      <Filter>HLSL Source</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowMS.hlsl">
-      <Filter>HLSL Source</Filter>
-    </FxCompile>
-    <FxCompile Include="ViewRG.hlsl">
-      <Filter>HLSL Source</Filter>
-    </FxCompile>
     <FxCompile Include="CompositionCS.hlsl">
-      <Filter>HLSL Source</Filter>
+      <Filter>Resources</Filter>
     </FxCompile>
     <FxCompile Include="RadianceCH.hlsl">
-      <Filter>HLSL Source</Filter>
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="RadianceMS.hlsl">
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="Raytracing.hlsl">
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMS.hlsl">
+      <Filter>Resources</Filter>
+    </FxCompile>
+    <FxCompile Include="ViewRG.hlsl">
+      <Filter>Resources</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

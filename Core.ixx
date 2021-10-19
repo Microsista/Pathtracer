@@ -5,7 +5,6 @@ extern "C" {
     #include "Lua542/include/lualib.h"
 }
 
-#include "DeviceResources.h"
 #include "RaytracingHlslCompat.hlsli"
 
 #include "Obj/Debug/CompiledShaders/ViewRG.hlsl.h"
@@ -18,6 +17,14 @@ extern "C" {
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#include "d3dx12.h"
+#include <unordered_map>
+#include <vector>
+#include <sstream>
+#include <array>
+#include <iomanip>
+#include <d3d12.h>
 
 #include <ranges>
 export module Core;
@@ -36,6 +43,16 @@ import Descriptors;
 import ShaderTable;
 import ShaderRecord;
 import AccelerationStructureBuffers;
+import D3DBuffer;
+import DescriptorHeap;
+import ConstantBuffer;
+import StructuredBuffer;
+import D3DTexture;
+import Transform;
+import DeviceResources;
+import Application;
+import DXSampleHelper;
+import IDeviceNotify;
 
 using namespace std;
 using namespace DX;
@@ -44,7 +61,7 @@ using namespace std::views;
 export class Core : public DXCore {
 public:
     Core(UINT width, UINT height, std::wstring name) :
-        DXCore(width, height, name),
+        DXCore{ width, height, name },
         m_animateGeometryTime(0.0f),
         m_animateCamera(false),
         m_animateGeometry(true),
@@ -785,7 +802,7 @@ private:
     void CreateDescriptorHeap() {
         auto device = m_deviceResources->GetD3DDevice();
 
-        m_descriptorHeap = std::make_shared<DX::DescriptorHeap>(device, 10000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        m_descriptorHeap = std::make_shared<DescriptorHeap>(device, 10000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         m_descriptorSize = m_descriptorHeap->DescriptorSize();
     }
     void BuildModel(std::string path, UINT flags, bool usesTextures = false) {
@@ -799,8 +816,8 @@ private:
 
         for (auto j = 0; j < meshes.size(); j++) {
             MeshGeometry::Submesh submesh{};
-            submesh.IndexCount = meshes[j].Indices32.size();
-            submesh.VertexCount = meshes[j].Vertices.size();
+            submesh.IndexCount = (UINT)meshes[j].Indices32.size();
+            submesh.VertexCount = (UINT)meshes[j].Vertices.size();
             submesh.Material = meshes[j].Material;
 
             vector<VertexPositionNormalTextureTangent> vertices(meshes[j].Vertices.size());
@@ -1479,7 +1496,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
 
-    std::shared_ptr<DX::DescriptorHeap> m_descriptorHeap;
+    std::shared_ptr<DescriptorHeap> m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
@@ -1528,9 +1545,9 @@ private:
 
     POINT m_lastMousePosition = {};
 
-    std::shared_ptr<DX::DescriptorHeap> m_cbvSrvUavHeap;
-    std::shared_ptr<DX::DescriptorHeap> m_composeHeap;
-    std::shared_ptr<DX::DescriptorHeap> m_blurHeap;
+    std::shared_ptr<DescriptorHeap> m_cbvSrvUavHeap;
+    std::shared_ptr<DescriptorHeap> m_composeHeap;
+    std::shared_ptr<DescriptorHeap> m_blurHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
     D3DTexture m_stoneTexture[3];

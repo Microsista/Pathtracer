@@ -1,88 +1,26 @@
-#include <cstdint>
-#include <DirectXMath.h>
-#include <vector>
-
+module;
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#pragma once
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-#include <windows.h>
-
-#include <stdlib.h>
-#include <sstream>
-#include <iomanip>
-
-#include <list>
-#include <string>
-#include <wrl.h>
-#include <shellapi.h>
-#include <memory>
-#include <unordered_map>
-#include <vector>
-#include <atlbase.h>
-#include <assert.h>
-#include <array>
-#include <algorithm>
-
-#include <dxgi1_6.h>
-#include <d3d12.h>
-#include <atlbase.h>
 
 #include <DirectXMath.h>
-#include <DirectXCollision.h>
-
-#ifdef _DEBUG
-#include <dxgidebug.h>
-#endif
-
+#include <vector>
 #include <iostream>
+#include <Windows.h>
 #include <fstream>
-
-#include <wrl/event.h>
-#include <ResourceUploadBatch.h>
-
-#include "d3dx12.h"
-
-#include <algorithm>
-#include "Math.h"
-
 export module Geometry;
 
 import Math;
+import Material;
+import DXSampleHelper;
+import AssimpTexture;
 
 using namespace DirectX;
 using namespace std;
 
-void print2(double var) {
-	std::ostringstream ss;
-	ss << var;
-	std::string s(ss.str());
-	s += "\n";
-
-	OutputDebugStringA(s.c_str());
-}
-
-void print2(std::string str) {
-	std::ostringstream ss;
-	ss << str;
-	std::string s(ss.str());
-	s += "\n";
-
-	OutputDebugStringA(s.c_str());
-}
-
-
-import DXSampleHelper;
-
 export class GeometryGenerator
 {
 public:
-
 	using uint16 = std::uint16_t;
 	using uint32 = std::uint32_t;
 
@@ -113,9 +51,6 @@ public:
 		DirectX::XMFLOAT3 TangentU;
 		DirectX::XMFLOAT2 TexC;
 	};
-
-
-
 
 	struct MeshData
 	{
@@ -515,40 +450,12 @@ public:
 		XMVECTOR vMax = XMLoadFloat3(&vMaxf3);
 
 		std::vector<Vertex> vertices(vcount);
-		for (UINT i = 0; i < vcount; ++i)
-		{
-			/*fin >> vertices[i].Pos.x >> vertices[i].Pos.y >> vertices[i].Pos.z;
-			fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;*/
-
+		for (UINT i = 0; i < vcount; ++i) {
 			fin >> vertices[i].Position.x >> vertices[i].Position.y >> vertices[i].Position.z;
 			fin >> vertices[i].Normal.x >> vertices[i].Normal.y >> vertices[i].Normal.z;
 
-			XMVECTOR P = XMLoadFloat3(&vertices[i].Position);
-
-			// Project point onto unit sphere and generate spherical texture coordinates.
-			//XMFLOAT3 spherePos;
-			//XMStoreFloat3(&spherePos, XMVector3Normalize(P));
-
-			//float theta = atan2f(spherePos.z, spherePos.x);
-
-			//// Put in [0, 2pi].
-			//if (theta < 0.0f)
-			//    theta += XM_2PI;
-
-			//float phi = acosf(spherePos.y);
-
-			//float u = theta / (2.0f * XM_PI);
-			//float v = phi / XM_PI;
-
-			//vertices[i].TexC = { u, v };
-
-			//vMin = XMVectorMin(vMin, P);
-			//vMax = XMVectorMax(vMax, P);
+			XMVECTOR P = XMLoadFloat3(&vertices[i].Position);			
 		}
-
-		/*  BoundingBox bounds;
-		XMStoreFloat3(&bounds.Center, 0.5f * (vMin + vMax));
-		XMStoreFloat3(&bounds.Extents, 0.5f * (vMax - vMin));*/
 
 		fin >> ignore;
 		fin >> ignore;
@@ -572,18 +479,12 @@ public:
 	{
 		MeshData meshData;
 
-		//
-		// Create the vertices.
-		//
-
 		Vertex v[24 * 3];
 
 		float w2 = 0.5f * width;
 		float h2 = 0.5f * height;
 		float d2 = 0.5f * depth;
 
-		// X
-		// Fill in the front face vertex data.
 		v[0] = Vertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		v[1] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		v[2] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -1328,4 +1229,3 @@ private:
 		}
 	}
 };
-

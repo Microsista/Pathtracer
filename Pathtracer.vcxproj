@@ -20,11 +20,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccelerationStructureBuffers.ixx" />
+    <ClCompile Include="Application.ixx" />
+    <ClCompile Include="AssimpTexture.ixx" />
+    <ClCompile Include="ConstantBuffer.ixx" />
     <ClCompile Include="Core.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClInclude Include="d3dx12.h" />
-    <ClInclude Include="DeviceResources.h" />
+    <ClCompile Include="D3DBuffer.ixx" />
+    <ClCompile Include="D3DTexture.ixx" />
+    <ClCompile Include="DescriptorHeapInterface.ixx" />
+    <ClCompile Include="DeviceResources.ixx" />
+    <ClCompile Include="DeviceResourcesInterface.ixx" />
+    <ClCompile Include="DXCoreInterface.ixx" />
+    <ClCompile Include="IDeviceNotify.ixx" />
+    <ClCompile Include="Material.ixx" />
+    <ClCompile Include="Transform.ixx" />
+    <None Include="d3dx12.h" />
+    <ClCompile Include="DescriptorHeap.ixx" />
     <ClCompile Include="Descriptors.ixx" />
     <ClCompile Include="Directions.ixx" />
     <ClCompile Include="DirectXRaytracingHelper.ixx">
@@ -34,6 +46,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="Globals.ixx" />
+    <ClCompile Include="GpuUploadBuffer.ixx" />
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -44,13 +57,14 @@
     <ClCompile Include="StepTimer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="StructuredBuffer.ixx" />
     <ClCompile Include="Texture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.ixx" />
-    <ClCompile Include="Program.cpp" />
+    <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DXSampleHelper.ixx" />
     <ClCompile Include="Geometry.ixx" />
     <ClCompile Include="Math.ixx" />

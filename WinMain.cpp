@@ -1,6 +1,7 @@
 #include <Windows.h>
-#include "DeviceResources.h"
+
 import Core;
+import Application;
 
 _Use_decl_annotations_
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int viewParams) {
