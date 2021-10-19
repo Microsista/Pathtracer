@@ -79,6 +79,9 @@
     <None Include="LuaScripts\MyScript.lua">
       <Filter>Scripts</Filter>
     </None>
+    <None Include="RaytracingShaderHelper.hlsli">
+      <Filter>HLSL Source</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="RadianceMS.hlsl">
@@ -97,9 +100,6 @@
       <Filter>HLSL Source</Filter>
     </FxCompile>
     <FxCompile Include="RadianceCH.hlsl">
-      <Filter>HLSL Source</Filter>
-    </FxCompile>
-    <FxCompile Include="BlurCS.hlsl">
       <Filter>HLSL Source</Filter>
     </FxCompile>
   </ItemGroup>

@@ -55,11 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua" />
+    <None Include="RaytracingShaderHelper.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BlurCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-    </FxCompile>
     <FxCompile Include="CompositionCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
     </FxCompile>

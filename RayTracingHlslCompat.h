@@ -1,7 +1,6 @@
 #ifndef RAYTRACINGHLSLCOMPAT_H
 #define RAYTRACINGHLSLCOMPAT_H
 
-
 #ifdef HLSL
 typedef uint Index;
 typedef float2 XMFLOAT2;

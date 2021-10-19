@@ -6,53 +6,7 @@ extern "C" {
 }
 
 #include "DeviceResources.h"
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-#include <windows.h>
-
-#include <stdlib.h>
-#include <sstream>
-#include <iomanip>
-
-#include <list>
-#include <string>
-#include <wrl.h>
-#include <shellapi.h>
-#include <memory>
-#include <unordered_map>
-#include <vector>
-#include <atlbase.h>
-#include <assert.h>
-#include <array>
-#include <algorithm>
-
-#include <dxgi1_6.h>
-#include <d3d12.h>
-#include <atlbase.h>
-
-#include <DirectXMath.h>
-#include <DirectXCollision.h>
-
-#ifdef _DEBUG
-#include <dxgidebug.h>
-#endif
-
-#include <iostream>
-#include <fstream>
-
-#include <wrl/event.h>
-#include <ResourceUploadBatch.h>
-
-#include "d3dx12.h"
-#include <iterator>
-
-#include "DXCore.h"
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include "RaytracingHlslCompat.h"
 
 #include "Obj/Debug/CompiledShaders/ViewRG.hlsl.h"
 #include "Obj/Debug/CompiledShaders/RadianceCH.hlsl.h"
@@ -61,9 +15,11 @@ extern "C" {
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
-#include <ranges>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
-#include "RaytracingHlslCompat.h"
+#include <ranges>
 export module Core;
 
 import DXCore;
@@ -77,7 +33,6 @@ import PerformanceTimers;
 import Directions;
 import Globals;
 import Descriptors;
-
 
 using namespace std;
 using namespace DX;
@@ -126,6 +81,7 @@ public:
 
         CreateWindowSizeDependentResources();
     }
+
     virtual void OnKeyDown(UINT8 key)
     {
         // rotation
@@ -164,6 +120,7 @@ public:
         m_camera.UpdateViewMatrix();
         UpdateCameraMatrices();
     }
+
     virtual void OnMouseMove(int x, int y) override
     {
         float dx = XMConvertToRadians(0.25f * static_cast<float>(x - m_lastMousePosition.x));
@@ -179,9 +136,11 @@ public:
         m_lastMousePosition.x = x;
         m_lastMousePosition.y = y;
     }
+
     virtual void OnLeftButtonDown(UINT x, UINT y) override {
         m_lastMousePosition = { static_cast<int>(x), static_cast<int>(y) };
     }
+
     virtual void OnUpdate() {
         m_timer.Tick();
         CalculateFrameStats();
@@ -200,7 +159,6 @@ public:
             UpdateCameraMatrices();
         }
 
-        // Rotate the second light around Y axis.
         if (m_animateLight)
         {
             float secondsToRotateAround = 8.0f;
@@ -210,7 +168,6 @@ public:
             m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
         }
 
-        // Transform the procedural geometry.
         if (m_animateGeometry)
         {
             m_animateGeometryTime += elapsedTime;
@@ -229,7 +186,6 @@ public:
         auto device = m_deviceResources->GetD3DDevice();
         auto commandList = m_deviceResources->GetCommandList();
 
-        // Begin frame.
         m_deviceResources->Prepare();
         for (auto& gpuTimer : m_gpuTimers)
         {
@@ -244,7 +200,6 @@ public:
         Blur();
         CopyRaytracingOutputToBackbuffer();
 
-        // End frame.
         for (auto& gpuTimer : m_gpuTimers)
         {
             gpuTimer.EndFrame(commandList);
@@ -267,7 +222,6 @@ public:
         ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
         ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4); // motion vector
 
-
         CD3DX12_ROOT_PARAMETER rootParameters[10];
         rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
         rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
@@ -283,7 +237,6 @@ public:
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_composeRootSig, L"Root signature: CompositionCS");
 
-        // create pso
         D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
         descComputePSO.pRootSignature = m_composeRootSig.Get();
         descComputePSO.CS = CD3DX12_SHADER_BYTECODE((void*)g_pCompositionCS, ARRAYSIZE(g_pCompositionCS));
@@ -296,21 +249,18 @@ public:
         commandList->SetPipelineState(m_composePSO[0].Get());
         m_composePSO[0]->AddRef();
 
-        commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]); // Input/Output
-        commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]); // Input
-        commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]); // Input
-                                                                                                //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
-
+        commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]);
+        commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]);
+     
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
-        commandList->SetComputeRootDescriptorTable(4, descriptors[NORMAL_DEPTH]); // Input
-        commandList->SetComputeRootDescriptorTable(5, descriptors[PREV_FRAME]); // Input
-        commandList->SetComputeRootDescriptorTable(6, descriptors[PREV_REFLECTION]); // Input
-        commandList->SetComputeRootDescriptorTable(7, descriptors[PREV_SHADOW]); // Input
-        commandList->SetComputeRootDescriptorTable(8, descriptors[MOTION_VECTOR]); // Input
-
-                                                                                                //m_sceneCB.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootDescriptorTable(4, descriptors[NORMAL_DEPTH]);
+        commandList->SetComputeRootDescriptorTable(5, descriptors[PREV_FRAME]);
+        commandList->SetComputeRootDescriptorTable(6, descriptors[PREV_REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(7, descriptors[PREV_SHADOW]);
+        commandList->SetComputeRootDescriptorTable(8, descriptors[MOTION_VECTOR]);
         commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = m_deviceResources->GetOutputSize();
@@ -334,8 +284,7 @@ public:
         ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
         ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
-        ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4); // motion vector
-
+        ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4);
 
         CD3DX12_ROOT_PARAMETER rootParameters[10];
         rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
