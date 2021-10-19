@@ -7,8 +7,8 @@
     <ClInclude Include="DeviceResources.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="RayTracingHlslCompat.h">
-      <Filter>Headers</Filter>
+    <ClInclude Include="RayTracingHlslCompat.hlsli">
+      <Filter>HLSL Source</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

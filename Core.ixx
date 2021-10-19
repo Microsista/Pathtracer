@@ -6,7 +6,7 @@ extern "C" {
 }
 
 #include "DeviceResources.h"
-#include "RaytracingHlslCompat.h"
+#include "RaytracingHlslCompat.hlsli"
 
 #include "Obj/Debug/CompiledShaders/ViewRG.hlsl.h"
 #include "Obj/Debug/CompiledShaders/RadianceCH.hlsl.h"
@@ -411,7 +411,7 @@ private:
             XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
             XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-            SetAttributes2(CoordinateGeometry::Coordinates + 1, red, 0.7, 1.0, 1.0f, 0.0f);
+   
             SetAttributes2(SkullGeometry::Skull + 2, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.3f, 0.5f, 1.0f, 1.0f);
 
             // Table
@@ -618,11 +618,6 @@ private:
         m_sceneCB.Release();
 
         m_trianglePrimitiveAttributeBuffer.Release();
-        for (int i = 0; i < TriangleGeometry::Count; i++)
-        {
-            m_indexBuffer[i].resource.Reset();
-            m_vertexBuffer[i].resource.Reset();
-        }
 
         ResetComPtrArray(&m_bottomLevelAS);
         m_topLevelAS.Reset();

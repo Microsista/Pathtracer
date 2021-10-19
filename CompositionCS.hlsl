@@ -1,5 +1,5 @@
 #define HLSL
-#include "RayTracingHlslCompat.h"
+#include "RayTracingHlslCompat.hlsli"
 
 RWTexture2D<float4> g_renderTarget : register(u0);
 Texture2D<float3> g_reflectionBuffer : register(t0);

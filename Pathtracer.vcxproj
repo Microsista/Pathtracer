@@ -37,7 +37,7 @@
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClInclude Include="RayTracingHlslCompat.h" />
+    <ClInclude Include="RayTracingHlslCompat.hlsli" />
     <ClCompile Include="RaytracingSceneDefines.ixx" />
     <ClCompile Include="ShaderRecord.ixx" />
     <ClCompile Include="ShaderTable.ixx" />

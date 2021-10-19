@@ -1,5 +1,5 @@
 module;
-#include "RayTracingHlslCompat.h"
+#include "RayTracingHlslCompat.hlsli"
 #include <d3d12.h>
 export module RaytracingSceneDefines;
 

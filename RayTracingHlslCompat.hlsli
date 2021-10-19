@@ -16,18 +16,12 @@ typedef int BOOL;
 #else
 #include <DirectXMath.h>
 #include <d3d12.h>
-//
-//
-//// Shader will use byte encoding to access vertex indices.
 #include <Windows.h>
 typedef UINT Index;
-//
 using namespace DirectX;
 #endif
 
-// PERFORMANCE TIP: Set max recursion depth as low as needed
-// as drivers may apply optimization strategies for low recursion depths.
-#define MAX_RAY_RECURSION_DEPTH 3    // ~ primary rays + reflections + shadow rays from reflected geometry.
+#define MAX_RAY_RECURSION_DEPTH 3
 #define SAMPLER_FILTER D3D12_FILTER_ANISOTROPIC
 
 struct GeometryBuffer {
@@ -81,7 +75,7 @@ struct TemporalSupersampling_ReverseReprojectConstantBuffer
     XMFLOAT2 invTextureDim;
 
     float depthSigma;
-    UINT DepthNumMantissaBits;      // Number of Mantissa Bits in the floating format of the input depth resources format.
+    UINT DepthNumMantissaBits;
     BOOL usingBilateralDownsampledBuffers;
     float padding;
 };
@@ -139,7 +133,7 @@ struct SceneConstantBuffer
     XMVECTOR lightAmbientColor;
     XMVECTOR lightDiffuseColor;
     float    reflectance;
-    float    elapsedTime;                 // Elapsed application time.
+    float    elapsedTime;
     int frameIndex;
 
     XMFLOAT3 prevFrameCameraPosition;
@@ -147,7 +141,6 @@ struct SceneConstantBuffer
     XMMATRIX prevFrameViewProj;
 };
 
-// Attributes per primitive type.
 struct PrimitiveConstantBuffer
 {
     XMFLOAT4 albedo;
@@ -155,50 +148,45 @@ struct PrimitiveConstantBuffer
     float diffuseCoef;
     float metalness;
     float roughness;
-    float stepScale;                      // Step scale for ray marching of signed distance primitives. 
-                                          // - Some object transformations don't preserve the distances and 
-                                          //   thus require shorter steps.
+    float stepScale;
     float shaded;
     XMFLOAT2 padding;
 };
 
 struct PrimitiveMaterialBuffer
 {
-    XMFLOAT3 Kd; // diffuse coefficient
-    XMFLOAT3 Ks; // specular coefficient
-    XMFLOAT3 Kr; // reflectance coefficient
-    XMFLOAT3 Kt; // transparency coefficient
-    XMFLOAT3 Ke; // emittance coefficient
-    XMFLOAT3 opacity; // opacity
-    XMFLOAT3 eta; // n1/n2
-    float roughness; // roughness
+    XMFLOAT3 Kd; 
+    XMFLOAT3 Ks; 
+    XMFLOAT3 Kr;
+    XMFLOAT3 Kt;
+    XMFLOAT3 Ke;
+    XMFLOAT3 opacity; 
+    XMFLOAT3 eta;
+    float roughness; 
     BOOL hasDiffuseTexture;
     BOOL hasNormalTexture;
     BOOL hasPerVertexTangents;
-    //MaterialType::Type type;
     float padding;
 };
 
 namespace MaterialType {
     enum Type {
         Default,
-        Matte,      // Lambertian scattering
-        Mirror,     // Specular reflector that isn't modified by the Fresnel equations.
+        Matte,    
+        Mirror,    
         AnalyticalCheckerboardTexture
     };
 }
 
-// Attributes per primitive instance.
 struct PrimitiveInstanceConstantBuffer
 {
     UINT instanceIndex;
 };
 
-// Dynamic attributes per primitive instance.
 struct PrimitiveInstancePerFrameBuffer
 {
-    XMMATRIX localSpaceToBottomLevelAS;   // Matrix from local primitive space to bottom-level object space.
-    XMMATRIX bottomLevelASToLocalSpace;   // Matrix from bottom-level object space to local primitive space.
+    XMMATRIX localSpaceToBottomLevelAS;   
+    XMMATRIX bottomLevelASToLocalSpace;  
 };
 
 struct Vertex
@@ -215,56 +203,37 @@ struct VertexPositionNormalTextureTangent
     XMFLOAT3 tangent;
 };
 
-
-// Ray types traced in this sample.
 namespace RayType {
     enum Enum {
-        Radiance = 0,   // ~ Primary, reflected camera/view rays calculating color for each hit.
-        Shadow,         // ~ Shadow/visibility rays, only testing for occlusion
+        Radiance = 0,
+        Shadow,       
         Count
     };
 }
 
 namespace TraceRayParameters
 {
-    static const UINT InstanceMask = 0xffff;   // Everything is visible.
+    static const UINT InstanceMask = 0xffff;   
     namespace HitGroup {
         static const UINT Offset[RayType::Count] =
         {
-            0, // Radiance ray
-            1  // Shadow ray
+            0,
+            1 
         };
         static const UINT GeometryStride = RayType::Count;
     }
     namespace MissShader {
         static const UINT Offset[RayType::Count] =
         {
-            0, // Radiance ray
-            1  // Shadow ray
+            0, 
+            1 
         };
     }
 }
 
-// From: http://blog.selfshadow.com/publications/s2015-shading-course/hoffman/s2015_pbs_physics_math_slides.pdf
 static const XMFLOAT4 ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
-
 static const XMFLOAT4 BackgroundColor = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
 static const float InShadowRadiance = 0.35f;
-
-namespace TriangleGeometry {
-    enum Enum {
-        Room = 0,
-        Count
-    };
-}
-
-namespace CoordinateGeometry {
-    enum Enum {
-        Coordinates = 0,
-        Count
-    };
-}
-
 
 namespace SkullGeometry {
     enum Enum {
@@ -293,85 +262,4 @@ namespace LampsGeometry {
     };
 }
 
-namespace HouseGeometry {
-    enum Enum {
-        HouseMesh1 = 0,
-        HouseMesh2,
-        HouseMesh3,
-        HouseMesh4,
-        HouseMesh5,
-        HouseMesh6,
-        HouseMesh7,
-        HouseMesh8,
-        HouseMesh9,
-        HouseMesh10,
-        HouseMesh11,
-        HouseMesh12,
-        HouseMesh13,
-        HouseMesh14,
-        HouseMesh15,
-        HouseMesh16,
-        HouseMesh17,
-        HouseMesh18,
-        HouseMesh19,
-        HouseMesh20,
-        HouseMesh21,
-        HouseMesh22,
-        HouseMesh23,
-        HouseMesh24,
-        HouseMesh25,
-        HouseMesh26,
-        HouseMesh27,
-
-        Count
-    };
-}
-
-namespace AllGeometry {
-    enum Enum {
-        Room = 0,
-        Coordinates,
-        Skull,
-        ModelMesh1,
-        ModelMesh2,
-        ModelMesh3,
-        ModelMesh4,
-        LampMesh1,
-        LampMesh2,
-        LampMesh3,
-        LampMesh4,
-        HouseMesh1,
-        HouseMesh2,
-        HouseMesh3,
-        HouseMesh4,
-        HouseMesh5,
-        HouseMesh6,
-        HouseMesh7,
-        HouseMesh8,
-        HouseMesh9,
-        HouseMesh10,
-        HouseMesh11,
-        HouseMesh12,
-        HouseMesh13,
-        HouseMesh14,
-        HouseMesh15,
-        HouseMesh16,
-        HouseMesh17,
-        HouseMesh18,
-        HouseMesh19,
-        HouseMesh20,
-        HouseMesh21,
-        HouseMesh22,
-        HouseMesh23,
-        HouseMesh24,
-        HouseMesh25,
-        HouseMesh26,
-        HouseMesh27,
-
-        Count
-    };
-
-}
-
-
-#endif // RAYTRACINGHLSLCOMPAT_H
+#endif

@@ -94,8 +94,7 @@ namespace
 
 export namespace DX
 {
-    //----------------------------------------------------------------------------------
-    // CPU performance timer
+
     class CPUTimer
     {
     public:

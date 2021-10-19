@@ -8,7 +8,6 @@ export module DXCore;
 import Camera;
 import DXSampleHelper;
 
-
 export {
     class DXCore : public DX::IDeviceNotify
     {
