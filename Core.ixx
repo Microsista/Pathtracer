@@ -1,6 +1,11 @@
 module;
+extern "C" {
+    #include "Lua542/include/lua.h"
+    #include "Lua542/include/lauxlib.h"
+    #include "Lua542/include/lualib.h"
+}
+
 #include "DeviceResources.h"
-#pragma once
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -42,6 +47,7 @@ module;
 #include <ResourceUploadBatch.h>
 
 #include "d3dx12.h"
+#include <iterator>
 
 #include "DXCore.h"
 #include <assimp/Importer.hpp>
@@ -55,323 +61,33 @@ module;
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
-#ifndef UTIL_LANG_RANGE_HPP
-#define UTIL_LANG_RANGE_HPP
+#include <ranges>
 
-#include <cmath>
-#include <iterator>
-#include <type_traits>
 
-namespace util {
-    namespace lang {
-
-        namespace detail {
-
-            template <typename T>
-            struct range_iter_base : std::iterator<std::input_iterator_tag, T> {
-                range_iter_base(T current) : current(current) { }
-
-                T operator *() const { return current; }
-
-                T const* operator ->() const { return &current; }
-
-                range_iter_base& operator ++() {
-                    ++current;
-                    return *this;
-                }
-
-                range_iter_base operator ++(int) {
-                    auto copy = *this;
-                    ++* this;
-                    return copy;
-                }
-
-                bool operator ==(range_iter_base const& other) const {
-                    return current == other.current;
-                }
-
-                bool operator !=(range_iter_base const& other) const {
-                    return !(*this == other);
-                }
-
-            protected:
-                T current;
-            };
-
-        } // namespace detail
-
-        template <typename T>
-        struct step_range_proxy {
-            struct iterator : detail::range_iter_base<T> {
-                iterator(T current, T step)
-                    : detail::range_iter_base<T>(current), step_(step) { }
-
-                using detail::range_iter_base<T>::current;
-
-                iterator& operator ++() {
-                    current += step_;
-                    return *this;
-                }
-
-                iterator operator ++(int) {
-                    auto copy = *this;
-                    ++* this;
-                    return copy;
-                }
-
-                // Loses commutativity. Iterator-based ranges are simply broken. :-(
-                bool operator ==(iterator const& other) const {
-                    return step_ > 0 ? current >= other.current
-                        : current < other.current;
-                }
-
-                bool operator !=(iterator const& other) const {
-                    return !(*this == other);
-                }
-
-                T step_;
-            };
-
-            step_range_proxy(T begin, T end, T step)
-                : begin_(begin, step), end_(end, step) { }
-
-            iterator begin() const { return begin_; }
-
-            iterator end() const { return end_; }
-
-            std::size_t size() const {
-                if (*end_ >= *begin_) {
-                    // Increasing and empty range
-                    if (begin_.step_ < T{ 0 }) return 0;
-                }
-                else {
-                    // Decreasing range
-                    if (begin_.step_ > T{ 0 }) return 0;
-                }
-                return std::ceil(std::abs(static_cast<double>(*end_ - *begin_) / begin_.step_));
-            }
-
-        private:
-            iterator begin_;
-            iterator end_;
-        };
-
-        template <typename T>
-        struct range_proxy {
-            struct iterator : detail::range_iter_base<T> {
-                iterator(T current) : detail::range_iter_base<T>(current) { }
-            };
-
-            range_proxy(T begin, T end) : begin_(begin), end_(end) { }
-
-            step_range_proxy<T> step(T step) {
-                return { *begin_, *end_, step };
-            }
-
-            iterator begin() const { return begin_; }
-
-            iterator end() const { return end_; }
-
-            std::size_t size() const { return *end_ - *begin_; }
-
-        private:
-            iterator begin_;
-            iterator end_;
-        };
-
-        template <typename T>
-        struct step_inf_range_proxy {
-            struct iterator : detail::range_iter_base<T> {
-                iterator(T current = T(), T step = T())
-                    : detail::range_iter_base<T>(current), step(step) { }
-
-                using detail::range_iter_base<T>::current;
-
-                iterator& operator ++() {
-                    current += step;
-                    return *this;
-                }
-
-                iterator operator ++(int) {
-                    auto copy = *this;
-                    ++* this;
-                    return copy;
-                }
-
-                bool operator ==(iterator const&) const { return false; }
-
-                bool operator !=(iterator const&) const { return true; }
-
-            private:
-                T step;
-            };
-
-            step_inf_range_proxy(T begin, T step) : begin_(begin, step) { }
-
-            iterator begin() const { return begin_; }
-
-            iterator end() const { return  iterator(); }
-
-        private:
-            iterator begin_;
-        };
-
-        template <typename T>
-        struct infinite_range_proxy {
-            struct iterator : detail::range_iter_base<T> {
-                iterator(T current = T()) : detail::range_iter_base<T>(current) { }
-
-                bool operator ==(iterator const&) const { return false; }
-
-                bool operator !=(iterator const&) const { return true; }
-            };
-
-            infinite_range_proxy(T begin) : begin_(begin) { }
-
-            step_inf_range_proxy<T> step(T step) {
-                return { *begin_, step };
-            }
-
-            iterator begin() const { return begin_; }
-
-            iterator end() const { return iterator(); }
-
-        private:
-            iterator begin_;
-        };
-
-        template <typename T, typename U>
-        auto range(T begin, U end) -> range_proxy<typename std::common_type<T, U>::type> {
-            using C = typename std::common_type<T, U>::type;
-            return { static_cast<C>(begin), static_cast<C>(end) };
-        }
-
-        template <typename T>
-        infinite_range_proxy<T> range(T begin) {
-            return { begin };
-        }
-
-        namespace traits {
-
-            template <typename C>
-            struct has_size {
-                template <typename T>
-                static auto check(T*) ->
-                    typename std::is_integral<
-                    decltype(std::declval<T const>().size())>::type;
-
-                template <typename>
-                static auto check(...)->std::false_type;
-
-                using type = decltype(check<C>(0));
-                static constexpr bool value = type::value;
-            };
-
-        } // namespace traits
-
-        template <typename C, typename = typename std::enable_if<traits::has_size<C>::value>>
-        auto indices(C const& cont) -> range_proxy<decltype(cont.size())> {
-            return { 0, cont.size() };
-        }
-
-        template <typename T, std::size_t N>
-        range_proxy<std::size_t> indices(T(&)[N]) {
-            return { 0, N };
-        }
-
-        template <typename T>
-        range_proxy<typename std::initializer_list<T>::size_type>
-            indices(std::initializer_list<T>&& cont) {
-            return { 0, cont.size() };
-        }
-
-    }
-} // namespace util::lang
-
-#endif // ndef UTIL_LANG_RANGE_HPP
-
-
-extern "C" {
-#include "Lua542/include/lua.h"
-#include "Lua542/include/lauxlib.h"
-#include "Lua542/include/lualib.h"
-}
 
 #include "RaytracingHlslCompat.h"
-
-#define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
-
 export module Core;
+
 import DXCore;
 import StepTimer;
 import Texture;
 import Helper;
 import Mesh;
 import RaytracingSceneDefines;
-
 import Geometry;
 import PerformanceTimers;
+import Directions;
+import Globals;
 
-namespace App {
-    static const UINT FrameCount = 3;
-}
-
-export {
-
-
-bool CheckLua(lua_State* L, int r) {
-    if (r != LUA_OK) {
-        std::string errormsg = lua_tostring(L, -1);
-        print(errormsg);
-        return false;
-    }
-    return true;
-}
-
-int lua_HostFunction(lua_State* L) {
-    float a = (float)lua_tonumber(L, 1);
-    float b = (float)lua_tonumber(L, 2);
-    print("[C++] Hostfunction(");
-    print(a);
-    print(", ");
-    print(b);
-    print(") called");
-    float c = a * b;
-    lua_pushnumber(L, c);
-    return 1;
-}
 
 using namespace std;
 using namespace DX;
-using namespace util::lang;
+using namespace std::views;
 
-
-
-namespace Directions {
-    auto FORWARD = DirectX::XMVECTOR{ 0.0f, 0.0f, 1.0f };
-    auto BACKWARD = DirectX::XMVECTOR{ 0.0f, 0.0f, -1.0f };
-    auto LEFT = DirectX::XMVECTOR{ -1.0f, 0.0f, 0.0f };
-    auto RIGHT = DirectX::XMVECTOR{ 1.0f, 0.0f, 0.0f };
-    auto UP = DirectX::XMVECTOR{ 0.0f, 1.0f, 0.0f };
-    auto DOWN = DirectX::XMVECTOR{ 0.0f, -1.0f, 0.0f };
-}
-
-class Core : public DXCore {
+export class Core : public DXCore {
 public:
     Core(UINT width, UINT height, std::wstring name) :
         DXCore(width, height, name),
-        m_raytracingOutputResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_reflectionBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_shadowBufferResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_normalDepthResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_motionVectorResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_prevHitPositionResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_normalMapResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_specularMapResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_emissiveMapResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_prevFrameResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_prevReflectionResourceUAVDescriptorHeapIndex(UINT_MAX),
-        m_prevShadowResourceUAVDescriptorHeapIndex(UINT_MAX),
         m_animateGeometryTime(0.0f),
         m_animateCamera(false),
         m_animateGeometry(true),
@@ -584,7 +300,7 @@ public:
         commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
         commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
         commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
-                                                                                               //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
+                                                                                                //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
 
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
@@ -595,7 +311,7 @@ public:
         commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
         commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
 
-                                                                                               //m_sceneCB.CopyStagingToGpu(frameIndex);
+                                                                                                //m_sceneCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = m_deviceResources->GetOutputSize();
@@ -653,7 +369,7 @@ public:
         commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
         commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
         commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
-                                                                                               //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
+                                                                                                //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
 
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
@@ -664,7 +380,7 @@ public:
         commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
         commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
 
-                                                                                               //m_sceneCB.CopyStagingToGpu(frameIndex);
+                                                                                                //m_sceneCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = m_deviceResources->GetOutputSize();
@@ -964,7 +680,6 @@ private:
         m_topLevelAS.Reset();
 
         m_raytracingOutput.Reset();
-        m_raytracingOutputResourceUAVDescriptorHeapIndex = UINT_MAX;
         m_rayGenShaderTable.Reset();
         m_missShaderTable.Reset();
         m_hitGroupShaderTable.Reset();
@@ -993,8 +708,6 @@ private:
     }
     void CreateRootSignatures() {
         auto device = m_deviceResources->GetD3DDevice();
-
-        // Global Root Signature
         {
             CD3DX12_DESCRIPTOR_RANGE ranges[6] = {};
             ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
@@ -1003,9 +716,6 @@ private:
             ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
             ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4);
             ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 5);
-            //ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5);
-            //ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6);
-            //ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 7);
 
             CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignature::Slot::Count];
             rootParameters[GlobalRootSignature::Slot::OutputView].InitAsDescriptorTable(1, &ranges[0]);
@@ -1017,9 +727,6 @@ private:
             rootParameters[GlobalRootSignature::Slot::NormalDepth].InitAsDescriptorTable(1, &ranges[3]);
             rootParameters[GlobalRootSignature::Slot::MotionVector].InitAsDescriptorTable(1, &ranges[4]);
             rootParameters[GlobalRootSignature::Slot::PrevHitPosition].InitAsDescriptorTable(1, &ranges[5]);
-            /* rootParameters[GlobalRootSignature::Slot::NormalMap].InitAsDescriptorTable(1, &ranges[4]);
-            rootParameters[GlobalRootSignature::Slot::SpecularMap].InitAsDescriptorTable(1, &ranges[5]);
-            rootParameters[GlobalRootSignature::Slot::EmissiveMap].InitAsDescriptorTable(1, &ranges[6]);*/
 
             CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = { CD3DX12_STATIC_SAMPLER_DESC(0, SAMPLER_FILTER) }; // LinearWrapSampler
 
@@ -1027,7 +734,6 @@ private:
             SerializeAndCreateRaytracingRootSignature(device, globalRootSignatureDesc, &m_raytracingGlobalRootSignature, L"Global root signature");
         }
 
-        // Local Root Signature
         using namespace LocalRootSignature::Triangle;
         CD3DX12_DESCRIPTOR_RANGE ranges[Slot::Count] = {};
         ranges[Slot::IndexBuffer].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
@@ -1040,6 +746,7 @@ private:
         namespace RootSignatureSlots = LocalRootSignature::Triangle::Slot;
         CD3DX12_ROOT_PARAMETER rootParameters[RootSignatureSlots::Count] = {};
 
+#define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
         rootParameters[RootSignatureSlots::MaterialConstant].InitAsConstants(SizeOfInUint32(PrimitiveConstantBuffer), 1);
         rootParameters[RootSignatureSlots::GeometryIndex].InitAsConstants(SizeOfInUint32(PrimitiveInstanceConstantBuffer), 3);
         rootParameters[RootSignatureSlots::IndexBuffer].InitAsDescriptorTable(1, &ranges[Slot::IndexBuffer]);
@@ -1056,8 +763,8 @@ private:
     void CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
         const unsigned char* compiledShaderByteCode[] = { g_pViewRG, g_pRadianceCH, g_pRadianceMS, g_pShadowMS };
         const unsigned int compiledShaderByteCodeSizes[] = { ARRAYSIZE(g_pViewRG), ARRAYSIZE(g_pRadianceCH), ARRAYSIZE(g_pRadianceMS), ARRAYSIZE(g_pShadowMS) };
-
-        for (auto i : indices(compiledShaderByteCode)) {
+        auto size = sizeof(compiledShaderByteCode) / sizeof(compiledShaderByteCode[0]);
+        for (int i = 0; i < size; i++) {
             auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
             auto libDXIL = CD3DX12_SHADER_BYTECODE((void*)compiledShaderByteCode[i], compiledShaderByteCodeSizes[i]);
             lib->SetDXILLibrary(&libDXIL);
@@ -1185,20 +892,9 @@ private:
         auto uavDesc2 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_SINT, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
         auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-        UINT* heapIndices[] = {
-            &m_raytracingOutputResourceUAVDescriptorHeapIndex,
-            &m_reflectionBufferResourceUAVDescriptorHeapIndex,
-            &m_shadowBufferResourceUAVDescriptorHeapIndex,
-            &m_normalDepthResourceUAVDescriptorHeapIndex,
-            &m_motionVectorResourceUAVDescriptorHeapIndex,
-            &m_prevHitPositionResourceUAVDescriptorHeapIndex,
-            &m_normalMapResourceUAVDescriptorHeapIndex,
-            &m_specularMapResourceUAVDescriptorHeapIndex,
-            &m_emissiveMapResourceUAVDescriptorHeapIndex,
-            &m_prevFrameResourceUAVDescriptorHeapIndex,
-            &m_prevReflectionResourceUAVDescriptorHeapIndex,
-            &m_prevShadowResourceUAVDescriptorHeapIndex,
-        };
+        UINT heapIndices[12];
+        fill_n(heapIndices, 12, UINT_MAX);
+           
 
         Microsoft::WRL::ComPtr<ID3D12Resource>* buffers[] = {
             &m_raytracingOutput,
@@ -1230,16 +926,16 @@ private:
             &m_prevShadowResourceUAVGpuDescriptor,
         };
         int size = ARRAYSIZE(buffers);
-        for (auto i : range(0, size)) {
+        for (auto i : iota(0, size)) {
             ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, i == 4 ? &uavDesc2 : &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
 
 
             D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
-            *heapIndices[i] = AllocateDescriptor(&uavDescriptorHandle, *heapIndices[i]);
+            heapIndices[i] = AllocateDescriptor(&uavDescriptorHandle, heapIndices[i]);
             D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
             UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
             device->CreateUnorderedAccessView((*buffers)[i].Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-            *descHandles[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), *heapIndices[i], m_descriptorSize);
+            *descHandles[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), heapIndices[i], m_descriptorSize);
         }
     }
     void BuildGeometry()
@@ -1262,20 +958,8 @@ private:
         lua_register(L, "HostFunction", lua_HostFunction);
 
         if (CheckLua(L, luaL_dofile(L, "LuaScripts/MyScript.lua"))) {
-            //lua_getglobal(L, "DoAThing");
-            //if (lua_isfunction(L, -1)) {
-            //    if (CheckLua(L, lua_pcall(L, 0, 3, 0))) {
-            //        print("[C++] Called in Lua 'DoAThing()' got ");
-            //        sizes[1] = XMFLOAT3((float)lua_tonumber(L, 1), (float)lua_tonumber(L, 2), (float)lua_tonumber(L, 3));
-            //    }
-            //}
-
             lua_getglobal(L, "coordinatesSize");
             if (lua_istable(L, -1)) {
-                /*if (CheckLua(L, lua_pcall(L, 0, 3, 0))) {
-                print("[C++] Called in Lua 'DoAThing()' got ");
-
-                }*/
                 lua_pushstring(L, "x");
                 lua_gettable(L, -2);
                 float x = (float)lua_tonumber(L, -1);
@@ -1293,35 +977,6 @@ private:
 
                 sizes[1] = XMFLOAT3(x, y, z);
             }
-
-            /*  lua_getglobal(L, "player");
-            if (lua_istable(L, -1)) {
-            lua_pushstring(L, "Name");
-            lua_gettable(L, -2);
-            player.name = lua_tostring(L, -1);
-            lua_pop(L, 1);
-
-            lua_pushstring(L, "Family");
-            lua_gettable(L, -2);
-            player.family = lua_tostring(L, -1);
-            lua_pop(L, 1);
-
-            lua_pushstring(L, "Title");
-            lua_gettable(L, -2);
-            player.title = lua_tostring(L, -1);
-            lua_pop(L, 1);
-
-            lua_pushstring(L, "Level");
-            lua_gettable(L, -2);
-            player.level = lua_tonumber(L, -1);
-            lua_pop(L, 1);
-            }
-            print(player.name);
-            print(player.family);
-            print(player.title);
-            print(player.level);*/
-
-
         }
         lua_close(L);
 
@@ -1329,7 +984,7 @@ private:
             &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
         };
 
-        for (auto i : range(0, 3)) {
+        for (auto i : iota(0, 3)) {
             GeometryGenerator::MeshData geo = (geoGen.*createGeo[i])(sizes[i].x, sizes[i].y, sizes[i].z);
             UINT roomVertexOffset = 0;
             UINT roomIndexOffset = 0;
@@ -1406,9 +1061,9 @@ private:
         triangleDescTemplate.Triangles.VertexBuffer.StrideInBytes = sizeof(VertexPositionNormalTextureTangent);
         triangleDescTemplate.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-        for (auto i : range(2, 6)) {
+        for (auto i : iota(2, 6)) {
             geometryDescs[i].resize(m_meshSizes[i], triangleDescTemplate);
-            for (auto j : range(0, m_meshSizes[i])) {
+            for (auto j : iota(0, m_meshSizes[i])) {
                 string geoName = "geo" + to_string(m_meshOffsets[i] + j);
                 string meshName = "mesh" + to_string(m_meshOffsets[i] + j);
                 geometryDescs[i][j].Triangles.IndexBuffer = m_indexBuffer[m_meshOffsets[i] + j].resource->GetGPUVirtualAddress();
@@ -1547,8 +1202,6 @@ private:
         auto commandList = m_deviceResources->GetCommandList();
         auto commandQueue = m_deviceResources->GetCommandQueue();
         auto commandAllocator = m_deviceResources->GetCommandAllocator();
-
-
 
         // Build bottom-level AS.
         AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count];
@@ -1723,7 +1376,7 @@ private:
             UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
             ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
-            for (auto i : range(0, 6))
+            for (auto i : iota(0, 6))
             {
                 LocalRootSignature::Triangle::RootArguments rootArgs;
 
@@ -1872,45 +1525,37 @@ private:
         return descriptorIndex;
     }
 
-
     static const UINT FrameCount = 3;
 
-    // Constants.
-    static const UINT NUM_BLAS = 1090;          // Triangle + AABB bottom-level AS.
-    const float c_aabbWidth = 2;      // AABB width.
-    const float c_aabbDistance = 2;   // Distance between AABBs.
+    static const UINT NUM_BLAS = 1090;
+    const float c_aabbWidth = 2;
+    const float c_aabbDistance = 2;
     
     UINT m_geoOffset = 0;
-    // DirectX Raytracing (DXR) attributes
+  
     Microsoft::WRL::ComPtr<ID3D12Device5> m_dxrDevice;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
     Microsoft::WRL::ComPtr<ID3D12StateObject> m_dxrStateObject;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_composePSO[1];
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_blurPSO[1];
 
-    // Root signatures
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
 
-
-    // Descriptors
     std::shared_ptr<DX::DescriptorHeap> m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
-    // Raytracing scene
     ConstantBuffer<SceneConstantBuffer> m_sceneCB;
     ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> m_filterCB;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_trianglePrimitiveAttributeBuffer;
     std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
 
-    // Root constants
     PrimitiveConstantBuffer m_triangleMaterialCB[NUM_BLAS];
 
-    // Geometry
     std::vector<Vertex> m_vertices;
     std::vector<Index> m_indices;
     D3DBuffer m_indexBuffer[NUM_BLAS];
@@ -1918,11 +1563,9 @@ private:
     D3DBuffer m_aabbBuffer;
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
 
-    // Acceleration structure
     Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
     Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
 
-    // Raytracing output
     Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_reflectionBuffer;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_shadowBuffer;
@@ -1947,28 +1590,11 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE m_normalMapResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_specularMapResourceUAVGpuDescriptor;
     D3D12_GPU_DESCRIPTOR_HANDLE m_emissiveMapResourceUAVGpuDescriptor;
-    UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
-    UINT m_reflectionBufferResourceUAVDescriptorHeapIndex;
-    UINT m_shadowBufferResourceUAVDescriptorHeapIndex;
-    UINT m_normalDepthResourceUAVDescriptorHeapIndex;
-    UINT m_motionVectorResourceUAVDescriptorHeapIndex;
-    UINT m_prevHitPositionResourceUAVDescriptorHeapIndex;
-    UINT m_prevFrameResourceUAVDescriptorHeapIndex;
-    UINT m_prevReflectionResourceUAVDescriptorHeapIndex;
-    UINT m_prevShadowResourceUAVDescriptorHeapIndex;
-    UINT m_normalMapResourceUAVDescriptorHeapIndex;
-    UINT m_specularMapResourceUAVDescriptorHeapIndex;
-    UINT m_emissiveMapResourceUAVDescriptorHeapIndex;
    
-
-    // Shader tables
-    
-
     static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
     static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
     static inline const wchar_t* c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
     static inline const wchar_t* c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
-
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
@@ -1976,7 +1602,6 @@ private:
     UINT m_hitGroupShaderTableStrideInBytes;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
 
-    // Application state
     DX::GPUTimer m_gpuTimers[GpuTimers::Count];
     StepTimer m_timer;
     float m_animateGeometryTime;
@@ -2006,4 +1631,3 @@ private:
     std::vector<int> m_meshSizes;
     std::vector<int> m_meshOffsets;
 };
-}
