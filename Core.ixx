@@ -33,6 +33,9 @@ import PerformanceTimers;
 import Directions;
 import Globals;
 import Descriptors;
+import ShaderTable;
+import ShaderRecord;
+import AccelerationStructureBuffers;
 
 using namespace std;
 using namespace DX;

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AccelerationStructureBuffers.ixx" />
     <ClCompile Include="Core.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -38,6 +39,8 @@
     </ClCompile>
     <ClInclude Include="RayTracingHlslCompat.h" />
     <ClCompile Include="RaytracingSceneDefines.ixx" />
+    <ClCompile Include="ShaderRecord.ixx" />
+    <ClCompile Include="ShaderTable.ixx" />
     <ClCompile Include="StepTimer.ixx">
       <FileType>Document</FileType>
     </ClCompile>

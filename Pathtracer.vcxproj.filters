@@ -74,6 +74,15 @@
     <ClCompile Include="Descriptors.ixx">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderTable.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderRecord.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AccelerationStructureBuffers.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">

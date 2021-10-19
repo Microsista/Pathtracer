@@ -4,7 +4,6 @@ module;
 export module RaytracingSceneDefines;
 
 export {
-
     namespace GlobalRootSignature {
         namespace Slot {
             enum Enum {
@@ -49,10 +48,7 @@ export {
             struct RootArguments {
                 PrimitiveConstantBuffer materialCb;
                 PrimitiveInstanceConstantBuffer triangleCB;
-                // Bind each resource via a descriptor.
-            // This design was picked for simplicity, but one could optimize for shader record size by:
-            //    1) Binding multiple descriptors via a range descriptor instead.
-            //    2) Storing 4 Byte indices (instead of 8 Byte descriptors) to a global pool resources.
+      
                 D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
                 D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
                 D3D12_GPU_DESCRIPTOR_HANDLE diffuseTextureGPUHandle;
@@ -89,17 +85,13 @@ export {
         };
     }
 
-    // Bottom-level acceleration structures (BottomLevelASType).
-    // This sample uses two BottomLevelASType, one for AABB and one for Triangle geometry.
-    // Mixing of geometry types within a BLAS is not supported.
     namespace BottomLevelASType = GeometryType;
-
 
     namespace GBufferResource {
         enum Enum {
-            HitPosition = 0,	// 3D position of hit.
-            SurfaceNormalDepth,	// Encoded normal and linear depth.
-            Depth,          // Linear depth of the hit.
+            HitPosition = 0,
+            SurfaceNormalDepth,
+            Depth,
             PartialDepthDerivatives,
             MotionVector,
             ReprojectedNormalDepth,
