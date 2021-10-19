@@ -51,10 +51,7 @@
     <ClCompile Include="PerformanceTimers.ixx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="BxDF.hlsli" />
     <None Include="LuaScripts\MyScript.lua" />
-    <None Include="RandomNumberGenerator.hlsli" />
-    <None Include="RaytracingShaderHelper.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BlurCS.hlsl">

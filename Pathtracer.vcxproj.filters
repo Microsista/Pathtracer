@@ -18,9 +18,6 @@
     <Filter Include="Source">
       <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HLSL Header">
-      <UniqueIdentifier>{2e969269-d42d-4cca-a804-18f6e0b3bdf5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HLSL Source">
       <UniqueIdentifier>{34c03a23-d6f4-42d6-a93a-6a232e06e763}</UniqueIdentifier>
     </Filter>
@@ -70,15 +67,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BxDF.hlsli">
-      <Filter>HLSL Header</Filter>
-    </None>
-    <None Include="RandomNumberGenerator.hlsli">
-      <Filter>HLSL Header</Filter>
-    </None>
-    <None Include="RaytracingShaderHelper.hlsli">
-      <Filter>HLSL Header</Filter>
-    </None>
     <None Include="LuaScripts\MyScript.lua">
       <Filter>Scripts</Filter>
     </None>
