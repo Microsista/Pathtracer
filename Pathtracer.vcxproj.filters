@@ -71,6 +71,9 @@
     <ClCompile Include="Globals.ixx">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Descriptors.ixx">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">

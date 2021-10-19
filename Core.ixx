@@ -78,6 +78,7 @@ import Geometry;
 import PerformanceTimers;
 import Directions;
 import Globals;
+import Descriptors;
 
 
 using namespace std;
@@ -297,19 +298,19 @@ public:
         commandList->SetPipelineState(m_composePSO[0].Get());
         m_composePSO[0]->AddRef();
 
-        commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
-        commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
+        commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]); // Input/Output
+        commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]); // Input
+        commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]); // Input
                                                                                                 //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
 
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
-        commandList->SetComputeRootDescriptorTable(4, m_normalDepthResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(5, m_prevFrameResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(6, m_prevReflectionResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
+        commandList->SetComputeRootDescriptorTable(4, descriptors[NORMAL_DEPTH]); // Input
+        commandList->SetComputeRootDescriptorTable(5, descriptors[PREV_FRAME]); // Input
+        commandList->SetComputeRootDescriptorTable(6, descriptors[PREV_REFLECTION]); // Input
+        commandList->SetComputeRootDescriptorTable(7, descriptors[PREV_SHADOW]); // Input
+        commandList->SetComputeRootDescriptorTable(8, descriptors[MOTION_VECTOR]); // Input
 
                                                                                                 //m_sceneCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
@@ -366,21 +367,20 @@ public:
         commandList->SetPipelineState(m_blurPSO[0].Get());
         m_blurPSO[0]->AddRef();
 
-        commandList->SetComputeRootDescriptorTable(0, m_raytracingOutputResourceUAVGpuDescriptor); // Input/Output
-        commandList->SetComputeRootDescriptorTable(1, m_reflectionBufferResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(2, m_shadowBufferResourceUAVGpuDescriptor); // Input
-                                                                                                //commandList->SetComputeRootDescriptorTable(3, m_cbResourceUAVGpuDescriptor); // Input
+        commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]);
+        commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]);
+                                                                                              
 
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
-        commandList->SetComputeRootDescriptorTable(4, m_normalDepthResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(5, m_prevFrameResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(6, m_prevReflectionResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(7, m_prevShadowResourceUAVGpuDescriptor); // Input
-        commandList->SetComputeRootDescriptorTable(8, m_motionVectorResourceUAVGpuDescriptor); // Input
+        commandList->SetComputeRootDescriptorTable(4, descriptors[NORMAL_DEPTH]);
+        commandList->SetComputeRootDescriptorTable(5, descriptors[PREV_FRAME]);
+        commandList->SetComputeRootDescriptorTable(6, descriptors[PREV_REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(7, descriptors[PREV_SHADOW]);
+        commandList->SetComputeRootDescriptorTable(8, descriptors[MOTION_VECTOR]);
 
-                                                                                                //m_sceneCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = m_deviceResources->GetOutputSize();
@@ -553,15 +553,13 @@ private:
             descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
 
             // Set index and successive vertex buffer decriptor tables.
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, m_reflectionBufferResourceUAVGpuDescriptor);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, m_shadowBufferResourceUAVGpuDescriptor);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, m_normalDepthResourceUAVGpuDescriptor);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, m_motionVectorResourceUAVGpuDescriptor);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, m_prevHitPositionResourceUAVGpuDescriptor);
-            //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalMap, m_normalMapResourceUAVGpuDescriptor);
-            //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::SpecularMap, m_specularMapResourceUAVGpuDescriptor);
-            //commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::EmissiveMap, m_emissiveMapResourceUAVGpuDescriptor);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, descriptors[RAYTRACING]);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, descriptors[REFLECTION]);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, descriptors[SHADOW]);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, descriptors[NORMAL_DEPTH]);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, descriptors[MOTION_VECTOR]);
+            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, descriptors[PREV_HIT]);
+   
         };
 
         commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
@@ -895,7 +893,6 @@ private:
         UINT heapIndices[12];
         fill_n(heapIndices, 12, UINT_MAX);
            
-
         Microsoft::WRL::ComPtr<ID3D12Resource>* buffers[] = {
             &m_raytracingOutput,
             &m_reflectionBuffer,
@@ -911,23 +908,10 @@ private:
             &m_prevShadow,
         };
 
-        D3D12_GPU_DESCRIPTOR_HANDLE* descHandles[] = {
-            &m_raytracingOutputResourceUAVGpuDescriptor,
-            &m_reflectionBufferResourceUAVGpuDescriptor,
-            &m_shadowBufferResourceUAVGpuDescriptor,
-            &m_normalDepthResourceUAVGpuDescriptor,
-            &m_motionVectorResourceUAVGpuDescriptor,
-            &m_prevHitPositionResourceUAVGpuDescriptor,
-            & m_normalMapResourceUAVGpuDescriptor,
-            &m_specularMapResourceUAVGpuDescriptor,
-            &m_emissiveMapResourceUAVGpuDescriptor,
-            &m_prevFrameResourceUAVGpuDescriptor,
-            &m_prevReflectionResourceUAVGpuDescriptor,
-            &m_prevShadowResourceUAVGpuDescriptor,
-        };
         int size = ARRAYSIZE(buffers);
         for (auto i : iota(0, size)) {
-            ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, i == 4 ? &uavDesc2 : &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
+            ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, i == MOTION_VECTOR ? &uavDesc2 :
+                &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
 
 
             D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
@@ -935,7 +919,7 @@ private:
             D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
             UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
             device->CreateUnorderedAccessView((*buffers)[i].Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-            *descHandles[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), heapIndices[i], m_descriptorSize);
+            descriptors[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), heapIndices[i], m_descriptorSize);
         }
     }
     void BuildGeometry()
@@ -1578,18 +1562,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> m_normalMap;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_specularMap;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_emissiveMap;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_reflectionBufferResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_shadowBufferResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_normalDepthResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_motionVectorResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_prevHitPositionResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_prevFrameResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_prevReflectionResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_prevShadowResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_normalMapResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_specularMapResourceUAVGpuDescriptor;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_emissiveMapResourceUAVGpuDescriptor;
+    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[12];
    
     static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
     static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
