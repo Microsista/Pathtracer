@@ -1,7 +1,7 @@
 export module Descriptors;
 
 export enum {
-	RAYTRACING = 0,
+	RAYTRACING,
 	REFLECTION,
 	SHADOW,
 	NORMAL_DEPTH,
@@ -12,5 +12,6 @@ export enum {
 	EMISSIVE,
 	PREV_FRAME,
 	PREV_REFLECTION,
-	PREV_SHADOW
+	PREV_SHADOW,
+	COUNT
 };

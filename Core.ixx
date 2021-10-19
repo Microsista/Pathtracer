@@ -63,8 +63,6 @@ extern "C" {
 
 #include <ranges>
 
-
-
 #include "RaytracingHlslCompat.h"
 export module Core;
 
@@ -241,7 +239,7 @@ public:
         DoRaytracing();
         Compose();
 
-        auto uav = CD3DX12_RESOURCE_BARRIER::UAV(m_prevFrame.Get());
+        auto uav = CD3DX12_RESOURCE_BARRIER::UAV(buffers[PREV_FRAME].Get());
         m_dxrCommandList->ResourceBarrier(1, &uav);
         Blur();
         CopyRaytracingOutputToBackbuffer();
@@ -677,14 +675,16 @@ private:
         ResetComPtrArray(&m_bottomLevelAS);
         m_topLevelAS.Reset();
 
-        m_raytracingOutput.Reset();
+        buffers[RAYTRACING].Reset();
         m_rayGenShaderTable.Reset();
         m_missShaderTable.Reset();
         m_hitGroupShaderTable.Reset();
     }
+
     void ReleaseWindowSizeDependentResources() {
-        m_raytracingOutput.Reset();
+        buffers[RAYTRACING].Reset();
     }
+
     void CreateRaytracingInterfaces() {
         auto device = m_deviceResources->GetD3DDevice();
         auto commandList = m_deviceResources->GetCommandList();
@@ -692,6 +692,7 @@ private:
         ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxrDevice)), L"Couldn't get DirectX Raytracing interface for the device.\n");
         ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
     }
+
     void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, Microsoft::WRL::ComPtr<ID3D12RootSignature>* rootSig, LPCWSTR resourceName = nullptr) {
         Microsoft::WRL::ComPtr<ID3DBlob> blob;
         Microsoft::WRL::ComPtr<ID3DBlob> error;
@@ -704,6 +705,7 @@ private:
             (*rootSig)->SetName(resourceName);
         }
     }
+
     void CreateRootSignatures() {
         auto device = m_deviceResources->GetD3DDevice();
         {
@@ -770,6 +772,7 @@ private:
 
         // Use default shader exports for a DXIL library/collection subobject ~ surface all shaders.
     }
+
     void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
         for (UINT rayType = 0; rayType < RayType::Count; rayType++)
         {
@@ -782,6 +785,7 @@ private:
             hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES);
         }
     }
+
     void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
         // Hit groups
         auto localRootSignature = raytracingPipeline->CreateSubobject<CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();
@@ -791,6 +795,7 @@ private:
         rootSignatureAssociation->SetSubobjectToAssociate(*localRootSignature);
         rootSignatureAssociation->AddExports(c_hitGroupNames_TriangleGeometry);
     }
+
     void CreateRaytracingPipelineStateObject() {
         CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
@@ -819,6 +824,7 @@ private:
 
         ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrStateObject)), L"Couldn't create DirectX Raytracing state object.\n");
     }
+
     void CreateAuxilaryDeviceResources() {
         auto device = m_deviceResources->GetD3DDevice();
         auto commandQueue = m_deviceResources->GetCommandQueue();
@@ -828,6 +834,7 @@ private:
             gpuTimer.RestoreDevice(device, commandQueue, FrameCount, m_deviceResources->GetCommandList(), m_deviceResources->GetCommandAllocator());
         }
     }
+
     void CreateDescriptorHeap() {
         auto device = m_deviceResources->GetD3DDevice();
 
@@ -882,6 +889,7 @@ private:
 
         m_geoOffset += meshes.size();
     }
+
     void CreateRaytracingOutputResource() {
         auto device = m_deviceResources->GetD3DDevice();
         auto backbufferFormat = m_deviceResources->GetBackBufferFormat();
@@ -890,38 +898,23 @@ private:
         auto uavDesc2 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_SINT, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
         auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-        UINT heapIndices[12];
-        fill_n(heapIndices, 12, UINT_MAX);
-           
-        Microsoft::WRL::ComPtr<ID3D12Resource>* buffers[] = {
-            &m_raytracingOutput,
-            &m_reflectionBuffer,
-            &m_shadowBuffer,
-            &m_normalDepth,
-            &m_motionVector,
-            &m_prevHitPosition,
-            &m_normalMap,
-            &m_specularMap,
-            &m_emissiveMap,
-            &m_prevFrame,
-            &m_prevReflection,
-            &m_prevShadow,
-        };
+        UINT heapIndices[COUNT];
+        fill_n(heapIndices, COUNT, UINT_MAX);
 
-        int size = ARRAYSIZE(buffers);
-        for (auto i : iota(0, size)) {
+        for (auto i : iota(0, COUNT)) {
             ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, i == MOTION_VECTOR ? &uavDesc2 :
-                &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&(*buffers)[i])));
+                &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&buffers[i])));
 
 
             D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
             heapIndices[i] = AllocateDescriptor(&uavDescriptorHandle, heapIndices[i]);
             D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
             UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-            device->CreateUnorderedAccessView((*buffers)[i].Get(), nullptr, &UAVDesc, uavDescriptorHandle);
+            device->CreateUnorderedAccessView(buffers[i].Get(), nullptr, &UAVDesc, uavDescriptorHandle);
             descriptors[i] = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), heapIndices[i], m_descriptorSize);
         }
     }
+
     void BuildGeometry()
     {
         auto device = m_deviceResources->GetD3DDevice();
@@ -1037,6 +1030,7 @@ private:
         BuildModel(s2, aiProcess_Triangulate | aiProcess_FlipUVs, false);
         BuildModel(s3, aiProcess_Triangulate | aiProcess_FlipUVs, true);
     }
+
     void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs) {
         D3D12_RAYTRACING_GEOMETRY_DESC triangleDescTemplate{};
         triangleDescTemplate.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
@@ -1084,6 +1078,7 @@ private:
         UINT64 bufferSize = static_cast<UINT64>(instanceDescs.size() * sizeof(instanceDescs[0]));
         AllocateUploadBuffer(m_deviceResources->GetD3DDevice(), instanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
     };
+
     AccelerationStructureBuffers BuildBottomLevelAS(const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE) {
         auto device = m_deviceResources->GetD3DDevice();
         auto commandList = m_deviceResources->GetCommandList();
@@ -1123,6 +1118,7 @@ private:
         bottomLevelASBuffers.ResultDataMaxSizeInBytes = bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes;
         return bottomLevelASBuffers;
     }
+
     AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE)
     {
         auto device = m_deviceResources->GetD3DDevice();
@@ -1181,6 +1177,7 @@ private:
         topLevelASBuffers.ResultDataMaxSizeInBytes = topLevelPrebuildInfo.ResultDataMaxSizeInBytes;
         return topLevelASBuffers;
     }
+
     void BuildAccelerationStructures() {
         auto device = m_deviceResources->GetD3DDevice();
         auto commandList = m_deviceResources->GetCommandList();
@@ -1291,6 +1288,7 @@ private:
         }
         m_topLevelAS = topLevelAS.accelerationStructure;
     }
+
     void BuildShaderTables()
     {
         auto device = m_deviceResources->GetD3DDevice();
@@ -1399,26 +1397,29 @@ private:
             m_hitGroupShaderTable = hitGroupShaderTable.GetResource();
         }
     }
+
     void UpdateForSizeChange(UINT width, UINT height) {
         DXCore::UpdateForSizeChange(width, height);
     }
+
     void CopyRaytracingOutputToBackbuffer() {
         auto commandList = m_deviceResources->GetCommandList();
         auto renderTarget = m_deviceResources->GetRenderTarget();
 
         D3D12_RESOURCE_BARRIER preCopyBarriers[2];
         preCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
-        preCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_raytracingOutput.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        preCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(buffers[RAYTRACING].Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
         commandList->ResourceBarrier(ARRAYSIZE(preCopyBarriers), preCopyBarriers);
 
-        commandList->CopyResource(renderTarget, m_raytracingOutput.Get());
+        commandList->CopyResource(renderTarget, buffers[RAYTRACING].Get());
 
         D3D12_RESOURCE_BARRIER postCopyBarriers[2];
         postCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PRESENT);
-        postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_raytracingOutput.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(buffers[RAYTRACING].Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
         commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
     }
+
     void CalculateFrameStats() {
         static int frameCnt = 0;
         static double prevTime = 0.0f;
@@ -1446,6 +1447,7 @@ private:
             SetCustomWindowText(windowText.str().c_str());
         }
     }
+
     UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX) {
         auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
@@ -1456,6 +1458,7 @@ private:
         *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
         return descriptorIndexToUse;
     }
+
     UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize) {
         auto device = m_deviceResources->GetD3DDevice();
 
@@ -1481,6 +1484,7 @@ private:
         buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
         return descriptorIndex;
     }
+
     UINT CreateTextureSRV(UINT numElements, UINT elementSize) {
         auto device = m_deviceResources->GetD3DDevice();
 
@@ -1550,19 +1554,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
     Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_reflectionBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_shadowBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_normalDepth;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_motionVector;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevHitPosition;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevFrame;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevReflection;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_prevShadow;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_normalMap;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_specularMap;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_emissiveMap;
-    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[12];
+    Microsoft::WRL::ComPtr<ID3D12Resource> buffers[COUNT];
+    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[COUNT];
    
     static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
     static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
