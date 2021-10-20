@@ -3,7 +3,7 @@
 #ifndef RAYTRACINGSHADERHELPER_H
 #define RAYTRACINGSHADERHELPER_H
 
-#include "RayTracingHlslCompat.h"
+#include "RayTracingHlslCompat.hlsli"
 
 #define INFINITY (1.0/0.0)
 

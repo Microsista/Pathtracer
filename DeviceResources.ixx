@@ -14,7 +14,6 @@ import Application;
 import DXCoreInterface;
 import IDeviceNotify;
 
-
 using Microsoft::WRL::ComPtr;
 using namespace std;
 
@@ -64,23 +63,19 @@ public:
         }
     }
 
-    // Destructor for DeviceResources.
     ~DeviceResources()
     {
         // Ensure that the GPU is no longer referencing resources that are about to be destroyed.
         WaitForGpu();
     }
 
-
     void SetAdapterOverride(UINT adapterID) { m_adapterIDoverride = adapterID; }
-    // Configures DXGI Factory and retrieve an adapter.
+    
     void InitializeDXGIAdapter()
     {
         bool debugDXGI = false;
 
 #if defined(_DEBUG)
-        // Enable the debug layer (requires the Graphics Tools "optional feature").
-        // NOTE: Enabling the debug layer after device creation will invalidate the active device.
         {
             ComPtr<ID3D12Debug> debugController;
             if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
@@ -110,7 +105,6 @@ public:
             ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory)));
         }
 
-        // Determines whether tearing support is available for fullscreen borderless windows.
         if (m_options & (c_AllowTearing | c_RequireTearingSupport))
         {
             BOOL allowTearing = FALSE;
@@ -136,14 +130,11 @@ public:
         InitializeAdapter(&m_adapter);
     }
 
-    // Configures the Direct3D device, and stores handles to it and the device context.
     void CreateDeviceResources()
     {
-        // Create the DX12 API device object.
         ThrowIfFailed(D3D12CreateDevice(m_adapter.Get(), m_d3dMinFeatureLevel, IID_PPV_ARGS(&m_d3dDevice)));
 
 #ifndef NDEBUG
-        // Configure debug device (if active).
         ComPtr<ID3D12InfoQueue> d3dInfoQueue;
         if (SUCCEEDED(m_d3dDevice.As(&d3dInfoQueue)))
         {
@@ -163,7 +154,6 @@ public:
         }
 #endif
 
-        // Determine maximum supported feature level for this device
         static const D3D_FEATURE_LEVEL s_featureLevels[] =
         {
             D3D_FEATURE_LEVEL_12_1,
@@ -187,14 +177,12 @@ public:
             m_d3dFeatureLevel = m_d3dMinFeatureLevel;
         }
 
-        // Create the command queue.
         D3D12_COMMAND_QUEUE_DESC queueDesc = {};
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
         ThrowIfFailed(m_d3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
 
-        // Create descriptor heaps for render target views and depth stencil views.
         D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
         rtvDescriptorHeapDesc.NumDescriptors = m_backBufferCount;
         rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -212,17 +200,14 @@ public:
             ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&dsvDescriptorHeapDesc, IID_PPV_ARGS(&m_dsvDescriptorHeap)));
         }
 
-        // Create a command allocator for each back buffer that will be rendered to.
         for (UINT n = 0; n < m_backBufferCount; n++)
         {
             ThrowIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocators[n])));
         }
 
-        // Create a command list for recording graphics commands.
         ThrowIfFailed(m_d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocators[0].Get(), nullptr, IID_PPV_ARGS(&m_commandList)));
         ThrowIfFailed(m_commandList->Close());
 
-        // Create a fence for tracking GPU execution progress.
         ThrowIfFailed(m_d3dDevice->CreateFence(m_fenceValues[m_backBufferIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
         m_fenceValues[m_backBufferIndex]++;
 
@@ -233,7 +218,6 @@ public:
         }
     }
 
-    // These resources need to be recreated every time the window size is changed.
     void CreateWindowSizeDependentResources()
     {
         if (!m_window)
@@ -404,7 +388,6 @@ public:
         m_scissorRect.bottom = backBufferHeight;
     }
 
-    // This method is called when the Win32 window is created (or re-created).
     void SetWindow(HWND window, int width, int height)
     {
         m_window = window;
