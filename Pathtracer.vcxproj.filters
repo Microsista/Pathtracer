@@ -137,6 +137,12 @@
     <None Include="d3dx12.h">
       <Filter>Headers</Filter>
     </None>
+    <None Include="RandomNumberGenerator.hlsli">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="BxDF.hlsli">
+      <Filter>Resources</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositionCS.hlsl">
@@ -148,7 +154,7 @@
     <FxCompile Include="RadianceMS.hlsl">
       <Filter>Resources</Filter>
     </FxCompile>
-    <FxCompile Include="Raytracing.hlsl">
+    <FxCompile Include="Raytracing.hlsli">
       <Filter>Resources</Filter>
     </FxCompile>
     <FxCompile Include="ShadowMS.hlsl">

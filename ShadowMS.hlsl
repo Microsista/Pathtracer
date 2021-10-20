@@ -1,4 +1,4 @@
-#include "Raytracing.hlsl"
+#include "Raytracing.hlsli"
 
 [shader("miss")]
 void MyMissShader_ShadowRay(inout ShadowRayPayload payload)

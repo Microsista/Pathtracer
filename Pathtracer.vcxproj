@@ -62,6 +62,7 @@
     <ClCompile Include="Transform.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <None Include="BxDF.hlsli" />
     <None Include="d3dx12.h" />
     <ClCompile Include="DescriptorHeap.ixx">
       <FileType>Document</FileType>
@@ -128,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua" />
+    <None Include="RandomNumberGenerator.hlsli" />
     <None Include="RaytracingShaderHelper.hlsli" />
   </ItemGroup>
   <ItemGroup>
@@ -139,7 +141,7 @@
     </FxCompile>
     <FxCompile Include="RadianceCH.hlsl" />
     <FxCompile Include="RadianceMS.hlsl" />
-    <FxCompile Include="Raytracing.hlsl" />
+    <FxCompile Include="Raytracing.hlsli" />
     <FxCompile Include="ShadowMS.hlsl" />
     <FxCompile Include="ViewRG.hlsl">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zpr %(AdditionalOptions)</AdditionalOptions>

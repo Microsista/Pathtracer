@@ -1,4 +1,4 @@
-#include "Raytracing.hlsl"
+#include "Raytracing.hlsli"
 
 [shader("raygeneration")]
 void MyRaygenShader() {
