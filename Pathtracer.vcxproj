@@ -19,56 +19,112 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AccelerationStructureBuffers.ixx" />
-    <ClCompile Include="Application.ixx" />
-    <ClCompile Include="AssimpTexture.ixx" />
-    <ClCompile Include="ConstantBuffer.ixx" />
+    <ClCompile Include="AccelerationStructureBuffers.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Application.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="AssimpTexture.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="Core.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClCompile Include="D3DBuffer.ixx" />
-    <ClCompile Include="D3DTexture.ixx" />
-    <ClCompile Include="DescriptorHeapInterface.ixx" />
-    <ClCompile Include="DeviceResources.ixx" />
-    <ClCompile Include="DeviceResourcesInterface.ixx" />
-    <ClCompile Include="DXCoreInterface.ixx" />
-    <ClCompile Include="IDeviceNotify.ixx" />
-    <ClCompile Include="Material.ixx" />
-    <ClCompile Include="Transform.ixx" />
+    <ClCompile Include="D3DBuffer.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="D3DTexture.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapInterface.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="DeviceResources.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="DeviceResourcesInterface.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="DXCoreInterface.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="IDeviceNotify.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Material.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="MeshData.ixx" />
+    <ClCompile Include="Transform.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <None Include="d3dx12.h" />
-    <ClCompile Include="DescriptorHeap.ixx" />
-    <ClCompile Include="Descriptors.ixx" />
-    <ClCompile Include="Directions.ixx" />
+    <ClCompile Include="DescriptorHeap.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Descriptors.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Directions.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="DirectXRaytracingHelper.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="DXCore.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClCompile Include="Globals.ixx" />
-    <ClCompile Include="GpuUploadBuffer.ixx" />
+    <ClCompile Include="Globals.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="GpuUploadBuffer.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClInclude Include="RayTracingHlslCompat.hlsli" />
-    <ClCompile Include="RaytracingSceneDefines.ixx" />
-    <ClCompile Include="ShaderRecord.ixx" />
-    <ClCompile Include="ShaderTable.ixx" />
+    <ClCompile Include="RaytracingSceneDefines.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="ShaderRecord.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="ShaderTable.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="StepTimer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClCompile Include="StructuredBuffer.ixx" />
+    <ClCompile Include="StructuredBuffer.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="Texture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.ixx" />
+    <ClCompile Include="Camera.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Vertex.ixx" />
     <ClCompile Include="WinMain.cpp" />
-    <ClCompile Include="DXSampleHelper.ixx" />
-    <ClCompile Include="Geometry.ixx" />
-    <ClCompile Include="Math.ixx" />
-    <ClCompile Include="PerformanceTimers.ixx" />
+    <ClCompile Include="DXSampleHelper.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Geometry.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="Math.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimers.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua" />
@@ -111,13 +167,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

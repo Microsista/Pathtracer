@@ -14,6 +14,7 @@ import DescriptorHeapInterface;
 import D3DTexture;
 
 using Microsoft::WRL::ComPtr;
+using namespace std;
 
 export {
     inline void print(double var) {
@@ -255,7 +256,7 @@ export {
     // The caller is expected to execute the commandList.
     inline void LoadDDSTexture(
         ID3D12Device5* device,
-        ID3D12GraphicsCommandList4* commandList,
+        ID3D12GraphicsCommandList5* commandList,
         const wchar_t* filename,
         DescriptorHeapInterface* descriptorHeap,
         ID3D12Resource** ppResource,
@@ -292,7 +293,7 @@ export {
 
     inline void LoadDDSTexture(
         ID3D12Device5* device,
-        ID3D12GraphicsCommandList4* commandList,
+        ID3D12GraphicsCommandList5* commandList,
         const wchar_t* filename,
         DescriptorHeapInterface* descriptorHeap,
         D3DTexture* tex,

@@ -31,7 +31,7 @@ export struct DeviceResourcesInterface {
     virtual ID3D12Resource* GetDepthStencil() const = 0;
     virtual ID3D12CommandQueue* GetCommandQueue() const = 0;
     virtual ID3D12CommandAllocator* GetCommandAllocator() const = 0;
-    virtual ID3D12GraphicsCommandList4* GetCommandList() const = 0;
+    virtual ID3D12GraphicsCommandList5* GetCommandList() const = 0;
     virtual DXGI_FORMAT GetBackBufferFormat() const = 0;
     virtual DXGI_FORMAT GetDepthBufferFormat() const = 0;
     virtual D3D12_VIEWPORT GetScreenViewport() const = 0;

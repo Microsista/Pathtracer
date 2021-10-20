@@ -641,7 +641,7 @@ public:
     ID3D12Resource* GetDepthStencil() const { return m_depthStencil.Get(); }
     ID3D12CommandQueue* GetCommandQueue() const { return m_commandQueue.Get(); }
     ID3D12CommandAllocator* GetCommandAllocator() const { return m_commandAllocators[m_backBufferIndex].Get(); }
-    ID3D12GraphicsCommandList4* GetCommandList() const { return m_commandList.Get(); }
+    ID3D12GraphicsCommandList5* GetCommandList() const { return m_commandList.Get(); }
     DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
     DXGI_FORMAT GetDepthBufferFormat() const { return m_depthBufferFormat; }
     D3D12_VIEWPORT GetScreenViewport() const { return m_screenViewport; }
@@ -774,7 +774,7 @@ private:
     // Direct3D objects.
     Microsoft::WRL::ComPtr<ID3D12Device5>               m_d3dDevice;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>   m_commandList;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5>   m_commandList;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_commandAllocators[MAX_BACK_BUFFER_COUNT];
 
     // Swap chain objects.

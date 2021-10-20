@@ -9,6 +9,8 @@ export module Globals;
 
 import DXSampleHelper;
 
+using namespace std;
+
 export {
     bool CheckLua(lua_State* L, int r) {
         if (r != LUA_OK) {

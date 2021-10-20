@@ -20,21 +20,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DXSampleHelper.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Geometry.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Math.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceTimers.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
+    <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Core.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -47,13 +33,19 @@
     <ClCompile Include="Texture.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="DXSampleHelper.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="DirectXRaytracingHelper.ixx">
+    <ClCompile Include="RaytracingSceneDefines.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="RaytracingSceneDefines.ixx">
+    <ClCompile Include="Geometry.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimers.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Directions.ixx">
@@ -74,7 +66,10 @@
     <ClCompile Include="AccelerationStructureBuffers.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="GpuUploadBuffer.ixx">
+    <ClCompile Include="D3DBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ConstantBuffer.ixx">
@@ -83,41 +78,52 @@
     <ClCompile Include="StructuredBuffer.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorHeap.ixx">
+    <ClCompile Include="D3DTexture.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Transform.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="AssimpTexture.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DBuffer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DTexture.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeapInterface.ixx">
+    <ClCompile Include="DeviceResources.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Application.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="IDeviceNotify.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuUploadBuffer.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapInterface.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="DXCoreInterface.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceResources.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DeviceResourcesInterface.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="IDeviceNotify.ixx">
+    <ClCompile Include="Material.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpTexture.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXRaytracingHelper.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshData.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

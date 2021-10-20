@@ -2,17 +2,19 @@ module;
 #include <dxgi1_6.h>
 #include <stdexcept>
 #include <wrl/client.h>
+#include <string>
 export module Application;
 
-import DXCoreInterface;
+import DXCore;
 import DXSampleHelper;
 
 using namespace Microsoft::WRL;
+using namespace std;
 
 export class Application
 {
 public:
-    static int Run(DXCoreInterface* pSample, HINSTANCE hInstance, int nCmdShow)
+    static int Run(DXCore* pSample, HINSTANCE hInstance, int nCmdShow)
     {
         try
         {
@@ -180,7 +182,7 @@ public:
 protected:
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
-        DXCoreInterface* pSample = reinterpret_cast<DXCoreInterface*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        DXCore* pSample = reinterpret_cast<DXCore*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
         switch (message)
         {

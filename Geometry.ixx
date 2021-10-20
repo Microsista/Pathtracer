@@ -8,79 +8,66 @@ module;
 #include <iostream>
 #include <Windows.h>
 #include <fstream>
+#include <cstdint>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <windows.h>
+
+#include <stdlib.h>
+#include <sstream>
+#include <iomanip>
+
+#include <list>
+#include <string>
+#include <wrl.h>
+#include <shellapi.h>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include <atlbase.h>
+#include <assert.h>
+#include <array>
+#include <algorithm>
+
+#include <dxgi1_6.h>
+#include <d3d12.h>
+#include <atlbase.h>
+
+#include <DirectXMath.h>
+#include <DirectXCollision.h>
+
+#ifdef _DEBUG
+#include <dxgidebug.h>
+#endif
+
+#include <iostream>
+#include <fstream>
+
+#include <wrl/event.h>
+#include <ResourceUploadBatch.h>
+
+#include "d3dx12.h"
 export module Geometry;
 
 import Math;
 import Material;
 import DXSampleHelper;
 import AssimpTexture;
+import MeshData;
+import Vertex;
 
 using namespace DirectX;
 using namespace std;
+using namespace Geometry;
 
 export class GeometryGenerator
 {
 public:
 	using uint16 = std::uint16_t;
 	using uint32 = std::uint32_t;
-
-	struct Vertex
-	{
-		Vertex() {}
-		Vertex(
-			const DirectX::XMFLOAT3& p,
-			const DirectX::XMFLOAT3& n,
-			const DirectX::XMFLOAT3& t,
-			const DirectX::XMFLOAT2& uv) :
-			Position(p),
-			Normal(n),
-			TangentU(t),
-			TexC(uv) {}
-		Vertex(
-			float px, float py, float pz,
-			float nx, float ny, float nz,
-			float tx, float ty, float tz,
-			float u, float v) :
-			Position(px, py, pz),
-			Normal(nx, ny, nz),
-			TangentU(tx, ty, tz),
-			TexC(u, v) {}
-
-		DirectX::XMFLOAT3 Position;
-		DirectX::XMFLOAT3 Normal;
-		DirectX::XMFLOAT3 TangentU;
-		DirectX::XMFLOAT2 TexC;
-	};
-
-	struct MeshData
-	{
-		std::vector<Vertex> Vertices;
-		std::vector<uint32> Indices32;
-		Material Material;
-
-		MeshData() {}
-
-		MeshData(std::vector<Vertex> vert, std::vector<uint32> ind, ::Material mat) {
-			Vertices = vert;
-			Indices32 = ind;
-			Material = mat;
-		}
-
-		std::vector<uint16>& GetIndices16()
-		{
-			if (mIndices16.empty())
-			{
-				mIndices16.resize(Indices32.size());
-				for (size_t i = 0; i < Indices32.size(); ++i)
-					mIndices16[i] = static_cast<uint16>(Indices32[i]);
-			}
-
-			return mIndices16;
-		}
-
-	private:
-		std::vector<uint16> mIndices16;
-	};
 
 	MeshData processMesh(aiMesh* mesh, const aiScene* scene)
 	{

@@ -5,6 +5,7 @@ module;
 export module DXCoreInterface;
 
 import DeviceResourcesInterface;
+using namespace std;
 
 export struct DXCoreInterface {
 	virtual void OnInit() = 0;
@@ -34,7 +35,7 @@ export struct DXCoreInterface {
 	virtual void SetWindowBounds(int left, int top, int right, int bottom) = 0;
 	virtual std::wstring GetAssetFullPath(LPCWSTR assetName) = 0;
 
-	virtual void SetCustomWindowText(LPCWSTR text) = 0;
+	/*virtual void SetCustomWindowText(LPCWSTR text) = 0;*/
 
 	virtual void OnDeviceLost() = 0;
 	virtual void OnDeviceRestored() = 0;

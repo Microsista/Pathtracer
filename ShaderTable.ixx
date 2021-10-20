@@ -12,6 +12,8 @@ import DXSampleHelper;
 import ShaderRecord;
 import GpuUploadBuffer;
 
+using namespace std;
+
 export class ShaderTable : public GpuUploadBuffer
 {
     uint8_t* m_mappedShaderRecords;

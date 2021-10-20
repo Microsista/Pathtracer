@@ -25,6 +25,9 @@ extern "C" {
 #include <array>
 #include <iomanip>
 #include <d3d12.h>
+#include <string>
+
+#include <wrl/client.h>
 
 #include <ranges>
 export module Core;
@@ -57,6 +60,7 @@ import IDeviceNotify;
 using namespace std;
 using namespace DX;
 using namespace std::views;
+using namespace Microsoft::WRL;
 
 export class Core : public DXCore {
 public:
@@ -809,7 +813,7 @@ private:
         auto device = m_deviceResources->GetD3DDevice();
 
         GeometryGenerator geoGen;
-        vector<GeometryGenerator::MeshData> meshes = geoGen.LoadModel(path, flags);
+        vector<MeshData> meshes = geoGen.LoadModel(path, flags);
 
         m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
         m_meshSizes.push_back(meshes.size());
@@ -844,14 +848,14 @@ private:
             geo->IndexBufferGPU = m_indexBuffer[j + m_geoOffset].resource;
             geo->VertexByteStride = sizeof(VertexPositionNormalTextureTangent);
             geo->IndexFormat = DXGI_FORMAT_R32_UINT;
-            geo->VertexBufferByteSize = vertices.size() * sizeof(VertexPositionNormalTextureTangent);
-            geo->IndexBufferByteSize = indices.size() * sizeof(Index);
+            geo->VertexBufferByteSize = (UINT)vertices.size() * sizeof(VertexPositionNormalTextureTangent);
+            geo->IndexBufferByteSize = (UINT)indices.size() * sizeof(Index);
             tmp = "mesh" + to_string(j + m_geoOffset);
             geo->DrawArgs[tmp] = submesh;
             m_geometries[geo->Name] = move(geo);
         }
 
-        m_geoOffset += meshes.size();
+        m_geoOffset += (UINT)meshes.size();
     }
 
     void CreateRaytracingOutputResource() {
@@ -921,12 +925,12 @@ private:
         }
         lua_close(L);
 
-        GeometryGenerator::MeshData(GeometryGenerator:: * createGeo[3])(float width, float height, float depth) = {
+        MeshData(GeometryGenerator:: * createGeo[3])(float width, float height, float depth) = {
             &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
         };
 
         for (auto i : iota(0, 3)) {
-            GeometryGenerator::MeshData geo = (geoGen.*createGeo[i])(sizes[i].x, sizes[i].y, sizes[i].z);
+            MeshData geo = (geoGen.*createGeo[i])(sizes[i].x, sizes[i].y, sizes[i].z);
             UINT roomVertexOffset = 0;
             UINT roomIndexOffset = 0;
             MeshGeometry::Submesh roomSubmesh;
@@ -1408,7 +1412,7 @@ private:
                 << L"    Raytracing time: " << raytracingTime << " ms"
                 << L"    Ray throughput: " << MRaysPerSecond << " MRPS"
                 << L"    GPU[" << m_deviceResources->GetAdapterID() << L"]: " << m_deviceResources->GetAdapterDescription();
-            SetCustomWindowText(windowText.str().c_str());
+            /*SetCustomWindowText(windowText.str().c_str(), hwnd);*/
         }
     }
 

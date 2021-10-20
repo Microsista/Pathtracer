@@ -55,6 +55,7 @@ import DXSampleHelper;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
+using namespace std;
 
 namespace
 {
@@ -203,7 +204,7 @@ export namespace DX
             m_maxframeCount(0)
         {}
 
-        GPUTimer(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator) :
+        GPUTimer(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList5* commandList, ID3D12CommandAllocator* commandAllocator) :
             m_gpuFreqInv(1.f),
             m_avg{},
             m_timing{}
@@ -220,12 +221,12 @@ export namespace DX
         ~GPUTimer() { ReleaseDevice(); }
 
         // Indicate beginning & end of frame
-        void BeginFrame(_In_ ID3D12GraphicsCommandList* commandList)
+        void BeginFrame(_In_ ID3D12GraphicsCommandList5* commandList)
         {
             UNREFERENCED_PARAMETER(commandList);
             //commandList->BeginQuery(m_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
         }
-        void EndFrame(_In_ ID3D12GraphicsCommandList* commandList)
+        void EndFrame(_In_ ID3D12GraphicsCommandList5* commandList)
         {
             // Resolve query for the current frame.
             static UINT resolveToFrameID = 0;
@@ -261,14 +262,14 @@ export namespace DX
         }
 
         // Start/stop a particular performance timer (don't start same index more than once in a single frame)
-        void Start(_In_ ID3D12GraphicsCommandList* commandList, uint32_t timerid = 0)
+        void Start(_In_ ID3D12GraphicsCommandList5* commandList, uint32_t timerid = 0)
         {
             if (timerid >= c_maxTimers)
                 throw std::out_of_range("Timer ID out of range");
 
             commandList->EndQuery(m_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, timerid * 2);
         }
-        void Stop(_In_ ID3D12GraphicsCommandList* commandList, uint32_t timerid = 0)
+        void Stop(_In_ ID3D12GraphicsCommandList5* commandList, uint32_t timerid = 0)
         {
             if (timerid >= c_maxTimers)
                 throw std::out_of_range("Timer ID out of range");
@@ -310,15 +311,11 @@ export namespace DX
             m_buffer.Reset();
         }
 
-        void RestoreDevice(_In_ ID3D12Device* device, _In_ ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator)
+        void RestoreDevice(_In_ ID3D12Device* device, _In_ ID3D12CommandQueue* commandQueue, UINT maxFrameCount, _In_ ID3D12GraphicsCommandList5* commandList, ID3D12CommandAllocator* commandAllocator)
         {
             assert(device != 0 && commandQueue != 0);
             m_maxframeCount = maxFrameCount;
 
-            // Filter a debug warning coming when accessing a readback resource for the timing queries.
-            // The readback resource handles multiple frames data via per-frame offsets within the same resource and CPU
-            // maps an offset written "frame_count" frames ago and the data is guaranteed to had been written to by GPU by this time. 
-            // Therefore the race condition doesn't apply in this case.
             ComPtr<ID3D12InfoQueue> d3dInfoQueue;
             if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&d3dInfoQueue))))
             {

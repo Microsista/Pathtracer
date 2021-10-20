@@ -13,6 +13,8 @@ export module Helper;
 
 import DXSampleHelper;
 
+using namespace std;
+
 export {
     inline void AllocateUAVBuffer(ID3D12Device* pDevice, UINT64 bufferSize, ID3D12Resource** ppResource, D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COMMON, const wchar_t* resourceName = nullptr)
     {
