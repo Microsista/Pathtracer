@@ -143,6 +143,9 @@
     <None Include="BxDF.hlsli">
       <Filter>Resources</Filter>
     </None>
+    <None Include="Raytracing.hlsli">
+      <Filter>Resources</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositionCS.hlsl">
@@ -152,9 +155,6 @@
       <Filter>Resources</Filter>
     </FxCompile>
     <FxCompile Include="RadianceMS.hlsl">
-      <Filter>Resources</Filter>
-    </FxCompile>
-    <FxCompile Include="Raytracing.hlsli">
       <Filter>Resources</Filter>
     </FxCompile>
     <FxCompile Include="ShadowMS.hlsl">

@@ -1,3 +1,4 @@
+module;
 #include <cstdlib>
 #include <DirectXMath.h>
 export module Math;

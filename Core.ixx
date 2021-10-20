@@ -1,10 +1,4 @@
 module;
-extern "C" {
-    #include "Lua542/include/lua.h"
-    #include "Lua542/include/lauxlib.h"
-    #include "Lua542/include/lualib.h"
-}
-
 #include "RaytracingHlslCompat.hlsli"
 
 #include "Obj/Debug/CompiledShaders/ViewRG.hlsl.h"
@@ -31,6 +25,12 @@ extern "C" {
 
 #include <ranges>
 export module Core;
+
+export extern "C" {
+#include "Lua542/include/lua.h"
+#include "Lua542/include/lauxlib.h"
+#include "Lua542/include/lualib.h"
+}
 
 import DXCore;
 import StepTimer;
@@ -669,7 +669,7 @@ private:
         Microsoft::WRL::ComPtr<ID3DBlob> blob;
         Microsoft::WRL::ComPtr<ID3DBlob> error;
 
-        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
+        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<const wchar_t*>(error->GetBufferPointer()) : nullptr);
         ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig))));
 
         if (resourceName)
@@ -820,7 +820,7 @@ private:
         vector<MeshData> meshes = geoGen.LoadModel(path, flags);
 
         m_meshOffsets.push_back(m_meshOffsets.back() + m_meshSizes.back());
-        m_meshSizes.push_back(meshes.size());
+        m_meshSizes.push_back((int)meshes.size());
 
         for (auto j = 0; j < meshes.size(); j++) {
             MeshGeometry::Submesh submesh{};
@@ -842,8 +842,8 @@ private:
             AllocateUploadBuffer(device, &indices[0], indices.size() * sizeof(Index), &m_indexBuffer[j + m_geoOffset].resource);
             AllocateUploadBuffer(device, &vertices[0], vertices.size() * sizeof(VertexPositionNormalTextureTangent), &m_vertexBuffer[j + m_geoOffset].resource);
 
-            CreateBufferSRV(&m_indexBuffer[j + m_geoOffset], indices.size(), sizeof(Index));
-            CreateBufferSRV(&m_vertexBuffer[j + m_geoOffset], vertices.size(), sizeof(VertexPositionNormalTextureTangent));
+            CreateBufferSRV(&m_indexBuffer[j + m_geoOffset], (UINT)indices.size(), (UINT)sizeof(Index));
+            CreateBufferSRV(&m_vertexBuffer[j + m_geoOffset], (UINT)vertices.size(), (UINT)sizeof(VertexPositionNormalTextureTangent));
 
             unique_ptr<MeshGeometry> geo = make_unique<MeshGeometry>();
             string tmp = "geo" + to_string(j + m_geoOffset);
@@ -958,8 +958,8 @@ private:
             const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
             AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &m_indexBuffer[i].resource);
             AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &m_vertexBuffer[i].resource);
-            CreateBufferSRV(&m_indexBuffer[i], roomIndices.size(), sizeof(uint32_t));
-            CreateBufferSRV(&m_vertexBuffer[i], roomVertices.size(), sizeof(roomVertices[0]));
+            CreateBufferSRV(&m_indexBuffer[i], (UINT)roomIndices.size(), (UINT)sizeof(uint32_t));
+            CreateBufferSRV(&m_vertexBuffer[i], (UINT)roomVertices.size(), (UINT)sizeof(roomVertices[0]));
             auto roomGeo = std::make_unique<MeshGeometry>();
 
             string geoName = "geo" + to_string(i);
@@ -991,11 +991,14 @@ private:
         std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
         wstring path = std::wstring(buffer).substr(0, pos);
 
-        string s(path.begin(), path.end());
+        string s;
+        string s2;
+        string s3;
+        std::transform(path.begin(), path.end(), std::back_inserter(s), [](wchar_t c) { return (char)c; });
         s.append("\\..\\..\\Models\\table.obj");
-        string s2(path.begin(), path.end());
+        std::transform(path.begin(), path.end(), std::back_inserter(s2), [](wchar_t c) { return (char)c; });
         s2.append("\\..\\..\\Models\\lamp.obj");
-        string s3(path.begin(), path.end());
+        std::transform(path.begin(), path.end(), std::back_inserter(s3), [](wchar_t c) { return (char)c; });
         s3.append("\\..\\..\\Models\\SunTemple\\SunTemple.fbx");
 
         BuildModel(s, aiProcess_Triangulate | aiProcess_FlipUVs, false);
@@ -1274,18 +1277,18 @@ private:
 
         auto GetShaderIDs = [&](auto* stateObjectProperties)
         {
-            rayGenShaderID = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
-            shaderIdToStringMap[rayGenShaderID] = c_raygenShaderName;
+            rayGenShaderID = stateObjectProperties->GetShaderIdentifier((LPCWSTR)c_raygenShaderName);
+            shaderIdToStringMap[rayGenShaderID] = wstring(c_raygenShaderName);
 
             for (UINT i = 0; i < RayType::Count; i++)
             {
                 missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(c_missShaderNames[i]);
-                shaderIdToStringMap[missShaderIDs[i]] = c_missShaderNames[i];
+                shaderIdToStringMap[missShaderIDs[i]] = wstring(c_missShaderNames[i]);
             }
             for (UINT i = 0; i < RayType::Count; i++)
             {
                 hitGroupShaderIDs_TriangleGeometry[i] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_TriangleGeometry[i]);
-                shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = c_hitGroupNames_TriangleGeometry[i];
+                shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = wstring(c_hitGroupNames_TriangleGeometry[i]);
             }
         };
 
@@ -1335,7 +1338,7 @@ private:
                 LocalRootSignature::Triangle::RootArguments rootArgs;
 
                 // Create a shader record for each primitive.
-                for (UINT instanceIndex = 0; instanceIndex < m_meshSizes[i]; instanceIndex++)
+                for (UINT instanceIndex = 0; instanceIndex < (UINT)m_meshSizes[i]; instanceIndex++)
                 {
                     rootArgs.materialCb = m_triangleMaterialCB[instanceIndex + m_meshOffsets[i]];
                     rootArgs.triangleCB.instanceIndex = instanceIndex + m_meshOffsets[i];

@@ -11,7 +11,7 @@ void MyRaygenShader() {
 
     RayPayload payload = TraceRadianceRay(ray, 0);
 
-    g_renderTarget[dtid] = payload.color;
+    g_renderTarget[dtid] = payload.color.xyz;
     g_shadowBuffer[dtid] = payload.inShadow;
     g_normalDepth[dtid] = payload.depth;
 

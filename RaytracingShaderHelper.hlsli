@@ -240,7 +240,7 @@ namespace Disk
     Vector3f Sample(const Point2f u, const float lightSize, float height, float4x4 ObjectToWorld) {
         Point2f pd = ConcentricSampleDisk(u);
         Point3f pObj = float3(pd.x * lightSize, pd.y * lightSize, height);
-        return mul(pObj, ObjectToWorld);
+        return mul(float4(pObj, 0.0f), ObjectToWorld).xyz;
     }
 }
 

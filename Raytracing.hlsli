@@ -73,7 +73,7 @@ RayPayload TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
         rayDesc, rayPayload);
     
 
-    float depth = length(g_sceneCB.lightPosition - rayPayload.prevHitPosition) / 200;
+    float depth = length(g_sceneCB.lightPosition.xyz - rayPayload.prevHitPosition) / 200;
     float c1 = 3.0f, c2 = 3.0f;
     float attenuation = 1.0f / (1.0f + c1 * depth + c2 * depth * depth);
     rayPayload.color *= attenuation;
@@ -169,7 +169,7 @@ RayPayload Shade(
     // Diffuse and specular
     //
     float3 wi = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-    L += float4(BxDF::DirectLighting::Shade(Kd, N, wi, V, false, g_sceneCB, Kd, Ks, roughness), 0.0f);
+    L += float4(BxDF::DirectLighting::Shade(Kd, N, wi, V, false, g_sceneCB, Kd.x, Ks.x, roughness), 0.0f);
 
     //
     // INDIRECT ILLUMINATION
@@ -218,13 +218,17 @@ RayPayload Shade(
         float F = (Fo.x + Fo.y + Fo.z * 3.5f) / 3;
         float3 fresnel = FresnelReflectanceSchlick(WorldRayDirection(), N, F);
 
-        g_reflectionBuffer[DTID] = fresnel * payload.color;
+        g_reflectionBuffer[DTID] = fresnel * payload.color.xyz;
     }
 
     L += float4(Ke.x, Ke.y, Ke.z, 1.0f);
-    RayPayload info{};
+    RayPayload info;
     info.color = l_materialCB.shaded ? L : l_materialCB.albedo;
+    info.recursionDepth = 0u;
     info.inShadow = shadowRayHit;
+    info.depth = 0.0f;
+    info.prevHitPosition = float3(0.0f, 0.0f, 0.0f);
+    info.hitPosition = float3(0.0f, 0.0f, 0.0f);
 
     return info;
 }
