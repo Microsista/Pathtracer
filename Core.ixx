@@ -496,44 +496,11 @@ private:
         }
         m_deviceResources->HandleDeviceLost();
     }
+
     void DoRaytracing()
     {
         auto commandList = m_deviceResources->GetCommandList();
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
-
-        auto DispatchRays = [&](auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc)
-        {
-            dispatchDesc->HitGroupTable.StartAddress = m_hitGroupShaderTable->GetGPUVirtualAddress();
-            dispatchDesc->HitGroupTable.SizeInBytes = m_hitGroupShaderTable->GetDesc().Width;
-            dispatchDesc->HitGroupTable.StrideInBytes = m_hitGroupShaderTableStrideInBytes;
-            dispatchDesc->MissShaderTable.StartAddress = m_missShaderTable->GetGPUVirtualAddress();
-            dispatchDesc->MissShaderTable.SizeInBytes = m_missShaderTable->GetDesc().Width;
-            dispatchDesc->MissShaderTable.StrideInBytes = m_missShaderTableStrideInBytes;
-            dispatchDesc->RayGenerationShaderRecord.StartAddress = m_rayGenShaderTable->GetGPUVirtualAddress();
-            dispatchDesc->RayGenerationShaderRecord.SizeInBytes = m_rayGenShaderTable->GetDesc().Width;
-            dispatchDesc->Width = m_width;
-            dispatchDesc->Height = m_height;
-            dispatchDesc->Depth = 1;
-            raytracingCommandList->SetPipelineState1(stateObject);
-
-            m_gpuTimers[GpuTimers::Raytracing].Start(commandList);
-            raytracingCommandList->DispatchRays(dispatchDesc);
-            m_gpuTimers[GpuTimers::Raytracing].Stop(commandList);
-        };
-
-        auto SetCommonPipelineState = [&](auto* descriptorSetCommandList)
-        {
-            descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
-
-            // Set index and successive vertex buffer decriptor tables.
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, descriptors[RAYTRACING]);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, descriptors[REFLECTION]);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, descriptors[SHADOW]);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, descriptors[NORMAL_DEPTH]);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, descriptors[MOTION_VECTOR]);
-            commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, descriptors[PREV_HIT]);
-   
-        };
 
         commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
 
@@ -553,7 +520,7 @@ private:
         D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
         SetCommonPipelineState(commandList);
         commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, m_topLevelAS->GetGPUVirtualAddress());
-        DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc);
+        DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc, commandList);
         m_sceneCB->frameIndex = (m_sceneCB->frameIndex + 1) % 16;
 
         XMStoreFloat3(&m_sceneCB->prevFrameCameraPosition, m_camera.GetPosition());
@@ -565,6 +532,41 @@ private:
         XMMATRIX viewProjCameraAtOrigin = prevViewCameraAtOrigin * prevProj;
         m_sceneCB->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr, viewProjCameraAtOrigin);
     }
+
+    void DispatchRays(auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc, auto* commandList)
+    {
+        dispatchDesc->HitGroupTable.StartAddress = m_hitGroupShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->HitGroupTable.SizeInBytes = m_hitGroupShaderTable->GetDesc().Width;
+        dispatchDesc->HitGroupTable.StrideInBytes = m_hitGroupShaderTableStrideInBytes;
+        dispatchDesc->MissShaderTable.StartAddress = m_missShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->MissShaderTable.SizeInBytes = m_missShaderTable->GetDesc().Width;
+        dispatchDesc->MissShaderTable.StrideInBytes = m_missShaderTableStrideInBytes;
+        dispatchDesc->RayGenerationShaderRecord.StartAddress = m_rayGenShaderTable->GetGPUVirtualAddress();
+        dispatchDesc->RayGenerationShaderRecord.SizeInBytes = m_rayGenShaderTable->GetDesc().Width;
+        dispatchDesc->Width = m_width;
+        dispatchDesc->Height = m_height;
+        dispatchDesc->Depth = 1;
+        raytracingCommandList->SetPipelineState1(stateObject);
+
+        m_gpuTimers[GpuTimers::Raytracing].Start(commandList);
+        raytracingCommandList->DispatchRays(dispatchDesc);
+        m_gpuTimers[GpuTimers::Raytracing].Stop(commandList);
+    };
+
+    void SetCommonPipelineState(auto* descriptorSetCommandList)
+    {
+        descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
+
+        // Set index and successive vertex buffer decriptor tables.
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, descriptors[RAYTRACING]);
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, descriptors[REFLECTION]);
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, descriptors[SHADOW]);
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, descriptors[NORMAL_DEPTH]);
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, descriptors[MOTION_VECTOR]);
+        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, descriptors[PREV_HIT]);
+
+    };
+
     void CreateConstantBuffers() {
         auto device = m_deviceResources->GetD3DDevice();
         auto frameCount = m_deviceResources->GetBackBufferCount();
