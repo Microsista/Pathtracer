@@ -4,6 +4,111 @@
     <ClInclude Include="RayTracingHlslCompat.hlsli">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="AccelerationStructureBuffersC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="AssimpTextureC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBufferC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DBufferC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DTextureC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapInterfaceC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorsC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceResourcesC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceResourcesInterfaceC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionsC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXRaytracingHelperC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DXCoreC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DXCoreInterfaceC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="DXSampleHelperC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalsC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuUploadBufferC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="IDeviceNotifyC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MathC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshDataC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceTimersC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingSceneDefinesC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderRecordC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderTableC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="StepTimerC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="StructuredBufferC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexC.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -17,6 +122,9 @@
     </Filter>
     <Filter Include="Modules">
       <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Classes">
+      <UniqueIdentifier>{b47e6422-6640-4387-b912-4aa5d58c8acb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +233,111 @@
     </ClCompile>
     <ClCompile Include="Vertex.ixx">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="AccelerationStructureBuffersC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="ApplicationC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpTextureC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBufferC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DBufferC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DTextureC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapInterfaceC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorsC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResourcesC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResourcesInterfaceC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionsC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXRaytracingHelperC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCoreC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCoreInterfaceC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="DXSampleHelperC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalsC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuUploadBufferC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="IDeviceNotifyC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="MathC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshDataC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimersC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingSceneDefinesC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderRecordC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderTableC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="StepTimerC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBufferC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformC.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexC.cpp">
+      <Filter>Classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

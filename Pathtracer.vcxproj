@@ -22,46 +22,89 @@
     <ClCompile Include="AccelerationStructureBuffers.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="AccelerationStructureBuffersC.cpp" />
     <ClCompile Include="Application.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="ApplicationC.cpp" />
     <ClCompile Include="AssimpTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="AssimpTextureC.cpp" />
+    <ClCompile Include="CameraC.cpp" />
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="ConstantBufferC.cpp" />
     <ClCompile Include="Core.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="CoreC.cpp" />
     <ClCompile Include="D3DBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="D3DBufferC.cpp" />
     <ClCompile Include="D3DTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="D3DTextureC.cpp" />
+    <ClCompile Include="DescriptorHeapC.cpp" />
     <ClCompile Include="DescriptorHeapInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="DescriptorHeapInterfaceC.cpp" />
+    <ClCompile Include="DescriptorsC.cpp" />
     <ClCompile Include="DeviceResources.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="DeviceResourcesC.cpp" />
     <ClCompile Include="DeviceResourcesInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="DeviceResourcesInterfaceC.cpp" />
+    <ClCompile Include="DirectionsC.cpp" />
+    <ClCompile Include="DirectXRaytracingHelperC.cpp" />
+    <ClCompile Include="DXCoreC.cpp" />
     <ClCompile Include="DXCoreInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="DXCoreInterfaceC.cpp" />
+    <ClCompile Include="DXSampleHelperC.cpp" />
+    <ClCompile Include="GeometryC.cpp" />
+    <ClCompile Include="GlobalsC.cpp" />
+    <ClCompile Include="GpuUploadBufferC.cpp" />
     <ClCompile Include="IDeviceNotify.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="IDeviceNotifyC.cpp" />
     <ClCompile Include="Material.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="MaterialC.cpp" />
+    <ClCompile Include="MathC.cpp" />
+    <ClCompile Include="MeshC.cpp" />
     <ClCompile Include="MeshData.ixx" />
+    <ClCompile Include="MeshDataC.cpp" />
+    <ClCompile Include="PerformanceTimersC.cpp" />
+    <ClCompile Include="RaytracingSceneDefinesC.cpp" />
+    <ClCompile Include="ShaderRecordC.cpp" />
+    <ClCompile Include="ShaderTableC.cpp" />
+    <ClCompile Include="StepTimerC.cpp" />
+    <ClCompile Include="StructuredBufferC.cpp" />
+    <ClCompile Include="TextureC.cpp" />
     <ClCompile Include="Transform.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClInclude Include="AccelerationStructureBuffersC.h" />
+    <ClInclude Include="GeometryC.h" />
+    <ClInclude Include="RaytracingSceneDefinesC.h" />
+    <ClInclude Include="ShaderRecordC.h" />
+    <ClInclude Include="ShaderTableC.h" />
+    <ClInclude Include="StepTimerC.h" />
+    <ClInclude Include="StructuredBufferC.h" />
+    <ClInclude Include="TextureC.h" />
+    <ClInclude Include="TransformC.h" />
+    <ClInclude Include="VertexC.h" />
     <None Include="d3dx12.h" />
     <ClCompile Include="DescriptorHeap.ixx">
       <FileType>Document</FileType>
@@ -87,6 +130,31 @@
     <ClCompile Include="Mesh.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClInclude Include="ApplicationC.h" />
+    <ClInclude Include="AssimpTextureC.h" />
+    <ClInclude Include="CameraC.h" />
+    <ClInclude Include="ConstantBufferC.h" />
+    <ClInclude Include="CoreC.h" />
+    <ClInclude Include="D3DBufferC.h" />
+    <ClInclude Include="D3DTextureC.h" />
+    <ClInclude Include="DescriptorHeapC.h" />
+    <ClInclude Include="DescriptorHeapInterfaceC.h" />
+    <ClInclude Include="DescriptorsC.h" />
+    <ClInclude Include="DeviceResourcesC.h" />
+    <ClInclude Include="DeviceResourcesInterfaceC.h" />
+    <ClInclude Include="DirectionsC.h" />
+    <ClInclude Include="DirectXRaytracingHelperC.h" />
+    <ClInclude Include="DXCoreC.h" />
+    <ClInclude Include="DXCoreInterfaceC.h" />
+    <ClInclude Include="DXSampleHelperC.h" />
+    <ClInclude Include="GlobalsC.h" />
+    <ClInclude Include="GpuUploadBufferC.h" />
+    <ClInclude Include="IDeviceNotifyC.h" />
+    <ClInclude Include="MaterialC.h" />
+    <ClInclude Include="MathC.h" />
+    <ClInclude Include="MeshC.h" />
+    <ClInclude Include="MeshDataC.h" />
+    <ClInclude Include="PerformanceTimersC.h" />
     <ClInclude Include="RayTracingHlslCompat.hlsli" />
     <ClCompile Include="RaytracingSceneDefines.ixx">
       <FileType>Document</FileType>
@@ -111,7 +179,9 @@
     <ClCompile Include="Camera.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="TransformC.cpp" />
     <ClCompile Include="Vertex.ixx" />
+    <ClCompile Include="VertexC.cpp" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DXSampleHelper.ixx">
       <FileType>Document</FileType>
