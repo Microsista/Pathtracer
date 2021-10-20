@@ -12,6 +12,7 @@ extern "C" {
 #include "Obj/Debug/CompiledShaders/RadianceMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/ShadowMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
+#include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -220,6 +221,7 @@ public:
 
         auto uav = CD3DX12_RESOURCE_BARRIER::UAV(buffers[PREV_FRAME].Get());
         m_dxrCommandList->ResourceBarrier(1, &uav);
+        Blur();
         CopyRaytracingOutputToBackbuffer();
 
         for (auto& gpuTimer : m_gpuTimers)
@@ -229,7 +231,8 @@ public:
 
         m_deviceResources->Present(D3D12_RESOURCE_STATE_PRESENT);
     }
-    virtual void Compose() {
+
+    virtual void Blur() {
         auto commandList = m_deviceResources->GetCommandList();
         auto device = m_deviceResources->GetD3DDevice();
 
@@ -239,6 +242,73 @@ public:
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
         ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
 
+        ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
+        ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
+        ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);
+        ranges[7].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 4);
+
+        CD3DX12_ROOT_PARAMETER rootParameters[10];
+        rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
+        rootParameters[1].InitAsDescriptorTable(1, &ranges[1]);
+        rootParameters[2].InitAsDescriptorTable(1, &ranges[2]);
+        rootParameters[3].InitAsConstantBufferView(0, 0);
+        rootParameters[4].InitAsDescriptorTable(1, &ranges[3]);
+        rootParameters[5].InitAsDescriptorTable(1, &ranges[4]);
+        rootParameters[6].InitAsDescriptorTable(1, &ranges[5]);
+        rootParameters[7].InitAsDescriptorTable(1, &ranges[6]);
+        rootParameters[8].InitAsDescriptorTable(1, &ranges[7]);
+        rootParameters[9].InitAsConstantBufferView(1);
+
+        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+        SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, &m_blurRootSig, L"Root signature: BlurCS");
+
+        // create pso
+        D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
+        descComputePSO.pRootSignature = m_blurRootSig.Get();
+        descComputePSO.CS = CD3DX12_SHADER_BYTECODE((void*)g_pBlurCS, ARRAYSIZE(g_pBlurCS));
+
+        ThrowIfFailed(device->CreateComputePipelineState(&descComputePSO, IID_PPV_ARGS(&m_blurPSO[0])));
+        m_blurPSO[0]->SetName(L"PSO: BlurCS");
+
+        commandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
+        commandList->SetComputeRootSignature(m_blurRootSig.Get());
+        commandList->SetPipelineState(m_blurPSO[0].Get());
+        m_blurPSO[0]->AddRef();
+
+        commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]);
+        commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]);
+
+
+        auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+        m_filterCB.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
+        commandList->SetComputeRootDescriptorTable(4, descriptors[NORMAL_DEPTH]);
+        commandList->SetComputeRootDescriptorTable(5, descriptors[PREV_FRAME]);
+        commandList->SetComputeRootDescriptorTable(6, descriptors[PREV_REFLECTION]);
+        commandList->SetComputeRootDescriptorTable(7, descriptors[PREV_SHADOW]);
+        commandList->SetComputeRootDescriptorTable(8, descriptors[MOTION_VECTOR]);
+
+        commandList->SetComputeRootConstantBufferView(9, m_sceneCB.GpuVirtualAddress(frameIndex));
+
+        auto outputSize = m_deviceResources->GetOutputSize();
+        commandList->Dispatch(outputSize.right / 8, outputSize.bottom / 8, 1);
+
+        XMMATRIX prevView, prevProj;
+        prevView = m_camera.GetView();
+        prevProj = m_camera.GetProj();
+        m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+    }
+
+    virtual void Compose() {
+        auto commandList = m_deviceResources->GetCommandList();
+        auto device = m_deviceResources->GetD3DDevice();
+
+        CD3DX12_DESCRIPTOR_RANGE ranges[8];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
+        ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
         ranges[4].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         ranges[5].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 2);
         ranges[6].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3);

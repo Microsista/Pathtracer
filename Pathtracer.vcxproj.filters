@@ -157,5 +157,8 @@
     <FxCompile Include="ViewRG.hlsl">
       <Filter>Resources</Filter>
     </FxCompile>
+    <FxCompile Include="BlurCS.hlsl">
+      <Filter>Resources</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
