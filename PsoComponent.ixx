@@ -1,17 +1,26 @@
 module;
 #include "d3dx12.h"
 #include "RayTracingHlslCompat.hlsli"
+#include <Windows.h>
+#include <wrl/client.h>
 export module PsoComponent;
 
 import ShaderComponent;
 import ShaderTableComponent;
 import RootSignatureComponent;
-import DirectXRaytracingHelper;
 import DXSampleHelper;
+import Helper;
+
+using namespace Microsoft::WRL;
 
 export class PsoComponent {
-    UINT MAX_RAY_RECURSION_DEPTH;
     ID3D12RootSignature* raytracingGlobalRootSignature;
+
+    ShaderComponent* shaderComponent;
+    ShaderTableComponent* shaderTableComponent;
+    RootSignatureComponent* rootSignatureComponent;
+    ID3D12Device5* dxrDevice;
+    ComPtr<ID3D12StateObject> dxrStateObject;
 
 public:
     PsoComponent() {}
@@ -19,8 +28,8 @@ public:
     void CreateRaytracingPipelineStateObject() {
         CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
-        CreateDxilLibrarySubobjects(&raytracingPipeline);
-        CreateHitGroupSubobjects(&raytracingPipeline);
+        shaderComponent->CreateDxilLibrarySubobjects(&raytracingPipeline);
+        shaderTableComponent->CreateHitGroupSubobjects(&raytracingPipeline);
 
         auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
 
@@ -30,7 +39,7 @@ public:
 
         shaderConfig->Config(payloadSize, attributeSize);
 
-        CreateLocalRootSignatureSubobjects(&raytracingPipeline);
+        rootSignatureComponent->CreateLocalRootSignatureSubobjects(&raytracingPipeline);
 
         auto globalRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>();
         globalRootSignature->SetRootSignature(raytracingGlobalRootSignature);

@@ -13,11 +13,13 @@ import RenderingComponent;
 import ConstantBuffer;
 import Helper;
 import Core;
+import InitInterface;
 
 using namespace std;
 using namespace DirectX;
+import ResourceComponent;
 
-export class InitComponent {
+export class InitComponent : public InitInterface {
     shared_ptr<DeviceResources> deviceResources;
     UINT FrameCount;
     UINT adapterIDoverride;
@@ -38,6 +40,8 @@ export class InitComponent {
     ID3D12Device5* dxrDevice;
     Core* core;
 
+    ResourceComponent* resourceComponent;
+
 public:
     InitComponent() {}
 
@@ -55,7 +59,7 @@ public:
         deviceResources->CreateWindowSizeDependentResources();
 
         InitializeScene();
-        CreateDeviceDependentResources();
+        resourceComponent->CreateDeviceDependentResources();
 
         CreateWindowSizeDependentResources();
 

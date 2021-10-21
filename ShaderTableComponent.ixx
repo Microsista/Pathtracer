@@ -31,7 +31,7 @@ export class ShaderTableComponent {
     const wchar_t** c_missShaderNames;
     const wchar_t* c_closestHitShaderName;
     const wchar_t* c_raygenShaderName;
-    ShaderTable* hitGroupShaderTable;
+    ComPtr<ID3D12Resource> hitGroupShaderTable;
     ComPtr<ID3D12StateObject> dxrStateObject;
     UINT missShaderTableStrideInBytes;
     UINT* meshOffsets;
@@ -45,7 +45,9 @@ export class ShaderTableComponent {
     D3DTexture** templeEmittanceTextures;
     UINT NUM_BLAS;
     UINT hitGroupShaderTableStrideInBytes;
-    ConstantBuffer<PrimitiveConstantBuffer>* triangleMaterialCB;
+    PrimitiveConstantBuffer* triangleMaterialCB;
+    ComPtr<ID3D12Resource> rayGenShaderTable;
+    ComPtr<ID3D12Resource> missShaderTable;
 
 
 public:
@@ -96,7 +98,7 @@ public:
             ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
             rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
             rayGenShaderTable.DebugPrint(shaderIdToStringMap);
-            rayGenShaderTable = rayGenShaderTable.GetResource();
+            this->rayGenShaderTable = rayGenShaderTable.GetResource();
         }
 
         // Miss shader table.
@@ -111,7 +113,7 @@ public:
             }
             missShaderTable.DebugPrint(shaderIdToStringMap);
             missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
-            missShaderTable = missShaderTable.GetResource();
+            this->missShaderTable = missShaderTable.GetResource();
         }
 
         // Hit group shader table.
@@ -156,7 +158,7 @@ public:
 
             hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
             hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
-            hitGroupShaderTable = hitGroupShaderTable.GetResource();
+            this->hitGroupShaderTable = hitGroupShaderTable.GetResource();
         }
     }
 

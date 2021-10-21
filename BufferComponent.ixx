@@ -9,7 +9,7 @@ import StructuredBuffer;
 export class BufferComponent {
     ConstantBuffer<SceneConstantBuffer>* sceneCB;
     ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>* filterCB;
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
+    //StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
     DeviceResources* deviceResources;
     UINT NUM_BLAS;
 
@@ -23,7 +23,7 @@ public:
         :
         sceneCB{ sceneCB },
         filterCB{ filterCB },
-        trianglePrimitiveAttributeBuffer{ trianglePrimitiveAttributeBuffer },
+        //trianglePrimitiveAttributeBuffer{ trianglePrimitiveAttributeBuffer },
         deviceResources{ deviceResources },
         NUM_BLAS{ NUM_BLAS }
     {}
@@ -40,6 +40,6 @@ public:
         auto device = deviceResources->GetD3DDevice();
         auto frameCount = deviceResources->GetBackBufferCount();
 
-        trianglePrimitiveAttributeBuffer->Create(device, NUM_BLAS, frameCount, L"Triangle primitive attributes");
+        //(*trianglePrimitiveAttributeBuffer).Create(device, NUM_BLAS, frameCount, L"Triangle primitive attributes");
     }
 };

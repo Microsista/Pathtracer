@@ -196,6 +196,12 @@
     <ClCompile Include="DescriptorHeap.ixx">
       <Filter>Modules\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="UpdateInterface.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="InitInterface.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">

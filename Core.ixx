@@ -17,6 +17,7 @@ module;
 #include <wrl/client.h>
 
 #include <ranges>
+#include <Windows.h>
 export module Core;
 
 export extern "C" {
@@ -51,6 +52,8 @@ import DXSampleHelper;
 import IDeviceNotify;
 
 import RenderingComponent;
+import InputComponent;
+import UpdateInterface;
 
 using namespace std;
 using namespace DX;
@@ -66,18 +69,18 @@ export class Core : public DXCore {
 
     UINT m_geoOffset = 0;
 
-    Microsoft::WRL::ComPtr<ID3D12Device5> m_dxrDevice;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
-    Microsoft::WRL::ComPtr<ID3D12StateObject> m_dxrStateObject;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_composePSO[1];
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_blurPSO[1];
+    ComPtr<ID3D12Device5> m_dxrDevice;
+    ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
+    ComPtr<ID3D12StateObject> m_dxrStateObject;
+    ComPtr<ID3D12PipelineState> m_composePSO[1];
+    ComPtr<ID3D12PipelineState> m_blurPSO[1];
 
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
+    ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
+    ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    ComPtr<ID3D12RootSignature> m_composeRootSig;
+    ComPtr<ID3D12RootSignature> m_blurRootSig;
 
-    std::shared_ptr<DescriptorHeap> m_descriptorHeap;
+    shared_ptr<DescriptorHeap> m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
@@ -96,10 +99,10 @@ export class Core : public DXCore {
     D3DBuffer m_aabbBuffer;
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
+    ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
+    ComPtr<ID3D12Resource> m_topLevelAS;
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> buffers[Descriptors::COUNT];
+    ComPtr<ID3D12Resource> buffers[Descriptors::COUNT];
     D3D12_GPU_DESCRIPTOR_HANDLE descriptors[Descriptors::COUNT];
 
     static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
@@ -113,7 +116,7 @@ export class Core : public DXCore {
     UINT m_hitGroupShaderTableStrideInBytes;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
 
-    vector<DX::GPUTimer> m_gpuTimers(GpuTimers::Count);
+    vector<DX::GPUTimer> m_gpuTimers;
     StepTimer m_timer;
     float m_animateGeometryTime;
     bool m_animateGeometry;
@@ -143,6 +146,8 @@ export class Core : public DXCore {
     std::vector<int> m_meshOffsets;
 
     RenderingComponent* renderingComponent;
+    InputComponent* inputComponent;
+    UpdateInterface* updateComponent;
 
 public:
     Core(UINT width, UINT height) :
@@ -162,15 +167,15 @@ public:
     virtual void OnDestroy() {
         // Let GPU finish before releasing D3D resources.
         m_deviceResources->WaitForGpu();
-        OnDeviceLost();
+        updateComponent->OnDeviceLost();
     }
 
-    virtual void OnMouseMove(int x, int y) override {
-        inputComponent.OnMouseMove(int x, int y);
+    void OnMouseMove(int x, int y) override {
+        inputComponent->OnMouseMove(x, y);
     }
 
-    virtual void OnLeftButtonDown(UINT x, UINT y) override {
-        inputComponent.OnLeftButtonDown(UINT x, UINT y);
+    void OnLeftButtonDown(UINT x, UINT y) override {
+        inputComponent->OnLeftButtonDown(x, y);
     }
 
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }

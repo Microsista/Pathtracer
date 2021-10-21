@@ -27,6 +27,8 @@ import Mesh;
 import SrvComponent;
 import Helper;
 import D3DBuffer;
+import SrvComponent;
+import Globals;
 
 using namespace std;
 using namespace DirectX;
@@ -38,8 +40,9 @@ export class GeometryComponent {
     vector<int>* meshSizes;
     UINT geoOffset;
     unordered_map<string, unique_ptr<MeshGeometry>>* geometries;
-    D3DBuffer** indexBuffer;
-    D3DBuffer** vertexBuffer;
+    D3DBuffer* indexBuffer;
+    D3DBuffer* vertexBuffer;
+    SrvComponent* srvComponent;
 
 
 public:
@@ -71,11 +74,11 @@ public:
             vector<Index> indices;
             indices.insert(indices.end(), begin(meshes[j].Indices32), end(meshes[j].Indices32));
 
-            AllocateUploadBuffer(device, &indices[0], indices.size() * sizeof(Index), &(*indexBuffer)[j + geoOffset].resource);
-            AllocateUploadBuffer(device, &vertices[0], vertices.size() * sizeof(VertexPositionNormalTextureTangent), &(*vertexBuffer)[j + geoOffset].resource);
+            AllocateUploadBuffer(device, &indices[0], indices.size() * sizeof(Index), &indexBuffer[j + geoOffset].resource);
+            AllocateUploadBuffer(device, &vertices[0], vertices.size() * sizeof(VertexPositionNormalTextureTangent), &vertexBuffer[j + geoOffset].resource);
 
-            CreateBufferSRV(&indexBuffer[j + geoOffset], (UINT)indices.size(), (UINT)sizeof(Index));
-            CreateBufferSRV(&vertexBuffer[j + geoOffset], (UINT)vertices.size(), (UINT)sizeof(VertexPositionNormalTextureTangent));
+            srvComponent->CreateBufferSRV(&indexBuffer[j + geoOffset], (UINT)indices.size(), (UINT)sizeof(Index));
+            srvComponent->CreateBufferSRV(&vertexBuffer[j + geoOffset], (UINT)vertices.size(), (UINT)sizeof(VertexPositionNormalTextureTangent));
 
             unique_ptr<MeshGeometry> geo = make_unique<MeshGeometry>();
             string tmp = "geo" + to_string(j + geoOffset);
@@ -88,7 +91,7 @@ public:
             geo->IndexBufferByteSize = (UINT)indices.size() * sizeof(Index);
             tmp = "mesh" + to_string(j + geoOffset);
             geo->DrawArgs[tmp] = submesh;
-            geometries[geo->Name] = move(geo);
+            (*geometries)[geo->Name] = move(geo);
         }
 
         geoOffset += (UINT)meshes.size();
@@ -111,9 +114,9 @@ public:
         lua_State* L = luaL_newstate();
         luaL_openlibs(L);
 
-        lua_register(L, "HostFunction", lua_HostFunction);
+        //lua_register(L, "HostFunction", lua_HostFunction);
 
-        if (CheckLua(L, luaL_dofile(L, "LuaScripts/MyScript.lua"))) {
+        /*if (CheckLua(L, luaL_dofile(L, "LuaScripts/MyScript.lua"))) {
             lua_getglobal(L, "coordinatesSize");
             if (lua_istable(L, -1)) {
                 lua_pushstring(L, "x");
@@ -133,7 +136,7 @@ public:
 
                 sizes[1] = XMFLOAT3(x, y, z);
             }
-        }
+        }*/
         lua_close(L);
 
         MeshData(GeometryGenerator:: * createGeo[3])(float width, float height, float depth) = {
@@ -165,8 +168,8 @@ public:
             const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
             AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &indexBuffer[i].resource);
             AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &vertexBuffer[i].resource);
-            CreateBufferSRV(&indexBuffer[i], (UINT)roomIndices.size(), (UINT)sizeof(uint32_t));
-            CreateBufferSRV(&vertexBuffer[i], (UINT)roomVertices.size(), (UINT)sizeof(roomVertices[0]));
+            srvComponent->CreateBufferSRV(&indexBuffer[i], (UINT)roomIndices.size(), (UINT)sizeof(uint32_t));
+            srvComponent->CreateBufferSRV(&vertexBuffer[i], (UINT)roomVertices.size(), (UINT)sizeof(roomVertices[0]));
             auto roomGeo = std::make_unique<MeshGeometry>();
 
             string geoName = "geo" + to_string(i);
@@ -179,16 +182,16 @@ public:
             roomGeo->VertexBufferByteSize = roomvbByteSize;
             roomGeo->IndexBufferByteSize = roomibByteSize;
             roomGeo->DrawArgs[meshName] = roomSubmesh;
-            geometries[roomGeo->Name] = std::move(roomGeo);
+            (*geometries)[roomGeo->Name] = std::move(roomGeo);
             geoOffset++;
         }
 
-        meshOffsets.push_back(0);
-        meshSizes.push_back(1);
-        meshOffsets.push_back(meshOffsets.back() + meshSizes.back());
-        meshSizes.push_back(1);
-        meshOffsets.push_back(meshOffsets.back() + meshSizes.back());
-        meshSizes.push_back(1);
+        (*meshOffsets).push_back(0);
+        (*meshSizes).push_back(1);
+        (*meshOffsets).push_back((*meshOffsets).back() + (*meshSizes).back());
+        (*meshSizes).push_back(1);
+        (*meshOffsets).push_back((*meshOffsets).back() + (*meshSizes).back());
+        (*meshSizes).push_back(1);
 
         char dir[200];
         GetCurrentDirectoryA(sizeof(dir), dir);

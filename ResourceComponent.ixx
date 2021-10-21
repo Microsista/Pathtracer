@@ -2,33 +2,79 @@ module;
 #include <Windows.h>
 #include <DirectXMath.h>
 #include <string>
+#include <vector>
+#include "RayTracingHlslCompat.hlsli"
+#include <memory>
+#include <unordered_map>
+#include <wrl/client.h>
 export module ResourceComponent;
 
-import InitComponent;
 import RootSignatureComponent;
 import PsoComponent;
 import DescriptorComponent;
 import GeometryComponent;
 import AccelerationStructureComponent;
+import OutputComponent;
+import ShaderTableComponent;
+import AccelerationStructureComponent;
+import GeometryComponent;
+import InitInterface;
+import RootSignatureComponent;
+import PsoComponent;
+import BufferComponent;
+import DeviceResources;
+import Descriptors;
+import PerformanceTimers;
+import CameraComponent;
+import DXSampleHelper;
+import RaytracingSceneDefines;
 
 using namespace DirectX;
 using namespace std;
+using namespace Microsoft::WRL;
 
 export class ResourceComponent {
     PrimitiveConstantBuffer* triangleMaterialCB;
     UINT FrameCount;
-    DX::GPUTimer** gpuTimers;
+    vector<DX::GPUTimer> gpuTimers;
+    OutputComponent* outputComponent;
+    ShaderTableComponent* shaderTableComponent;
+    AccelerationStructureComponent* asComponent;
+    GeometryComponent* geometryComponent;
+    InitInterface* initComponent;
+    RootSignatureComponent* rootSignatureComponent;
+    PsoComponent* psoComponent;
+    DescriptorComponent* descriptorComponent;
+    BufferComponent* bufferComponent;
+    DeviceResources* deviceResources;
+    unordered_map<string, unique_ptr<MeshGeometry>> geometries;
+    CameraComponent* cameraComponent;
+    ComPtr<ID3D12RootSignature> raytracingGlobalRootSignature;
+    ComPtr<ID3D12RootSignature> raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    ComPtr<ID3D12Device5> dxrDevice;
+    ComPtr<ID3D12GraphicsCommandList5> dxrCommandList;
+    ComPtr<ID3D12StateObject> dxrStateObject;
+    shared_ptr<DescriptorHeap> descriptorHeap;
+    UINT descriptorsAllocated;
+    ConstantBuffer<SceneConstantBuffer> sceneCB;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer> trianglePrimitiveAttributeBuffer;
+    ComPtr<ID3D12Resource> bottomLevelAS[BottomLevelASType::Count];
+    ComPtr<ID3D12Resource> topLevelAS;
+    ComPtr<ID3D12Resource>* buffers;
+    ComPtr<ID3D12Resource> rayGenShaderTable;
+    ComPtr<ID3D12Resource> missShaderTable;
+    ComPtr<ID3D12Resource> hitGroupShaderTable;
 
 public:
     ResourceComponent() {}
 
     void CreateDeviceDependentResources() {
         CreateAuxilaryDeviceResources();
-        CreateRaytracingInterfaces();
-        CreateRootSignatures();
-        CreateRaytracingPipelineStateObject();
-        CreateDescriptorHeap();
-        BuildGeometry();
+        initComponent->CreateRaytracingInterfaces();
+        rootSignatureComponent->CreateRootSignatures();
+        psoComponent->CreateRaytracingPipelineStateObject();
+        descriptorComponent->CreateDescriptorHeap();
+        geometryComponent->BuildGeometry();
 
         auto SetAttributes2 = [&](
             UINT primitiveIndex,
@@ -55,16 +101,16 @@ public:
             SetAttributes2(i + 11, XMFLOAT4(m.Kd.x, m.Kd.y, m.Kd.z, 1.0f), m.Ks.x, m.Ns, 1.0f, 1.0f);
         }
 
-        BuildAccelerationStructures();
-        CreateConstantBuffers();
-        CreateTrianglePrimitiveAttributesBuffers();
-        BuildShaderTables();
-        CreateRaytracingOutputResource();
+        asComponent->BuildAccelerationStructures();
+        bufferComponent->CreateConstantBuffers();
+        bufferComponent->CreateTrianglePrimitiveAttributesBuffers();
+        shaderTableComponent->BuildShaderTables();
+        outputComponent->CreateRaytracingOutputResource();
     }
 
     void CreateWindowSizeDependentResources() {
-        CreateRaytracingOutputResource();
-        UpdateCameraMatrices();
+        outputComponent->CreateRaytracingOutputResource();
+        cameraComponent->UpdateCameraMatrices();
     }
 
     void ReleaseDeviceDependentResources() {
@@ -80,8 +126,6 @@ public:
         dxrCommandList.Reset();
         dxrStateObject.Reset();
 
-        raytracingGlobalRootSignature.Reset();
-        ResetComPtrArray(&raytracingLocalRootSignature);
 
         descriptorHeap.reset();
         descriptorsAllocated = 0;

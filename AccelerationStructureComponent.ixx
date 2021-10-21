@@ -34,7 +34,8 @@ export class AccelerationStructureComponent {
     ID3D12Device5* dxrDevice;
     UINT NUM_BLAS;
     ID3D12GraphicsCommandList5* dxrCommandList;
-    ID3D12Resource** bottomLevelAS;
+    ComPtr<ID3D12Resource>* bottomLevelAS;
+    ComPtr<ID3D12Resource> topLevelAS;
     ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
     D3DTexture** stoneTexture;
     unordered_map<int, Material>* materials;
@@ -257,9 +258,9 @@ public:
         // Store the AS buffers. The rest of the buffers will be released once we exit the function.
         for (UINT i = 0; i < BottomLevelASType::Count; i++)
         {
-            bottomLevelAS[i] = bottomLevelAS[i].accelerationStructure;
+            this->bottomLevelAS[i] = bottomLevelAS[i].accelerationStructure;
         }
-        topLevelAS = topLevelAS.accelerationStructure;
+        this->topLevelAS = topLevelAS.accelerationStructure;
     }
 
     void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs) {

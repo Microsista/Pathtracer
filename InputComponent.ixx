@@ -78,7 +78,7 @@ public:
         lastMousePosition.y = y;
     }
 
-    virtual void OnLeftButtonDown(UINT x, UINT y) {
+    void OnLeftButtonDown(UINT x, UINT y) {
         lastMousePosition = { static_cast<int>(x), static_cast<int>(y) };
     }
 };

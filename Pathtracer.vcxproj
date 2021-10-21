@@ -59,6 +59,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="InitComponent.ixx" />
+    <ClCompile Include="InitInterface.ixx" />
     <ClCompile Include="InputComponent.ixx" />
     <ClCompile Include="Material.ixx">
       <FileType>Document</FileType>
@@ -127,6 +128,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="UpdateComponent.ixx" />
+    <ClCompile Include="UpdateInterface.ixx" />
     <ClCompile Include="Vertex.ixx" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DXSampleHelper.ixx">

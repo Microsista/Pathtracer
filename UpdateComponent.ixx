@@ -10,10 +10,11 @@ import Camera;
 import ConstantBuffer;
 import DXCore;
 import ResourceComponent;
+import UpdateInterface;
 
 using namespace DirectX;
 
-export class UpdateComponent {
+export class UpdateComponent : public UpdateInterface {
     StepTimer* timer;
     DeviceResources* deviceResources;
     bool orbitalCamera;
@@ -24,7 +25,6 @@ export class UpdateComponent {
     float animateGeometryTime;
     ConstantBuffer<SceneConstantBuffer> sceneCB;
     ConstantBuffeR<AtrousWaveletTransformConstantBuffer> filterCB;
-
 
 public:
     UpdateComponent() {}
