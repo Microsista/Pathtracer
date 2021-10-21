@@ -21,9 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp" />
-    <ClCompile Include="Core.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="DXCore.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -124,6 +121,12 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Vertex.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderingComponent.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Core.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

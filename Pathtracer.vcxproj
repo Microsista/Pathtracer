@@ -31,9 +31,7 @@
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClCompile Include="Core.ixx">
-      <FileType>Document</FileType>
-    </ClCompile>
+    <ClCompile Include="Core.ixx" />
     <ClCompile Include="D3DBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -59,6 +57,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="MeshData.ixx" />
+    <ClCompile Include="RenderingComponent.ixx" />
     <ClCompile Include="Transform.ixx">
       <FileType>Document</FileType>
     </ClCompile>

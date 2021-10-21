@@ -57,12 +57,100 @@ import Application;
 import DXSampleHelper;
 import IDeviceNotify;
 
+import RenderingComponent;
+
 using namespace std;
 using namespace DX;
 using namespace std::views;
 using namespace Microsoft::WRL;
 
 export class Core : public DXCore {
+    static const UINT FrameCount = 3;
+
+    static const UINT NUM_BLAS = 1090;
+    const float c_aabbWidth = 2;
+    const float c_aabbDistance = 2;
+
+    UINT m_geoOffset = 0;
+
+    Microsoft::WRL::ComPtr<ID3D12Device5> m_dxrDevice;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
+    Microsoft::WRL::ComPtr<ID3D12StateObject> m_dxrStateObject;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_composePSO[1];
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_blurPSO[1];
+
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
+
+    std::shared_ptr<DescriptorHeap> m_descriptorHeap;
+    UINT m_descriptorsAllocated;
+    UINT m_descriptorSize;
+
+    ConstantBuffer<SceneConstantBuffer> m_sceneCB;
+    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> m_filterCB;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_trianglePrimitiveAttributeBuffer;
+    std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
+
+    PrimitiveConstantBuffer m_triangleMaterialCB[NUM_BLAS];
+
+    std::vector<Vertex> m_vertices;
+    std::vector<Index> m_indices;
+    D3DBuffer m_indexBuffer[NUM_BLAS];
+    D3DBuffer m_vertexBuffer[NUM_BLAS];
+    D3DBuffer m_aabbBuffer;
+    std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> buffers[COUNT];
+    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[COUNT];
+
+    static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
+    static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
+    static inline const wchar_t* c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
+    static inline const wchar_t* c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_missShaderTable;
+    UINT m_missShaderTableStrideInBytes;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_hitGroupShaderTable;
+    UINT m_hitGroupShaderTableStrideInBytes;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
+
+    DX::GPUTimer m_gpuTimers[GpuTimers::Count];
+    StepTimer m_timer;
+    float m_animateGeometryTime;
+    bool m_animateGeometry;
+    bool m_animateCamera;
+    bool m_animateLight;
+    XMVECTOR m_eye;
+    XMVECTOR m_at;
+    XMVECTOR m_up;
+    bool m_orbitalCamera = false;
+
+    POINT m_lastMousePosition = {};
+
+    std::shared_ptr<DescriptorHeap> m_cbvSrvUavHeap;
+    std::shared_ptr<DescriptorHeap> m_composeHeap;
+    std::shared_ptr<DescriptorHeap> m_blurHeap;
+
+    std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
+    D3DTexture m_stoneTexture[3];
+    D3DTexture m_templeTextures[500];
+    D3DTexture m_templeNormalTextures[500];
+    D3DTexture m_templeSpecularTextures[500];
+    D3DTexture m_templeEmittanceTextures[500];
+
+    std::unordered_map<int, Material> m_materials;
+
+    std::vector<int> m_meshSizes;
+    std::vector<int> m_meshOffsets;
+
+    RenderingComponent* renderingComponent;
+
 public:
     Core(UINT width, UINT height) :
         DXCore{ width, height, L"" },
@@ -104,6 +192,27 @@ public:
         CreateDeviceDependentResources();
 
         CreateWindowSizeDependentResources();
+
+        renderingComponent = new RenderingComponent{
+           m_deviceResources.get(),
+           m_hitGroupShaderTable.Get(),
+           m_missShaderTable.Get(),
+           m_rayGenShaderTable.Get(),
+           m_hitGroupShaderTableStrideInBytes,
+           m_missShaderTableStrideInBytes,
+           m_width,
+           m_height,
+           m_gpuTimers,
+           descriptors,
+           m_descriptorHeap.get(),
+           &m_camera,
+           m_raytracingGlobalRootSignature.Get(),
+           m_topLevelAS.Get(),
+           m_dxrCommandList.Get(),
+           m_dxrStateObject.Get(),
+           &m_sceneCB,
+           &m_trianglePrimitiveAttributeBuffer
+        };
     }
 
     virtual void OnKeyDown(UINT8 key)
@@ -216,7 +325,7 @@ public:
             gpuTimer.BeginFrame(commandList);
         }
 
-        DoRaytracing();
+        renderingComponent->DoRaytracing();
         Compose();
 
         auto uav = CD3DX12_RESOURCE_BARRIER::UAV(buffers[PREV_FRAME].Get());
@@ -344,7 +453,7 @@ public:
         commandList->SetComputeRootDescriptorTable(0, descriptors[RAYTRACING]);
         commandList->SetComputeRootDescriptorTable(1, descriptors[REFLECTION]);
         commandList->SetComputeRootDescriptorTable(2, descriptors[SHADOW]);
-     
+
         auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
         m_filterCB.CopyStagingToGpu(frameIndex);
         commandList->SetComputeRootConstantBufferView(3, m_filterCB.GpuVirtualAddress(frameIndex));
@@ -363,7 +472,7 @@ public:
         prevProj = m_camera.GetProj();
         m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
     }
-   
+
     virtual void OnSizeChanged(UINT width, UINT height, bool minimized) {
         if (!m_deviceResources->WindowSizeChanged(width, height, minimized))
         {
@@ -434,7 +543,7 @@ private:
             XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
             XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-   
+
             SetAttributes2(SkullGeometry::Skull + 2, XMFLOAT4(1.000f, 0.8f, 0.836f, 1.000f), 0.3f, 0.5f, 1.0f, 1.0f);
 
             // Table
@@ -496,76 +605,6 @@ private:
         }
         m_deviceResources->HandleDeviceLost();
     }
-
-    void DoRaytracing()
-    {
-        auto commandList = m_deviceResources->GetCommandList();
-        auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
-
-        commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
-
-        XMFLOAT3 tempEye;
-        XMStoreFloat3(&tempEye, m_camera.GetPosition());
-
-        // Copy dynamic buffers to GPU.
-        {
-            m_sceneCB.CopyStagingToGpu(frameIndex);
-            commandList->SetComputeRootConstantBufferView(GlobalRootSignature::Slot::SceneConstant, m_sceneCB.GpuVirtualAddress(frameIndex));
-
-            m_trianglePrimitiveAttributeBuffer.CopyStagingToGpu(frameIndex);
-            commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::TriangleAttributeBuffer, m_trianglePrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
-        }
-
-        // Bind the heaps, acceleration structure and dispatch rays.  
-        D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
-        SetCommonPipelineState(commandList);
-        commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, m_topLevelAS->GetGPUVirtualAddress());
-        DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc, commandList);
-        m_sceneCB->frameIndex = (m_sceneCB->frameIndex + 1) % 16;
-
-        XMStoreFloat3(&m_sceneCB->prevFrameCameraPosition, m_camera.GetPosition());
-        XMMATRIX prevViewCameraAtOrigin = XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 1), XMVectorSetW(m_camera.GetLook() - m_camera.GetPosition(), 1), m_camera.GetUp());
-        XMMATRIX prevView, prevProj;
-        prevView = m_camera.GetView();
-        prevProj = m_camera.GetProj();
-        //m_sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
-        XMMATRIX viewProjCameraAtOrigin = prevViewCameraAtOrigin * prevProj;
-        m_sceneCB->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr, viewProjCameraAtOrigin);
-    }
-
-    void DispatchRays(auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc, auto* commandList)
-    {
-        dispatchDesc->HitGroupTable.StartAddress = m_hitGroupShaderTable->GetGPUVirtualAddress();
-        dispatchDesc->HitGroupTable.SizeInBytes = m_hitGroupShaderTable->GetDesc().Width;
-        dispatchDesc->HitGroupTable.StrideInBytes = m_hitGroupShaderTableStrideInBytes;
-        dispatchDesc->MissShaderTable.StartAddress = m_missShaderTable->GetGPUVirtualAddress();
-        dispatchDesc->MissShaderTable.SizeInBytes = m_missShaderTable->GetDesc().Width;
-        dispatchDesc->MissShaderTable.StrideInBytes = m_missShaderTableStrideInBytes;
-        dispatchDesc->RayGenerationShaderRecord.StartAddress = m_rayGenShaderTable->GetGPUVirtualAddress();
-        dispatchDesc->RayGenerationShaderRecord.SizeInBytes = m_rayGenShaderTable->GetDesc().Width;
-        dispatchDesc->Width = m_width;
-        dispatchDesc->Height = m_height;
-        dispatchDesc->Depth = 1;
-        raytracingCommandList->SetPipelineState1(stateObject);
-
-        m_gpuTimers[GpuTimers::Raytracing].Start(commandList);
-        raytracingCommandList->DispatchRays(dispatchDesc);
-        m_gpuTimers[GpuTimers::Raytracing].Stop(commandList);
-    };
-
-    void SetCommonPipelineState(auto* descriptorSetCommandList)
-    {
-        descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->GetAddressOf());
-
-        // Set index and successive vertex buffer decriptor tables.
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, descriptors[RAYTRACING]);
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ReflectionBuffer, descriptors[REFLECTION]);
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::ShadowBuffer, descriptors[SHADOW]);
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::NormalDepth, descriptors[NORMAL_DEPTH]);
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::MotionVector, descriptors[MOTION_VECTOR]);
-        descriptorSetCommandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::PrevHitPosition, descriptors[PREV_HIT]);
-
-    };
 
     void CreateConstantBuffers() {
         auto device = m_deviceResources->GetD3DDevice();
@@ -1026,7 +1065,7 @@ private:
             }
         }
     }
-   
+
     template <class InstanceDescType, class BLASPtrType> void BuildBottomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, Microsoft::WRL::ComPtr<ID3D12Resource>* instanceDescsResource) {
         Transform transforms[] = {
             { XMFLOAT3(500.0f, 0.0f, 0.0f),     XMFLOAT3(1.0f, 1.0f, 1.0f),     0 },
@@ -1487,88 +1526,4 @@ private:
         //texture->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
         return descriptorIndex;
     }
-
-    static const UINT FrameCount = 3;
-
-    static const UINT NUM_BLAS = 1090;
-    const float c_aabbWidth = 2;
-    const float c_aabbDistance = 2;
-    
-    UINT m_geoOffset = 0;
-  
-    Microsoft::WRL::ComPtr<ID3D12Device5> m_dxrDevice;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
-    Microsoft::WRL::ComPtr<ID3D12StateObject> m_dxrStateObject;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_composePSO[1];
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_blurPSO[1];
-
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_composeRootSig;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_blurRootSig;
-
-    std::shared_ptr<DescriptorHeap> m_descriptorHeap;
-    UINT m_descriptorsAllocated;
-    UINT m_descriptorSize;
-
-    ConstantBuffer<SceneConstantBuffer> m_sceneCB;
-    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer> m_filterCB;
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_trianglePrimitiveAttributeBuffer;
-    std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
-
-    PrimitiveConstantBuffer m_triangleMaterialCB[NUM_BLAS];
-
-    std::vector<Vertex> m_vertices;
-    std::vector<Index> m_indices;
-    D3DBuffer m_indexBuffer[NUM_BLAS];
-    D3DBuffer m_vertexBuffer[NUM_BLAS];
-    D3DBuffer m_aabbBuffer;
-    std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_topLevelAS;
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> buffers[COUNT];
-    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[COUNT];
-   
-    static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
-    static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
-    static inline const wchar_t* c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
-    static inline const wchar_t* c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_missShaderTable;
-    UINT m_missShaderTableStrideInBytes;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_hitGroupShaderTable;
-    UINT m_hitGroupShaderTableStrideInBytes;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
-
-    DX::GPUTimer m_gpuTimers[GpuTimers::Count];
-    StepTimer m_timer;
-    float m_animateGeometryTime;
-    bool m_animateGeometry;
-    bool m_animateCamera;
-    bool m_animateLight;
-    XMVECTOR m_eye;
-    XMVECTOR m_at;
-    XMVECTOR m_up;
-    bool m_orbitalCamera = false;
-
-    POINT m_lastMousePosition = {};
-
-    std::shared_ptr<DescriptorHeap> m_cbvSrvUavHeap;
-    std::shared_ptr<DescriptorHeap> m_composeHeap;
-    std::shared_ptr<DescriptorHeap> m_blurHeap;
-
-    std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
-    D3DTexture m_stoneTexture[3];
-    D3DTexture m_templeTextures[500];
-    D3DTexture m_templeNormalTextures[500];
-    D3DTexture m_templeSpecularTextures[500];
-    D3DTexture m_templeEmittanceTextures[500];
-
-    std::unordered_map<int, Material> m_materials;
-
-    std::vector<int> m_meshSizes;
-    std::vector<int> m_meshOffsets;
 };
