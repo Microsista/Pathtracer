@@ -22,12 +22,15 @@
     <ClCompile Include="AccelerationStructureBuffers.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="AccelerationStructureComponent.ixx" />
     <ClCompile Include="Application.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="AssimpTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="BufferComponent.ixx" />
+    <ClCompile Include="CameraComponent.ixx" />
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -38,6 +41,7 @@
     <ClCompile Include="D3DTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="DescriptorComponent.ixx" />
     <ClCompile Include="DescriptorHeapInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -50,14 +54,25 @@
     <ClCompile Include="DXCoreInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="GeometryComponent.ixx" />
     <ClCompile Include="IDeviceNotify.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="InitComponent.ixx" />
+    <ClCompile Include="InputComponent.ixx" />
     <ClCompile Include="Material.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="MeshData.ixx" />
+    <ClCompile Include="OutputComponent.ixx" />
+    <ClCompile Include="PerformanceComponent.ixx" />
+    <ClCompile Include="PsoComponent.ixx" />
     <ClCompile Include="RenderingComponent.ixx" />
+    <ClCompile Include="ResourceComponent.ixx" />
+    <ClCompile Include="RootSignatureComponent.ixx" />
+    <ClCompile Include="ShaderComponent.ixx" />
+    <ClCompile Include="ShaderTableComponent.ixx" />
+    <ClCompile Include="SrvComponent.ixx" />
     <ClCompile Include="Transform.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -111,6 +126,7 @@
     <ClCompile Include="Camera.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="UpdateComponent.ixx" />
     <ClCompile Include="Vertex.ixx" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DXSampleHelper.ixx">

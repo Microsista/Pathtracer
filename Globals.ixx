@@ -1,11 +1,12 @@
 module;
-extern "C" {
-    #include "Lua542/include/lua.h"
-    #include "Lua542/include/lauxlib.h"
-    #include "Lua542/include/lualib.h"
-}
 #include <string>
 export module Globals;
+
+extern "C" {
+#include "Lua542/include/lua.h"
+#include "Lua542/include/lauxlib.h"
+#include "Lua542/include/lualib.h"
+}
 
 import DXSampleHelper;
 

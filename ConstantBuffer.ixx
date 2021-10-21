@@ -3,6 +3,7 @@ module;
 export module ConstantBuffer;
 
 import GpuUploadBuffer;
+import DXSampleHelper;
 
 export template <class T>
 class ConstantBuffer : public GpuUploadBuffer {

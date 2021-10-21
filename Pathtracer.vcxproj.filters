@@ -1,11 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="RayTracingHlslCompat.hlsli">
-      <Filter>Resources</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Headers">
       <UniqueIdentifier>{c00b4901-b39d-434c-9b50-936689304642}</UniqueIdentifier>
     </Filter>
@@ -18,67 +13,34 @@
     <Filter Include="Modules">
       <UniqueIdentifier>{cef66aee-0176-44ad-ada2-878a15c5b099}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Components">
+      <UniqueIdentifier>{7d74a4a4-3ef6-4d91-b67a-0282a5d406e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Headers">
+      <UniqueIdentifier>{61deee9d-5313-4fef-816f-bb7d9be535c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities">
+      <UniqueIdentifier>{e4287367-71b9-4d30-bb40-65a18c66514d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities\Interfaces">
+      <UniqueIdentifier>{cee15ec1-ad0f-44fd-84ee-6a2f25fca5fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities\Scene">
+      <UniqueIdentifier>{0ec87f79-1229-4334-b00e-8dd8346cbe49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities\DXR">
+      <UniqueIdentifier>{a1c7e4cd-e366-435c-8b45-a10ac3f24988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities\Math">
+      <UniqueIdentifier>{6bf80350-e2b3-4449-a388-df9620e2620a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Utilities\Bufffers">
+      <UniqueIdentifier>{3f0bc84a-c68e-4813-a72d-0664b277c6d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="DXCore.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="StepTimer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DXSampleHelper.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="RaytracingSceneDefines.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Geometry.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceTimers.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Directions.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Globals.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Descriptors.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderTable.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderRecord.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="AccelerationStructureBuffers.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DBuffer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeap.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstantBuffer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="StructuredBuffer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DTexture.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="DeviceResources.ixx">
@@ -87,67 +49,172 @@
     <ClCompile Include="Application.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="IDeviceNotify.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuUploadBuffer.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeapInterface.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Math.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DXCoreInterface.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceResourcesInterface.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="AssimpTexture.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectXRaytracingHelper.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshData.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Vertex.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderingComponent.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Core.ixx">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="AccelerationStructureComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="InitComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="InputComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderingComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignatureComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderTableComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="UpdateComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingSceneDefines.ixx">
+      <Filter>Modules\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="SrvComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PsoComponent.ixx">
+      <Filter>Modules\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.ixx">
+      <Filter>Modules\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DXSampleHelper.ixx">
+      <Filter>Modules\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Descriptors.ixx">
+      <Filter>Modules\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapInterface.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceResourcesInterface.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="DXCoreInterface.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="IDeviceNotify.ixx">
+      <Filter>Modules\Utilities\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AccelerationStructureBuffers.ixx">
+      <Filter>Modules\Utilities\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXRaytracingHelper.ixx">
+      <Filter>Modules\Utilities\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderRecord.ixx">
+      <Filter>Modules\Utilities\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderTable.ixx">
+      <Filter>Modules\Utilities\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="StepTimer.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceTimers.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Directions.ixx">
+      <Filter>Modules\Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshData.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpTexture.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.ixx">
+      <Filter>Modules\Utilities\Bufffers</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DBuffer.ixx">
+      <Filter>Modules\Utilities\Bufffers</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuUploadBuffer.ixx">
+      <Filter>Modules\Utilities\Bufffers</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBuffer.ixx">
+      <Filter>Modules\Utilities\Bufffers</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DTexture.ixx">
+      <Filter>Modules\Utilities\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.ixx">
+      <Filter>Modules\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">
       <Filter>Scripts</Filter>
     </None>
-    <None Include="RaytracingShaderHelper.hlsli">
-      <Filter>Resources</Filter>
-    </None>
     <None Include="d3dx12.h">
       <Filter>Headers</Filter>
     </None>
-    <None Include="RandomNumberGenerator.hlsli">
-      <Filter>Resources</Filter>
-    </None>
     <None Include="BxDF.hlsli">
-      <Filter>Resources</Filter>
+      <Filter>Resources\Headers</Filter>
+    </None>
+    <None Include="RandomNumberGenerator.hlsli">
+      <Filter>Resources\Headers</Filter>
+    </None>
+    <None Include="RaytracingShaderHelper.hlsli">
+      <Filter>Resources\Headers</Filter>
     </None>
     <None Include="Raytracing.hlsli">
-      <Filter>Resources</Filter>
+      <Filter>Resources\Headers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -169,5 +236,10 @@
     <FxCompile Include="BlurCS.hlsl">
       <Filter>Resources</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RayTracingHlslCompat.hlsli">
+      <Filter>Resources\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

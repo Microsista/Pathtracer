@@ -1,6 +1,6 @@
 export module Descriptors;
 
-export enum {
+export enum Descriptors {
 	RAYTRACING,
 	REFLECTION,
 	SHADOW,
