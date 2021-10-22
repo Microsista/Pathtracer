@@ -4,23 +4,30 @@ module;
 #include <DirectXMath.h>
 #include <d3d12.h>
 #include "RayTracingHlslCompat.hlsli"
+#include <wrl/client.h>
+#include <vector>
 export module InitComponent;
 
 import DeviceResources;
+import DeviceResourcesInterface;
 import DXSampleHelper;
 import Application;
 import RenderingComponent;
 import ConstantBuffer;
 import Helper;
-import Core;
 import InitInterface;
+import ResourceComponent;
+import CameraComponent;
+import DescriptorHeap;
+
+class Core;
 
 using namespace std;
 using namespace DirectX;
-import ResourceComponent;
+using namespace Microsoft::WRL;
 
 export class InitComponent : public InitInterface {
-    shared_ptr<DeviceResources> deviceResources;
+    shared_ptr<DeviceResourcesInterface> deviceResources;
     UINT FrameCount;
     UINT adapterIDoverride;
     UINT width;
@@ -29,6 +36,8 @@ export class InitComponent : public InitInterface {
     ConstantBuffer<SceneConstantBuffer>* sceneCB;
     PrimitiveConstantBuffer* triangleMaterialCB;
     Camera camera;
+
+    CameraComponent* cameraComponent;
 
     XMVECTOR at;
     XMVECTOR up;
@@ -42,48 +51,41 @@ export class InitComponent : public InitInterface {
 
     ResourceComponent* resourceComponent;
 
+    ComPtr<ID3D12Resource> rayGenShaderTable;
+    ComPtr<ID3D12Resource> hitGroupShaderTable;
+    ComPtr<ID3D12Resource> missShaderTable;
+
+    UINT hitGroupShaderTableStrideInBytes;
+    UINT missShaderTableStrideInBytes;
+
+    vector<DX::GPUTimer>* gpuTimers;
+    D3D12_GPU_DESCRIPTOR_HANDLE* descriptors;
+    DescriptorHeap* descriptorHeap;
+
+    ID3D12RootSignature* raytracingGlobalRootSignature;
+    ID3D12Resource* topLevelAS;
+    ID3D12GraphicsCommandList5* dxrCommandList;
+    ID3D12StateObject* dxrStateObject;
+
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
+
+    XMFLOAT4(lightPosition);
+
+    bool orbitalCamera;
+    float aspectRatio;
+    XMMATRIX* projectionToWorld;
+    XMFLOAT3* cameraPosition;
+
 public:
-    InitComponent() {}
-
-    virtual void OnInit() {
-        deviceResources = std::make_unique<DeviceResources>(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, FrameCount,
-            D3D_FEATURE_LEVEL_11_0, DeviceResources::c_RequireTearingSupport, adapterIDoverride);
-        deviceResources->RegisterDeviceNotify(core);
-        deviceResources->SetWindow(Application::GetHwnd(), width, height);
-        deviceResources->InitializeDXGIAdapter();
-
-        ThrowIfFalse(IsDirectXRaytracingSupported(deviceResources->GetAdapter()),
-            L"ERROR: DirectX Raytracing is not supported by your OS, GPU and/or driver.\n\n");
-
-        deviceResources->CreateDeviceResources();
-        deviceResources->CreateWindowSizeDependentResources();
-
-        InitializeScene();
-        resourceComponent->CreateDeviceDependentResources();
-
-        CreateWindowSizeDependentResources();
-
-        renderingComponent = new RenderingComponent{
-           deviceResources.get(),
-           hitGroupShaderTable.Get(),
-           missShaderTable.Get(),
-           rayGenShaderTable.Get(),
-           hitGroupShaderTableStrideInBytes,
-           missShaderTableStrideInBytes,
-           width,
-           height,
-           gpuTimers,
-           descriptors,
-           descriptorHeap.get(),
-           &camera,
-           raytracingGlobalRootSignature.Get(),
-           topLevelAS.Get(),
-           dxrCommandList.Get(),
-           dxrStateObject.Get(),
-           &sceneCB,
-           &trianglePrimitiveAttributeBuffer
-        };
-    }
+    InitComponent(
+        DeviceResourcesInterface* deviceResources,
+        PrimitiveConstantBuffer* triangleMaterialCB,
+        XMFLOAT3* cameraPosition
+    ) :
+        deviceResources{ deviceResources },
+        triangleMaterialCB{ triangleMaterialCB },
+        cameraPosition{ cameraPosition }
+    {}
 
     void InitializeScene() {
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
@@ -144,7 +146,19 @@ public:
             eye = XMVector3Transform(eye, rotate);
             up = XMVector3Transform(up, rotate);
             camera.UpdateViewMatrix();
-            UpdateCameraMatrices();
+            cameraComponent = new CameraComponent(
+                deviceResources.get(),
+                sceneCB,
+                orbitalCamera,
+                &eye,
+                &at,
+                &up,
+                aspectRatio,
+                projectionToWorld,
+                cameraPosition,
+                &camera
+            );
+            cameraComponent->UpdateCameraMatrices();
         }
 
         // Setup lights.
@@ -154,14 +168,14 @@ public:
             XMFLOAT4 ldc;
 
             lightPosition = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-            sceneCB->lightPosition = XMLoadFloat4(&lp);
+            (*sceneCB)->lightPosition = XMLoadFloat4(&lp);
 
             lightAmbientColor = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
-            sceneCB->lightAmbientColor = XMLoadFloat4(&lac);
+            (*sceneCB)->lightAmbientColor = XMLoadFloat4(&lac);
 
             float d = 0.6f;
             lightDiffuseColor = XMFLOAT4(d, d, d, 1.0f);
-            sceneCB->lightDiffuseColor = XMLoadFloat4(&ldc);
+            (*sceneCB)->lightDiffuseColor = XMLoadFloat4(&ldc);
         }
     }
 

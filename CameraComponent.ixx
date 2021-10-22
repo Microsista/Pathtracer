@@ -4,13 +4,14 @@ module;
 export module CameraComponent;
 
 import DeviceResources;
+import DeviceResourcesInterface;
 import ConstantBuffer;
 import Camera;
 
 using namespace DirectX;
 
 export class CameraComponent {
-    DeviceResources* deviceResources;
+    DeviceResourcesInterface* deviceResources;
     ConstantBuffer<SceneConstantBuffer>* sceneCB;
     bool orbitalCamera;
     XMVECTOR* eye;
@@ -23,7 +24,7 @@ export class CameraComponent {
 
 public:
     CameraComponent(
-        DeviceResources* deviceResources,
+        DeviceResourcesInterface* deviceResources,
         ConstantBuffer<SceneConstantBuffer>* sceneCB,
         bool orbitalCamera,
         XMVECTOR* eye,
@@ -33,8 +34,7 @@ public:
         XMMATRIX* projectionToWorld,
         XMFLOAT3* cameraPosition,
         Camera* camera
-    )
-        :
+    ) :
         deviceResources{ deviceResources },
         sceneCB{ sceneCB },
         orbitalCamera{ orbitalCamera },

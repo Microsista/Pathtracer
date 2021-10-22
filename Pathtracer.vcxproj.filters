@@ -49,9 +49,6 @@
     <ClCompile Include="Application.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Core.ixx">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="AccelerationStructureComponent.ixx">
       <Filter>Modules\Components</Filter>
     </ClCompile>
@@ -202,6 +199,7 @@
     <ClCompile Include="InitInterface.ixx">
       <Filter>Modules\Utilities\Interfaces</Filter>
     </ClCompile>
+    <ClCompile Include="Core.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">

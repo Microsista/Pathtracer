@@ -1,5 +1,6 @@
 module;
 #include <string>
+#include "Lua542/include/lua.hpp"
 export module Globals;
 
 extern "C" {
@@ -7,6 +8,7 @@ extern "C" {
 #include "Lua542/include/lauxlib.h"
 #include "Lua542/include/lualib.h"
 }
+
 
 import DXSampleHelper;
 

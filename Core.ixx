@@ -50,10 +50,14 @@ import DeviceResources;
 import Application;
 import DXSampleHelper;
 import IDeviceNotify;
+import DeviceResourcesInterface;
 
 import RenderingComponent;
 import InputComponent;
 import UpdateInterface;
+import InitComponent;
+import InitInterface;
+import ResourceComponent;
 
 using namespace std;
 using namespace DX;
@@ -110,11 +114,11 @@ export class Core : public DXCore {
     static inline const wchar_t* c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
     static inline const wchar_t* c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_missShaderTable;
+    ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_hitGroupShaderTable;
+    ComPtr<ID3D12Resource> m_hitGroupShaderTable;
     UINT m_hitGroupShaderTableStrideInBytes;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_rayGenShaderTable;
+    ComPtr<ID3D12Resource> m_rayGenShaderTable;
 
     vector<DX::GPUTimer> m_gpuTimers;
     StepTimer m_timer;
@@ -147,7 +151,9 @@ export class Core : public DXCore {
 
     RenderingComponent* renderingComponent;
     InputComponent* inputComponent;
+    InitInterface* initComponent;
     UpdateInterface* updateComponent;
+    ResourceComponent* resourceComponent = new ResourceComponent();
 
 public:
     Core(UINT width, UINT height) :
@@ -162,6 +168,63 @@ public:
         m_hitGroupShaderTableStrideInBytes(UINT_MAX)
     {
         UpdateForSizeChange(width, height);
+    }
+
+    virtual void OnInit() {
+        m_deviceResources = std::make_unique<DeviceResources>(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, FrameCount,
+            D3D_FEATURE_LEVEL_11_0, DeviceResources::c_RequireTearingSupport, m_adapterIDoverride);
+        m_deviceResources->RegisterDeviceNotify(this);
+        m_deviceResources->SetWindow(Application::GetHwnd(), m_width, m_height);
+        m_deviceResources->InitializeDXGIAdapter();
+
+        ThrowIfFalse(IsDirectXRaytracingSupported(m_deviceResources->GetAdapter()),
+            L"ERROR: DirectX Raytracing is not supported by your OS, GPU and/or driver.\n\n");
+        XMFLOAT3 pos;
+        XMStoreFloat3(&pos, m_camera.GetPosition());
+        m_deviceResources->CreateDeviceResources();
+        m_deviceResources->CreateWindowSizeDependentResources();
+        initComponent = new InitComponent(
+            m_deviceResources.get(),
+            m_triangleMaterialCB,
+            &pos
+        );
+        initComponent->InitializeScene();
+        resourceComponent->CreateDeviceDependentResources();
+
+        resourceComponent->CreateWindowSizeDependentResources();
+
+        renderingComponent = new RenderingComponent{
+           m_deviceResources.get(),
+           m_hitGroupShaderTable.Get(),
+           m_missShaderTable.Get(),
+           m_rayGenShaderTable.Get(),
+           m_hitGroupShaderTableStrideInBytes,
+           m_missShaderTableStrideInBytes,
+           m_width,
+           m_height,
+           &m_gpuTimers,
+           descriptors,
+           m_descriptorHeap.get(),
+           &m_camera,
+           m_raytracingGlobalRootSignature.Get(),
+           m_topLevelAS.Get(),
+           m_dxrCommandList.Get(),
+           m_dxrStateObject.Get(),
+           &m_sceneCB,
+           &m_trianglePrimitiveAttributeBuffer
+        };
+    }
+
+    virtual void OnUpdate() {
+        updateComponent->OnUpdate();
+    }
+
+    virtual void OnRender() {
+        renderingComponent->OnRender();
+    }
+
+    virtual void OnSizeChanged(UINT width, UINT height, bool minimized) {
+        updateComponent->OnSizeChanged(width, height, minimized);
     }
 
     virtual void OnDestroy() {
@@ -179,4 +242,12 @@ public:
     }
 
     virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
+
+    virtual void OnDeviceLost() {
+        updateComponent->OnDeviceLost();
+    }
+
+    virtual void OnDeviceRestored() {
+        updateComponent->OnDeviceRestored();
+    }
 };
