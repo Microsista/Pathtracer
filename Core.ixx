@@ -1,10 +1,8 @@
 module;
 #include "RaytracingHlslCompat.hlsli"
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
 #include "d3dx12.h"
 #include <unordered_map>
 #include <vector>
@@ -13,58 +11,49 @@ module;
 #include <iomanip>
 #include <d3d12.h>
 #include <string>
-
 #include <wrl/client.h>
-
-#include <ranges>
 #include <Windows.h>
+#include "RaytracingSceneDefines.h"
+#include "PerformanceTimers.h"
 export module Core;
-
-export extern "C" {
-#include "Lua542/include/lua.h"
-#include "Lua542/include/lauxlib.h"
-#include "Lua542/include/lualib.h"
-}
 
 import DXCore;
 import StepTimer;
 import Texture;
 import Helper;
 import Mesh;
-import RaytracingSceneDefines;
-import Geometry;
-import PerformanceTimers;
 import Directions;
-import Globals;
 import Descriptors;
-import ShaderTable;
-import ShaderRecord;
-import AccelerationStructureBuffers;
 import D3DBuffer;
 import DescriptorHeap;
 import ConstantBuffer;
 import StructuredBuffer;
 import D3DTexture;
-import Transform;
 import DeviceResources;
 import Application;
 import DXSampleHelper;
-import IDeviceNotify;
-import DeviceResourcesInterface;
-
+import Material;
 import RenderingComponent;
 import InputComponent;
 import UpdateInterface;
 import InitComponent;
 import InitInterface;
 import ResourceComponent;
+import CameraComponent;
+import CoreInterface;
+import ShaderTableComponent;
+import RootSignatureComponent;
+import OutputComponent;
+import GeometryComponent;
+import AccelerationStructureComponent;
+import DescriptorComponent;
+import BufferComponent;
+import ShaderTableComponent;
 
 using namespace std;
-using namespace DX;
-using namespace std::views;
 using namespace Microsoft::WRL;
 
-export class Core : public DXCore {
+export class Core : public DXCore, public CoreInterface {
     static const UINT FrameCount = 3;
 
     static const UINT NUM_BLAS = 1090;
@@ -80,7 +69,7 @@ export class Core : public DXCore {
     ComPtr<ID3D12PipelineState> m_blurPSO[1];
 
     ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
-    ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
+    vector<ComPtr<ID3D12RootSignature>> m_raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature> m_composeRootSig;
     ComPtr<ID3D12RootSignature> m_blurRootSig;
 
@@ -153,7 +142,15 @@ export class Core : public DXCore {
     InputComponent* inputComponent;
     InitInterface* initComponent;
     UpdateInterface* updateComponent;
-    ResourceComponent* resourceComponent = new ResourceComponent();
+    ResourceComponent* resourceComponent;
+    CameraComponent* cameraComponent;
+    ShaderTableComponent* shaderTableComponent;
+    RootSignatureComponent* rootSignatureComponent;
+    OutputComponent* outputComponent;
+    GeometryComponent* geometryComponent;
+    AccelerationStructureComponent* accelerationStructureComponent;
+    DescriptorComponent* descriptorComponent;
+    BufferComponent* bufferComponent;
 
 public:
     Core(UINT width, UINT height) :
@@ -167,6 +164,7 @@ public:
         m_missShaderTableStrideInBytes(UINT_MAX),
         m_hitGroupShaderTableStrideInBytes(UINT_MAX)
     {
+        m_raytracingLocalRootSignature.resize(LocalRootSignature::Type::Count);
         UpdateForSizeChange(width, height);
     }
 
@@ -181,13 +179,102 @@ public:
             L"ERROR: DirectX Raytracing is not supported by your OS, GPU and/or driver.\n\n");
         XMFLOAT3 pos;
         XMStoreFloat3(&pos, m_camera.GetPosition());
+        rootSignatureComponent = new RootSignatureComponent(
+            m_deviceResources.get(),
+            m_raytracingLocalRootSignature,
+            m_raytracingGlobalRootSignature,
+            c_hitGroupNames_TriangleGeometry
+        );
         m_deviceResources->CreateDeviceResources();
         m_deviceResources->CreateWindowSizeDependentResources();
         initComponent = new InitComponent(
             m_deviceResources.get(),
             m_triangleMaterialCB,
-            &pos
+            &pos,
+            FrameCount,
+            m_adapterIDoverride,
+            m_width,
+            m_height,
+            renderingComponent,
+            &m_sceneCB,
+            m_camera,
+            cameraComponent,
+            m_at,
+            m_up,
+            m_eye,
+            this,
+            resourceComponent,
+            m_rayGenShaderTable,
+            m_hitGroupShaderTable,
+            m_missShaderTable,
+            m_hitGroupShaderTableStrideInBytes,
+            m_missShaderTableStrideInBytes,
+            &m_gpuTimers,
+            descriptors,
+            m_descriptorHeap.get(),
+            m_raytracingGlobalRootSignature.Get(),
+            m_topLevelAS.Get(),
+            m_dxrStateObject.Get(),
+            &m_trianglePrimitiveAttributeBuffer,
+            m_orbitalCamera,
+            m_aspectRatio
         );
+        shaderTableComponent = new ShaderTableComponent(
+            m_deviceResources.get(),
+            c_hitGroupNames_TriangleGeometry,
+            c_missShaderNames,
+            c_closestHitShaderName,
+            c_raygenShaderName,
+            m_hitGroupShaderTable,
+            m_dxrStateObject,
+            m_missShaderTableStrideInBytes,
+            &m_meshOffsets,
+            m_indexBuffer,
+            m_vertexBuffer,
+            &m_geometries,
+            &m_meshSizes,
+            m_templeTextures,
+            m_templeNormalTextures,
+            m_templeSpecularTextures,
+            m_templeEmittanceTextures,
+            NUM_BLAS,
+            m_hitGroupShaderTableStrideInBytes,
+            m_triangleMaterialCB,
+            m_rayGenShaderTable,
+            m_missShaderTable
+        );
+        resourceComponent = new ResourceComponent(
+            m_triangleMaterialCB,
+            FrameCount,
+            &m_gpuTimers,
+            shaderTableComponent,
+            initComponent,
+            rootSignatureComponent,
+            m_deviceResources.get(),
+            &m_geometries,
+            cameraComponent,
+            m_raytracingGlobalRootSignature,
+            m_raytracingLocalRootSignature,
+            m_dxrDevice,
+            m_dxrCommandList,
+            m_dxrStateObject,
+            m_descriptorHeap,
+            m_descriptorsAllocated,
+            m_sceneCB,
+            m_trianglePrimitiveAttributeBuffer,
+            m_bottomLevelAS,
+            m_topLevelAS,
+            buffers,
+            m_rayGenShaderTable,
+            m_missShaderTable,
+            m_hitGroupShaderTable,
+            outputComponent,
+            geometryComponent,
+            bufferComponent,
+            accelerationStructureComponent,
+            descriptorComponent
+        );
+        
         initComponent->InitializeScene();
         resourceComponent->CreateDeviceDependentResources();
 

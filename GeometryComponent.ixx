@@ -4,7 +4,6 @@ module;
 #include <vector>
 #include <DirectXMath.h>
 #include <iomanip>
-#include <ranges>
 #include <memory>
 #include <unordered_map>
 
@@ -32,7 +31,6 @@ import Globals;
 
 using namespace std;
 using namespace DirectX;
-using namespace std::views;
 
 export class GeometryComponent {
     DeviceResources* deviceResources;
@@ -143,7 +141,7 @@ public:
             &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
         };
 
-        for (auto i : iota(0, 3)) {
+        for (auto i = 0; i < 3; ++i) {
             MeshData geo = (geoGen.*createGeo[i])(sizes[i].x, sizes[i].y, sizes[i].z);
             UINT roomVertexOffset = 0;
             UINT roomIndexOffset = 0;

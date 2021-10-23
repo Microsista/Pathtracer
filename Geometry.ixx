@@ -8,53 +8,9 @@ module;
 #include <iostream>
 #include <Windows.h>
 #include <fstream>
-#include <cstdint>
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-#include <windows.h>
-
-#include <stdlib.h>
-#include <sstream>
-#include <iomanip>
-
-#include <list>
-#include <string>
-#include <wrl.h>
-#include <shellapi.h>
-#include <memory>
-#include <unordered_map>
-#include <vector>
-#include <atlbase.h>
-#include <assert.h>
-#include <array>
-#include <algorithm>
-
-#include <dxgi1_6.h>
-#include <d3d12.h>
-#include <atlbase.h>
-
-#include <DirectXMath.h>
-#include <DirectXCollision.h>
-
-#ifdef _DEBUG
-#include <dxgidebug.h>
-#endif
-
-#include <iostream>
-#include <fstream>
-
-#include <wrl/event.h>
-#include <ResourceUploadBatch.h>
-
-#include "d3dx12.h"
 export module Geometry;
 
 import Math;
-import Material;
-import DXSampleHelper;
 import AssimpTexture;
 import MeshData;
 import Vertex;
@@ -203,13 +159,13 @@ public:
 		processNode(scene->mRootNode, scene);
 	}
 
-	std::vector<GeometryGenerator::MeshData> LoadModel(std::string path, unsigned int flags) {
+	vector<MeshData> LoadModel(std::string path, unsigned int flags) {
 		loadModel(path, flags);
 
 		return meshes;
 	}
 
-	std::vector<MeshData> meshes;
+	vector<MeshData> meshes;
 
 	MeshData CreateBox(float width, float height, float depth, uint32 numSubdivisions)
 	{
@@ -261,8 +217,8 @@ public:
 		v[22] = Vertex(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 		v[23] = Vertex(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
-		meshData.Vertices.assign(&v[0], &v[24]);
-
+		meshData.getVertices().assign(&v[0], &v[24]);
+	
 		//
 		// Create the indices.
 		//
@@ -357,7 +313,7 @@ public:
 		v[26] = Vertex(0.35f * 2 * w2 - w2, 0.75f * 2 * h2 - h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		v[27] = Vertex(0.1f * 2 * w2 - w2, 0.75f * 2 * h2 - h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-		meshData.Vertices.assign(&v[0], &v[28]);
+		meshData.getVertices().assign(&v[0], &v[28]);
 
 		//
 		// Create the indices.
@@ -456,7 +412,7 @@ public:
 
 		fin.close();
 
-		meshData.Vertices = vertices;
+		meshData.getVertices() = vertices;
 		meshData.Indices32 = indices;
 
 
@@ -581,7 +537,7 @@ public:
 		v[22 + 48] = Vertex(+d2, +h2, +w2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 		v[23 + 48] = Vertex(+d2, -h2, +w2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
-		meshData.Vertices.assign(&v[0], &v[24 * 3]);
+		meshData.getVertices().assign(&v[0], &v[24 * 3]);
 
 		//
 		// Create the indices.
@@ -682,7 +638,7 @@ public:
 		Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-		meshData.Vertices.push_back(topVertex);
+		meshData.getVertices().push_back(topVertex);
 
 		float phiStep = XM_PI / stackCount;
 		float thetaStep = 2.0f * XM_PI / sliceCount;
@@ -718,11 +674,11 @@ public:
 				v.TexC.x = theta / XM_2PI;
 				v.TexC.y = phi / XM_PI;
 
-				meshData.Vertices.push_back(v);
+				meshData.getVertices().push_back(v);
 			}
 		}
 
-		meshData.Vertices.push_back(bottomVertex);
+		meshData.getVertices().push_back(bottomVertex);
 
 		//
 		// Compute indices for top stack.  The top stack was written first to the vertex buffer
@@ -764,7 +720,7 @@ public:
 		//
 
 		// South pole vertex was added last.
-		uint32 southPoleIndex = (uint32)meshData.Vertices.size() - 1;
+		uint32 southPoleIndex = (uint32)meshData.getVertices().size() - 1;
 
 		// Offset the indices to the index of the first vertex in the last ring.
 		baseIndex = southPoleIndex - ringVertexCount;
@@ -808,46 +764,46 @@ public:
 			10,1,6, 11,0,9, 2,11,9, 5,2,9,  11,2,7
 		};
 
-		meshData.Vertices.resize(12);
+		meshData.getVertices().resize(12);
 		meshData.Indices32.assign(&k[0], &k[60]);
 
 		for (uint32 i = 0; i < 12; ++i)
-			meshData.Vertices[i].Position = pos[i];
+			meshData.getVertices()[i].Position = pos[i];
 
 		for (uint32 i = 0; i < numSubdivisions; ++i)
 			Subdivide(meshData);
 
 		// Project vertices onto sphere and scale.
-		for (uint32 i = 0; i < meshData.Vertices.size(); ++i)
+		for (uint32 i = 0; i < meshData.getVertices().size(); ++i)
 		{
 			// Project onto unit sphere.
-			XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&meshData.Vertices[i].Position));
+			XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&meshData.getVertices()[i].Position));
 
 			// Project onto sphere.
 			XMVECTOR p = radius * n;
 
-			XMStoreFloat3(&meshData.Vertices[i].Position, p);
-			XMStoreFloat3(&meshData.Vertices[i].Normal, n);
+			XMStoreFloat3(&meshData.getVertices()[i].Position, p);
+			XMStoreFloat3(&meshData.getVertices()[i].Normal, n);
 
 			// Derive texture coordinates from spherical coordinates.
-			float theta = atan2f(meshData.Vertices[i].Position.z, meshData.Vertices[i].Position.x);
+			float theta = atan2f(meshData.getVertices()[i].Position.z, meshData.getVertices()[i].Position.x);
 
 			// Put in [0, 2pi].
 			if (theta < 0.0f)
 				theta += XM_2PI;
 
-			float phi = acosf(meshData.Vertices[i].Position.y / radius);
+			float phi = acosf(meshData.getVertices()[i].Position.y / radius);
 
-			meshData.Vertices[i].TexC.x = theta / XM_2PI;
-			meshData.Vertices[i].TexC.y = phi / XM_PI;
+			meshData.getVertices()[i].TexC.x = theta / XM_2PI;
+			meshData.getVertices()[i].TexC.y = phi / XM_PI;
 
 			// Partial derivative of P with respect to theta
-			meshData.Vertices[i].TangentU.x = -radius * sinf(phi) * sinf(theta);
-			meshData.Vertices[i].TangentU.y = 0.0f;
-			meshData.Vertices[i].TangentU.z = +radius * sinf(phi) * cosf(theta);
+			meshData.getVertices()[i].TangentU.x = -radius * sinf(phi) * sinf(theta);
+			meshData.getVertices()[i].TangentU.y = 0.0f;
+			meshData.getVertices()[i].TangentU.z = +radius * sinf(phi) * cosf(theta);
 
-			XMVECTOR T = XMLoadFloat3(&meshData.Vertices[i].TangentU);
-			XMStoreFloat3(&meshData.Vertices[i].TangentU, XMVector3Normalize(T));
+			XMVECTOR T = XMLoadFloat3(&meshData.getVertices()[i].TangentU);
+			XMStoreFloat3(&meshData.getVertices()[i].TangentU, XMVector3Normalize(T));
 		}
 
 		return meshData;
@@ -917,7 +873,7 @@ public:
 				XMVECTOR N = XMVector3Normalize(XMVector3Cross(T, B));
 				XMStoreFloat3(&vertex.Normal, N);
 
-				meshData.Vertices.push_back(vertex);
+				meshData.getVertices().push_back(vertex);
 			}
 		}
 
@@ -965,7 +921,7 @@ public:
 		float du = 1.0f / (n - 1);
 		float dv = 1.0f / (m - 1);
 
-		meshData.Vertices.resize(vertexCount);
+		meshData.getVertices().resize(vertexCount);
 		for (uint32 i = 0; i < m; ++i)
 		{
 			float z = halfDepth - i * dz;
@@ -973,13 +929,13 @@ public:
 			{
 				float x = -halfWidth + j * dx;
 
-				meshData.Vertices[i * n + j].Position = XMFLOAT3(x, 0.0f, z);
-				meshData.Vertices[i * n + j].Normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				meshData.Vertices[i * n + j].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
+				meshData.getVertices()[i * n + j].Position = XMFLOAT3(x, 0.0f, z);
+				meshData.getVertices()[i * n + j].Normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+				meshData.getVertices()[i * n + j].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
 
 				// Stretch texture over grid.
-				meshData.Vertices[i * n + j].TexC.x = j * du;
-				meshData.Vertices[i * n + j].TexC.y = i * dv;
+				meshData.getVertices()[i * n + j].TexC.x = j * du;
+				meshData.getVertices()[i * n + j].TexC.y = i * dv;
 			}
 		}
 
@@ -1013,29 +969,29 @@ public:
 	{
 		MeshData meshData;
 
-		meshData.Vertices.resize(4);
+		meshData.getVertices().resize(4);
 		meshData.Indices32.resize(6);
 
 		// Position coordinates specified in NDC space.
-		meshData.Vertices[0] = Vertex(
+		meshData.getVertices()[0] = Vertex(
 			x, y - h, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			0.0f, 1.0f);
 
-		meshData.Vertices[1] = Vertex(
+		meshData.getVertices()[1] = Vertex(
 			x, y, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			0.0f, 0.0f);
 
-		meshData.Vertices[2] = Vertex(
+		meshData.getVertices()[2] = Vertex(
 			x + w, y, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
 			1.0f, 0.0f);
 
-		meshData.Vertices[3] = Vertex(
+		meshData.getVertices()[3] = Vertex(
 			x + w, y - h, depth,
 			0.0f, 0.0f, -1.0f,
 			1.0f, 0.0f, 0.0f,
@@ -1059,7 +1015,7 @@ private:
 		MeshData inputCopy = meshData;
 
 
-		meshData.Vertices.resize(0);
+		meshData.getVertices().resize(0);
 		meshData.Indices32.resize(0);
 
 		//       v1
@@ -1075,9 +1031,9 @@ private:
 		uint32 numTris = (uint32)inputCopy.Indices32.size() / 3;
 		for (uint32 i = 0; i < numTris; ++i)
 		{
-			Vertex v0 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 0]];
-			Vertex v1 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 1]];
-			Vertex v2 = inputCopy.Vertices[inputCopy.Indices32[i * 3 + 2]];
+			Vertex v0 = inputCopy.getVertices()[inputCopy.Indices32[i * 3 + 0]];
+			Vertex v1 = inputCopy.getVertices()[inputCopy.Indices32[i * 3 + 1]];
+			Vertex v2 = inputCopy.getVertices()[inputCopy.Indices32[i * 3 + 2]];
 
 			//
 			// Generate the midpoints.
@@ -1091,12 +1047,12 @@ private:
 			// Add new geometry.
 			//
 
-			meshData.Vertices.push_back(v0); // 0
-			meshData.Vertices.push_back(v1); // 1
-			meshData.Vertices.push_back(v2); // 2
-			meshData.Vertices.push_back(m0); // 3
-			meshData.Vertices.push_back(m1); // 4
-			meshData.Vertices.push_back(m2); // 5
+			meshData.getVertices().push_back(v0); // 0
+			meshData.getVertices().push_back(v1); // 1
+			meshData.getVertices().push_back(v2); // 2
+			meshData.getVertices().push_back(m0); // 3
+			meshData.getVertices().push_back(m1); // 4
+			meshData.getVertices().push_back(m2); // 5
 
 			meshData.Indices32.push_back(i * 6 + 0);
 			meshData.Indices32.push_back(i * 6 + 3);
@@ -1146,7 +1102,7 @@ private:
 	}
 	void BuildCylinderTopCap(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount, MeshData& meshData)
 	{
-		uint32 baseIndex = (uint32)meshData.Vertices.size();
+		uint32 baseIndex = (uint32)meshData.getVertices().size();
 
 		float y = 0.5f * height;
 		float dTheta = 2.0f * XM_PI / sliceCount;
@@ -1162,14 +1118,14 @@ private:
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.getVertices().push_back(Vertex(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.getVertices().push_back(Vertex(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
 		// Index of center vertex.
-		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
+		uint32 centerIndex = (uint32)meshData.getVertices().size() - 1;
 
 		for (uint32 i = 0; i < sliceCount; ++i)
 		{
@@ -1184,7 +1140,7 @@ private:
 		// Build bottom cap.
 		//
 
-		uint32 baseIndex = (uint32)meshData.Vertices.size();
+		uint32 baseIndex = (uint32)meshData.getVertices().size();
 		float y = -0.5f * height;
 
 		// vertices of ring
@@ -1199,14 +1155,14 @@ private:
 			float u = x / height + 0.5f;
 			float v = z / height + 0.5f;
 
-			meshData.Vertices.push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+			meshData.getVertices().push_back(Vertex(x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 		}
 
 		// Cap center vertex.
-		meshData.Vertices.push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+		meshData.getVertices().push_back(Vertex(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
 		// Cache the index of center vertex.
-		uint32 centerIndex = (uint32)meshData.Vertices.size() - 1;
+		uint32 centerIndex = (uint32)meshData.getVertices().size() - 1;
 
 		for (uint32 i = 0; i < sliceCount; ++i)
 		{

@@ -1,4 +1,5 @@
-module;
+#pragma once
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -47,8 +48,6 @@ module;
 
 #include <exception>
 #include <stdexcept>
-
-export module PerformanceTimers;
 
 import DXSampleHelper;
 
@@ -341,7 +340,7 @@ export namespace DX
             desc.Count = c_timerSlots;
             ThrowIfFailed(device->CreateQueryHeap(&desc, IID_GRAPHICS_PPV_ARGS(m_heap.ReleaseAndGetAddressOf())));
             m_heap->SetName(L"GPUTimerHeap");
-             // Reset the command list for the acceleration structure construction.
+            // Reset the command list for the acceleration structure construction.
             commandList->Reset(commandAllocator, nullptr);
 
             for (int i = 0; i < c_timerSlots; i++)

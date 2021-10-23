@@ -6,27 +6,25 @@ module;
 #include <d3d12.h>
 #include <memory>
 #include <vector>
-#include <ranges>
 #include <wrl/client.h>
+
+#include "RaytracingSceneDefines.h"
 export module ShaderTableComponent;
 
-import DeviceResources;
+import DeviceResourcesInterface;
 import ShaderTable;
 import ShaderRecord;
 import DXSampleHelper;
 import Material;
-import RaytracingSceneDefines;
 import Mesh;
 import D3DBuffer;
 import D3DTexture;
-import ConstantBuffer;
 
 using namespace std;
-using namespace std::views;
 using namespace Microsoft::WRL;
 
 export class ShaderTableComponent {
-    DeviceResources* deviceResources;
+    DeviceResourcesInterface* deviceResources;
     const wchar_t** c_hitGroupNames_TriangleGeometry;
     const wchar_t** c_missShaderNames;
     const wchar_t* c_closestHitShaderName;
@@ -34,24 +32,69 @@ export class ShaderTableComponent {
     ComPtr<ID3D12Resource> hitGroupShaderTable;
     ComPtr<ID3D12StateObject> dxrStateObject;
     UINT missShaderTableStrideInBytes;
-    UINT* meshOffsets;
+    vector<int>* meshOffsets;
     D3DBuffer* indexBuffer;
     D3DBuffer* vertexBuffer;
     unordered_map<string, unique_ptr<MeshGeometry>>* geometries;
     vector<int>* meshSizes;
-    D3DTexture** templeTextures;
-    D3DTexture** templeNormalTextures;
-    D3DTexture** templeSpecularTextures;
-    D3DTexture** templeEmittanceTextures;
+    D3DTexture* templeTextures;
+    D3DTexture* templeNormalTextures;
+    D3DTexture* templeSpecularTextures;
+    D3DTexture* templeEmittanceTextures;
     UINT NUM_BLAS;
     UINT hitGroupShaderTableStrideInBytes;
     PrimitiveConstantBuffer* triangleMaterialCB;
     ComPtr<ID3D12Resource> rayGenShaderTable;
     ComPtr<ID3D12Resource> missShaderTable;
 
-
 public:
-    ShaderTableComponent() {}
+    ShaderTableComponent(
+        DeviceResourcesInterface* deviceResources,
+        const wchar_t** c_hitGroupNames_TriangleGeometry,
+        const wchar_t** c_missShaderNames,
+        const wchar_t* c_closestHitShaderName,
+        const wchar_t* c_raygenShaderName,
+        ComPtr<ID3D12Resource> hitGroupShaderTable,
+        ComPtr<ID3D12StateObject> dxrStateObject,
+        UINT missShaderTableStrideInBytes,
+        vector<int>* meshOffsets,
+        D3DBuffer* indexBuffer,
+        D3DBuffer* vertexBuffer,
+        unordered_map<string, unique_ptr<MeshGeometry>>* geometries,
+        vector<int>* meshSizes,
+        D3DTexture* templeTextures,
+        D3DTexture* templeNormalTextures,
+        D3DTexture* templeSpecularTextures,
+        D3DTexture* templeEmittanceTextures,
+        UINT NUM_BLAS,
+        UINT hitGroupShaderTableStrideInBytes,
+        PrimitiveConstantBuffer* triangleMaterialCB,
+        ComPtr<ID3D12Resource> rayGenShaderTable,
+        ComPtr<ID3D12Resource> missShaderTable
+    ) :
+        deviceResources{ deviceResources },
+        c_hitGroupNames_TriangleGeometry{ c_hitGroupNames_TriangleGeometry },
+        c_missShaderNames{ c_missShaderNames },
+        c_closestHitShaderName{ c_closestHitShaderName },
+        c_raygenShaderName{ c_raygenShaderName },
+        hitGroupShaderTable{ hitGroupShaderTable },
+        dxrStateObject{ dxrStateObject },
+        missShaderTableStrideInBytes{ missShaderTableStrideInBytes },
+        meshOffsets{ meshOffsets },
+        indexBuffer{ indexBuffer },
+        vertexBuffer{ vertexBuffer },
+        geometries{ geometries },
+        meshSizes{ meshSizes },
+        templeTextures{ templeTextures },
+        templeNormalTextures{ templeNormalTextures },
+        templeSpecularTextures{ templeSpecularTextures },
+        templeEmittanceTextures{ templeEmittanceTextures },
+        NUM_BLAS{ NUM_BLAS },
+        hitGroupShaderTableStrideInBytes{ hitGroupShaderTableStrideInBytes },
+        triangleMaterialCB{ triangleMaterialCB },
+        rayGenShaderTable{ rayGenShaderTable },
+        missShaderTable{ missShaderTable }
+    {}
 
     void BuildShaderTables()
     {
@@ -84,7 +127,7 @@ public:
         // Get shader identifiers.
         UINT shaderIDSize;
         {
-            Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
+            ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
             ThrowIfFailed(dxrStateObject.As(&stateObjectProperties));
             GetShaderIDs(stateObjectProperties.Get());
             shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
@@ -122,24 +165,24 @@ public:
             UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
             ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
-            for (auto i : iota(0, 6))
+            for (auto i = 0; i < 6; ++i)
             {
                 LocalRootSignature::Triangle::RootArguments rootArgs;
 
                 // Create a shader record for each primitive.
                 for (UINT instanceIndex = 0; instanceIndex < (UINT)(*meshSizes)[i]; instanceIndex++)
                 {
-                    rootArgs.materialCb = triangleMaterialCB[instanceIndex + meshOffsets[i]];
-                    rootArgs.triangleCB.instanceIndex = instanceIndex + meshOffsets[i];
-                    auto ib = indexBuffer[instanceIndex + meshOffsets[i]].gpuDescriptorHandle;
-                    auto vb = vertexBuffer[instanceIndex + meshOffsets[i]].gpuDescriptorHandle;
-                    string geoName = "geo" + to_string(instanceIndex + meshOffsets[i]);
-                    string meshName = "mesh" + to_string(instanceIndex + meshOffsets[i]);
+                    rootArgs.materialCb = triangleMaterialCB[instanceIndex + (*meshOffsets)[i]];
+                    rootArgs.triangleCB.instanceIndex = instanceIndex + (*meshOffsets)[i];
+                    auto ib = indexBuffer[instanceIndex + (*meshOffsets)[i]].gpuDescriptorHandle;
+                    auto vb = vertexBuffer[instanceIndex + (*meshOffsets)[i]].gpuDescriptorHandle;
+                    string geoName = "geo" + to_string(instanceIndex + (*meshOffsets)[i]);
+                    string meshName = "mesh" + to_string(instanceIndex + (*meshOffsets)[i]);
                     Material m = (*geometries)[geoName]->DrawArgs[meshName].Material;
-                    auto texture = (*templeTextures)[m.id].gpuDescriptorHandle;
-                    auto normalTexture = (*templeNormalTextures)[m.id].gpuDescriptorHandle;
-                    auto specularTexture = (*templeSpecularTextures)[m.id].gpuDescriptorHandle;
-                    auto emittanceTexture = (*templeEmittanceTextures)[m.id].gpuDescriptorHandle;
+                    auto texture = templeTextures[m.id].gpuDescriptorHandle;
+                    auto normalTexture = templeNormalTextures[m.id].gpuDescriptorHandle;
+                    auto specularTexture = templeSpecularTextures[m.id].gpuDescriptorHandle;
+                    auto emittanceTexture = templeEmittanceTextures[m.id].gpuDescriptorHandle;
                     memcpy(&rootArgs.indexBufferGPUHandle, &ib, sizeof(ib));
                     memcpy(&rootArgs.vertexBufferGPUHandle, &vb, sizeof(ib));
                     memcpy(&rootArgs.diffuseTextureGPUHandle, &texture, sizeof(ib));

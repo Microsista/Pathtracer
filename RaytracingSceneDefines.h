@@ -1,7 +1,6 @@
-module;
+#pragma once
+
 #include "RayTracingHlslCompat.hlsli"
-#include <d3d12.h>
-export module RaytracingSceneDefines;
 
 export {
     namespace GlobalRootSignature {
@@ -48,7 +47,7 @@ export {
             struct RootArguments {
                 PrimitiveConstantBuffer materialCb;
                 PrimitiveInstanceConstantBuffer triangleCB;
-      
+
                 D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
                 D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
                 D3D12_GPU_DESCRIPTOR_HANDLE diffuseTextureGPUHandle;

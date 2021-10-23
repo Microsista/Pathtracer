@@ -3,12 +3,15 @@ module;
 #include <iomanip>
 #include <Windows.h>
 #include <vector>
+
+#include "RaytracingSceneDefines.h"
+#include "PerformanceTimers.h"
 export module PerformanceComponent;
 
 import DeviceResources;
 import StepTimer;
-import PerformanceTimers;
-import RaytracingSceneDefines;
+
+
 import Helper;
 
 using namespace std;

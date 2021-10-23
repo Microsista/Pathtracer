@@ -2,7 +2,7 @@ module;
 #include "d3dx12.h"
 #include <d3d12.h>
 #include <algorithm>
-#include <ranges>
+
 export module OutputComponent;
 
 import DeviceResources;
@@ -12,7 +12,7 @@ import DXSampleHelper;
 import DescriptorComponent;
 
 using namespace std;
-using namespace std::views;
+
 
 export class OutputComponent {
     DeviceResources* deviceResources;

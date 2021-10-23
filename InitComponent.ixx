@@ -6,6 +6,7 @@ module;
 #include "RayTracingHlslCompat.hlsli"
 #include <wrl/client.h>
 #include <vector>
+#include "PerformanceTimers.h"
 export module InitComponent;
 
 import DeviceResources;
@@ -14,13 +15,14 @@ import DXSampleHelper;
 import Application;
 import RenderingComponent;
 import ConstantBuffer;
+import StructuredBuffer;
+
 import Helper;
 import InitInterface;
 import ResourceComponent;
 import CameraComponent;
 import DescriptorHeap;
-
-class Core;
+import CoreInterface;
 
 using namespace std;
 using namespace DirectX;
@@ -46,8 +48,8 @@ export class InitComponent : public InitInterface {
     XMFLOAT4 lightAmbientColor;
     XMFLOAT4 lightDiffuseColor;
 
-    ID3D12Device5* dxrDevice;
-    Core* core;
+    ID3D12Device5** dxrDevice;
+    CoreInterface* core;
 
     ResourceComponent* resourceComponent;
 
@@ -64,12 +66,12 @@ export class InitComponent : public InitInterface {
 
     ID3D12RootSignature* raytracingGlobalRootSignature;
     ID3D12Resource* topLevelAS;
-    ID3D12GraphicsCommandList5* dxrCommandList;
+    ID3D12GraphicsCommandList5** dxrCommandList;
     ID3D12StateObject* dxrStateObject;
 
     StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
 
-    XMFLOAT4(lightPosition);
+    XMFLOAT4 lightPosition;
 
     bool orbitalCamera;
     float aspectRatio;
@@ -80,11 +82,65 @@ public:
     InitComponent(
         DeviceResourcesInterface* deviceResources,
         PrimitiveConstantBuffer* triangleMaterialCB,
-        XMFLOAT3* cameraPosition
+        XMFLOAT3* cameraPosition,
+        UINT FrameCount,
+        UINT adapterIDoverride,
+        UINT width,
+        UINT height,
+        RenderingComponent* renderingComponent,
+        ConstantBuffer<SceneConstantBuffer>* sceneCB,
+        Camera camera,
+        CameraComponent* cameraComponent,
+        XMVECTOR at,
+        XMVECTOR up,
+        XMVECTOR eye,
+        CoreInterface* core,
+        ResourceComponent* resourceComponent,
+        ComPtr<ID3D12Resource> rayGenShaderTable,
+        ComPtr<ID3D12Resource> hitGroupShaderTable,
+        ComPtr<ID3D12Resource> missShaderTable,
+        UINT hitGroupShaderTableStrideInBytes,
+        UINT missShaderTableStrideInBytes,
+        vector<DX::GPUTimer>* gpuTimers,
+        D3D12_GPU_DESCRIPTOR_HANDLE* descriptors,
+        DescriptorHeap* descriptorHeap,
+        ID3D12RootSignature* raytracingGlobalRootSignature,
+        ID3D12Resource* topLevelAS,
+        ID3D12StateObject* dxrStateObject,
+        StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer,
+        bool orbitalCamera,
+        float aspectRatio
     ) :
         deviceResources{ deviceResources },
         triangleMaterialCB{ triangleMaterialCB },
-        cameraPosition{ cameraPosition }
+        cameraPosition{ cameraPosition },
+        FrameCount{ FrameCount },
+        adapterIDoverride{ adapterIDoverride },
+        width{ width },
+        height{ height },
+        renderingComponent{ renderingComponent },
+        sceneCB{ sceneCB },
+        camera{ camera },
+        cameraComponent{ cameraComponent },
+        at{ at },
+        up{ up },
+        eye{ eye },
+        core{ core },
+        resourceComponent{ resourceComponent },
+        rayGenShaderTable{ rayGenShaderTable },
+        hitGroupShaderTable{ hitGroupShaderTable },
+        missShaderTable{ missShaderTable },
+        hitGroupShaderTableStrideInBytes{ hitGroupShaderTableStrideInBytes },
+        missShaderTableStrideInBytes{ missShaderTableStrideInBytes },
+        gpuTimers{ gpuTimers },
+        descriptors{ descriptors },
+        descriptorHeap{ descriptorHeap },
+        raytracingGlobalRootSignature{ raytracingGlobalRootSignature },
+        topLevelAS{ topLevelAS },
+        dxrStateObject{ dxrStateObject },
+        trianglePrimitiveAttributeBuffer{ trianglePrimitiveAttributeBuffer },
+        orbitalCamera{ orbitalCamera },
+        aspectRatio{ aspectRatio }
     {}
 
     void InitializeScene() {
@@ -177,13 +233,5 @@ public:
             lightDiffuseColor = XMFLOAT4(d, d, d, 1.0f);
             (*sceneCB)->lightDiffuseColor = XMLoadFloat4(&ldc);
         }
-    }
-
-    void CreateRaytracingInterfaces() {
-        auto device = deviceResources->GetD3DDevice();
-        auto commandList = deviceResources->GetCommandList();
-
-        ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&dxrDevice)), L"Couldn't get DirectX Raytracing interface for the device.\n");
-        ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
     }
 };

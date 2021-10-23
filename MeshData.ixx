@@ -35,6 +35,10 @@ export struct MeshData
 		return mIndices16;
 	}
 
+	vector<Vertex> getVertices() {
+		return Vertices;
+	}
+
 private:
 	vector<uint16_t> mIndices16;
 };

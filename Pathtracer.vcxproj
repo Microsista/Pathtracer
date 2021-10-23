@@ -29,12 +29,14 @@
     <ClCompile Include="AssimpTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="BottomLevelASComponent.ixx" />
     <ClCompile Include="BufferComponent.ixx" />
     <ClCompile Include="CameraComponent.ixx" />
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="Core.ixx" />
+    <ClCompile Include="CoreInterface.ixx" />
     <ClCompile Include="D3DBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -67,16 +69,18 @@
     <ClCompile Include="MeshData.ixx" />
     <ClCompile Include="OutputComponent.ixx" />
     <ClCompile Include="PerformanceComponent.ixx" />
-    <ClCompile Include="PsoComponent.ixx" />
     <ClCompile Include="RenderingComponent.ixx" />
     <ClCompile Include="ResourceComponent.ixx" />
     <ClCompile Include="RootSignatureComponent.ixx" />
     <ClCompile Include="ShaderComponent.ixx" />
     <ClCompile Include="ShaderTableComponent.ixx" />
     <ClCompile Include="SrvComponent.ixx" />
+    <ClCompile Include="TopLevelASComponent.ixx" />
     <ClCompile Include="Transform.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClInclude Include="PerformanceTimers.h" />
+    <ClInclude Include="RaytracingSceneDefines.h" />
     <None Include="BxDF.hlsli" />
     <None Include="d3dx12.h" />
     <ClCompile Include="DescriptorHeap.ixx">
@@ -104,9 +108,6 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClInclude Include="RayTracingHlslCompat.hlsli" />
-    <ClCompile Include="RaytracingSceneDefines.ixx">
-      <FileType>Document</FileType>
-    </ClCompile>
     <ClCompile Include="ShaderRecord.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -138,9 +139,6 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="Math.ixx">
-      <FileType>Document</FileType>
-    </ClCompile>
-    <ClCompile Include="PerformanceTimers.ixx">
       <FileType>Document</FileType>
     </ClCompile>
   </ItemGroup>
@@ -200,13 +198,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

@@ -12,11 +12,13 @@ module;
 #include "Obj/Debug/CompiledShaders/ShadowMS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/CompositionCS.hlsl.h"
 #include "Obj/Debug/CompiledShaders/BlurCS.hlsl.h"
+
+#include "RaytracingSceneDefines.h"
+#include "PerformanceTimers.h"
 export module RenderingComponent;
 
 import DeviceResourcesInterface;
-import PerformanceTimers;
-import RaytracingSceneDefines;
+
 import Descriptors;
 import DescriptorHeap;
 import Camera;
