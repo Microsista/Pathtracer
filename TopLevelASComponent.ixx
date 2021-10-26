@@ -15,16 +15,16 @@ using namespace Microsoft::WRL;
 
 export class TopLevelASComponent {
     DeviceResourcesInterface* deviceResources;
-    UINT NUM_BLAS;
-    ID3D12Device5* dxrDevice;
+    const UINT& NUM_BLAS;
+    ComPtr<ID3D12Device5>& dxrDevice;
     BottomLevelASComponent* bottomLevelASComponent;
     ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
 
 public:
     TopLevelASComponent(
         DeviceResourcesInterface* deviceResources,
-        UINT NUM_BLAS,
-        ID3D12Device5* dxrDevice,
+        const UINT& NUM_BLAS,
+        ComPtr<ID3D12Device5>& dxrDevice,
         BottomLevelASComponent* bottomLevelASComponent,
         ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
     ) :

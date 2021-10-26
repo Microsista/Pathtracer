@@ -34,9 +34,9 @@ using namespace Microsoft::WRL;
 
 export class RenderingComponent {
     DeviceResourcesInterface* deviceResources;
-    ID3D12Resource* rayGenShaderTable;
-    ID3D12Resource* hitGroupShaderTable;
-    ID3D12Resource* missShaderTable;
+    ComPtr<ID3D12Resource>& rayGenShaderTable;
+    ComPtr<ID3D12Resource>& hitGroupShaderTable;
+    ComPtr<ID3D12Resource>& missShaderTable;
     UINT& hitGroupShaderTableStrideInBytes;
     UINT& missShaderTableStrideInBytes;
     UINT& width;
@@ -45,7 +45,7 @@ export class RenderingComponent {
     vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
     DescriptorHeap*& descriptorHeap;
     Camera& camera;
-    ID3D12RootSignature* raytracingGlobalRootSignature;
+    ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
     ComPtr<ID3D12Resource>& topLevelAS;
     ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
     ComPtr<ID3D12StateObject>& dxrStateObject;
@@ -64,9 +64,9 @@ export class RenderingComponent {
 public:
     RenderingComponent(
         DeviceResourcesInterface* deviceResources,
-        ID3D12Resource* hitGroupShaderTable,
-        ID3D12Resource* missShaderTable,
-        ID3D12Resource* rayGenShaderTable,
+        ComPtr<ID3D12Resource>& hitGroupShaderTable,
+        ComPtr<ID3D12Resource>& missShaderTable,
+        ComPtr<ID3D12Resource>& rayGenShaderTable,
         UINT& hitGroupShaderTableStrideInBytes,
         UINT& missShaderTableStrideInBytes,
         UINT& width,
@@ -76,7 +76,7 @@ public:
 
         DescriptorHeap*& descriptorHeap,
         Camera& camera,
-        ID3D12RootSignature* raytracingGlobalRootSignature,
+        ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
         ComPtr<ID3D12Resource>& topLevelAS,
         ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
         ComPtr<ID3D12StateObject>& dxrStateObject,
@@ -117,7 +117,7 @@ public:
     void DoRaytracing() {
         auto commandList = deviceResources->GetCommandList();
 
-        commandList->SetComputeRootSignature(raytracingGlobalRootSignature);
+        commandList->SetComputeRootSignature(raytracingGlobalRootSignature.Get());
 
         XMFLOAT3 tempEye;
         XMStoreFloat3(&tempEye, camera.GetPosition());

@@ -302,7 +302,7 @@ public:
         }
         bottomLevelAsComponent = new BottomLevelASComponent(
             deviceResources,
-            dxrDevice.Get(),
+            dxrDevice,
             dxrCommandList,
             meshSizes,
             indexBuffer,
@@ -314,13 +314,13 @@ public:
         topLevelAsComponent = new TopLevelASComponent(
             deviceResources,
             NUM_BLAS,
-            dxrDevice.Get(),
+            dxrDevice,
             bottomLevelAsComponent,
             dxrCommandList
         );
         asComponent = new AccelerationStructureComponent(
             deviceResources,
-            dxrDevice.Get(),
+            dxrDevice,
             NUM_BLAS,
             dxrCommandList,
             bottomLevelAS,

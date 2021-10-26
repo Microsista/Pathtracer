@@ -55,9 +55,6 @@
     <ClCompile Include="CameraComponent.ixx">
       <Filter>Modules\Components</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorComponent.ixx">
-      <Filter>Modules\Components</Filter>
-    </ClCompile>
     <ClCompile Include="GeometryComponent.ixx">
       <Filter>Modules\Components</Filter>
     </ClCompile>

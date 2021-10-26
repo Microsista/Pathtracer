@@ -19,17 +19,17 @@ import DXCoreInterface;
 using namespace DirectX;
 
 export class UpdateComponent : public UpdateInterface {
-    StepTimer* timer;
+    StepTimer& timer;
     DeviceResourcesInterface* deviceResources;
-    bool orbitalCamera;
-    XMVECTOR eye;
-    XMVECTOR up;
-    XMVECTOR at;
-    bool animateLight;
-    bool animateGeometry;
-    float animateGeometryTime;
-    ConstantBuffer<SceneConstantBuffer>* sceneCB;
-    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>* filterCB;
+    bool& orbitalCamera;
+    XMVECTOR& eye;
+    XMVECTOR& up;
+    XMVECTOR& at;
+    bool& animateLight;
+    bool& animateGeometry;
+    float& animateGeometryTime;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
 
     PerformanceComponent* performanceComponent;
     CameraComponent* cameraComponent;
@@ -39,17 +39,17 @@ export class UpdateComponent : public UpdateInterface {
 
 public:
     UpdateComponent(
-        StepTimer* timer,
+        StepTimer& timer,
         DeviceResourcesInterface* deviceResources,
-        bool orbitalCamera,
-        XMVECTOR eye,
-        XMVECTOR up,
-        XMVECTOR at,
-        bool animateLight,
-        bool animateGeometry,
-        float animateGeometryTime,
-        ConstantBuffer<SceneConstantBuffer>* sceneCB,
-        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>* filterCB,
+        bool& orbitalCamera,
+        XMVECTOR& eye,
+        XMVECTOR& up,
+        XMVECTOR& at,
+        bool& animateLight,
+        bool& animateGeometry,
+        float& animateGeometryTime,
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
         PerformanceComponent* performanceComponent,
         CameraComponent* cameraComponent,
         ResourceComponent* resourceComponent,
@@ -73,9 +73,9 @@ public:
     {}
 
     virtual void OnUpdate() {
-        timer->Tick();
+        timer.Tick();
         performanceComponent->CalculateFrameStats();
-        float elapsedTime = static_cast<float>(timer->GetElapsedSeconds());
+        float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
         auto prevFrameIndex = deviceResources->GetPreviousFrameIndex();
 
@@ -95,18 +95,18 @@ public:
             float secondsToRotateAround = 8.0f;
             float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
             XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-            const XMVECTOR& prevLightPosition = (*sceneCB)->lightPosition;
-            (*sceneCB)->lightPosition = XMVector3Transform(prevLightPosition, rotate);
+            const XMVECTOR& prevLightPosition = sceneCB->lightPosition;
+            sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
         }
 
         if (animateGeometry)
         {
             animateGeometryTime += elapsedTime;
         }
-        (*sceneCB)->elapsedTime = animateGeometryTime;
+        sceneCB->elapsedTime = animateGeometryTime;
 
         auto outputSize = deviceResources->GetOutputSize();
-        (*filterCB)->textureDim = XMUINT2(outputSize.right, outputSize.bottom);
+        filterCB->textureDim = XMUINT2(outputSize.right, outputSize.bottom);
     }
 
     virtual void OnDeviceLost() override {

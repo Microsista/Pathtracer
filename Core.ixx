@@ -46,7 +46,6 @@ import RootSignatureComponent;
 import OutputComponent;
 import GeometryComponent;
 import AccelerationStructureComponent;
-import DescriptorComponent;
 import ShaderTableComponent;
 import SrvComponent;
 import BottomLevelASComponent;
@@ -153,7 +152,6 @@ export class Core : public DXCore, public CoreInterface {
     OutputComponent* outputComponent;
     GeometryComponent* geometryComponent;
     AccelerationStructureComponent* accelerationStructureComponent;
-    DescriptorComponent* descriptorComponent;
     SrvComponent* srvComponent;
     BottomLevelASComponent* bottomLevelASComponent;
     TopLevelASComponent* topLevelASComponent;
@@ -334,7 +332,7 @@ public:
         resourceComponent->CreateWindowSizeDependentResources();
 
         updateComponent = new UpdateComponent(
-            &m_timer,
+            m_timer,
             m_deviceResources.get(),
             m_orbitalCamera,
             m_eye,
@@ -343,8 +341,8 @@ public:
             m_animateLight,
             m_animateGeometry,
             m_animateGeometryTime,
-            &m_sceneCB,
-            &m_filterCB,
+            m_sceneCB,
+            m_filterCB,
             performanceComponent,
             cameraComponent,
             resourceComponent,
@@ -353,9 +351,9 @@ public:
 
         renderingComponent = new RenderingComponent{
            m_deviceResources.get(),
-           m_hitGroupShaderTable.Get(),
-           m_missShaderTable.Get(),
-           m_rayGenShaderTable.Get(),
+           m_hitGroupShaderTable,
+           m_missShaderTable,
+           m_rayGenShaderTable,
            m_hitGroupShaderTableStrideInBytes,
            m_missShaderTableStrideInBytes,
            m_width,
@@ -365,7 +363,7 @@ public:
 
            m_descriptorHeap,
            m_camera,
-           m_raytracingGlobalRootSignature.Get(),
+           m_raytracingGlobalRootSignature,
            m_topLevelAS,
            m_dxrCommandList,
            m_dxrStateObject,

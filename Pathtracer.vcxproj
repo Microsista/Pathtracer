@@ -42,7 +42,6 @@
     <ClCompile Include="D3DTexture.ixx">
       <FileType>Document</FileType>
     </ClCompile>
-    <ClCompile Include="DescriptorComponent.ixx" />
     <ClCompile Include="DescriptorHeapInterface.ixx">
       <FileType>Document</FileType>
     </ClCompile>

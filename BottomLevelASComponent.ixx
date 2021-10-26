@@ -23,26 +23,26 @@ using namespace std;
 
 export class BottomLevelASComponent {
     DeviceResourcesInterface* deviceResources;
-    ID3D12Device5* dxrDevice;
+    ComPtr<ID3D12Device5>& dxrDevice;
     ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
     vector<int>& meshSizes;
     vector<D3DBuffer>& indexBuffer;
     vector<D3DBuffer>& vertexBuffer;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
     vector<int>& meshOffsets;
-    UINT NUM_BLAS;
+    const UINT& NUM_BLAS;
 
 public:
     BottomLevelASComponent(
         DeviceResourcesInterface* deviceResources,
-        ID3D12Device5* dxrDevice,
+        ComPtr<ID3D12Device5>& dxrDevice,
         ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
         vector<int>& meshSizes,
         vector<D3DBuffer>& indexBuffer,
         vector<D3DBuffer>& vertexBuffer,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
         vector<int>& meshOffsets,
-        UINT NUM_BLAS
+        const UINT& NUM_BLAS
     ) :
         deviceResources{ deviceResources },
         dxrDevice{ dxrDevice },

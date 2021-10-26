@@ -13,21 +13,20 @@ import DeviceResourcesInterface;
 import D3DBuffer;
 import Texture;
 import DXSampleHelper;
-import DescriptorComponent;
 import D3DTexture;
 import DescriptorHeapInterface;
 
 using namespace std;
 
 export class SrvComponent {
-    UINT descriptorSize;
+    UINT& descriptorSize;
     DeviceResourcesInterface* deviceResources;
     unordered_map<string, unique_ptr<Texture>>& textures;
     DescriptorHeap* descriptorHeap;
 
 public:
     SrvComponent(
-        UINT descriptorSize,
+        UINT& descriptorSize,
         DeviceResourcesInterface* deviceResources,
         unordered_map<string, unique_ptr<Texture>>& textures,
         DescriptorHeap* descriptorHeap

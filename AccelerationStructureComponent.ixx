@@ -29,8 +29,8 @@ using namespace Microsoft::WRL;
 
 export class AccelerationStructureComponent {
     DeviceResourcesInterface* deviceResources;
-    ID3D12Device5* dxrDevice;
-    UINT NUM_BLAS;
+    ComPtr<ID3D12Device5>& dxrDevice;
+    const UINT& NUM_BLAS;
     ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
     vector<ComPtr<ID3D12Resource>>& bottomLevelAS;
     ComPtr<ID3D12Resource>& topLevelAS;
@@ -51,8 +51,8 @@ export class AccelerationStructureComponent {
 public:
     AccelerationStructureComponent(
         DeviceResourcesInterface* deviceResources,
-        ID3D12Device5* dxrDevice,
-        UINT NUM_BLAS,
+        ComPtr<ID3D12Device5>& dxrDevice,
+        const UINT& NUM_BLAS,
         ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
         vector<ComPtr<ID3D12Resource>>& bottomLevelAS,
         ComPtr<ID3D12Resource>& topLevelAS,

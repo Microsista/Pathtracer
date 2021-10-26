@@ -18,14 +18,14 @@ export class RootSignatureComponent {
     DeviceResourcesInterface* deviceResources;
     vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    vector<const wchar_t*> c_hitGroupNames_TriangleGeometry;
+    vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
 
 public:
     RootSignatureComponent(
         DeviceResourcesInterface* deviceResources,
         vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
         ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        vector<const wchar_t*> c_hitGroupNames_TriangleGeometry
+        vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry
     ) :
         deviceResources{ deviceResources },
         raytracingLocalRootSignature{ raytracingLocalRootSignature },

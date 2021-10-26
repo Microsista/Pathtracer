@@ -11,7 +11,6 @@ import DeviceResourcesInterface;
 import Descriptors;
 import DescriptorHeap;
 import DXSampleHelper;
-import DescriptorComponent;
 
 using namespace std;
 using namespace Microsoft::WRL;

@@ -31,7 +31,7 @@ export class GeometryComponent {
     DeviceResourcesInterface* deviceResources;
     vector<int>& meshOffsets;
     vector<int>& meshSizes;
-    UINT geoOffset;
+    UINT& geoOffset;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
     vector<D3DBuffer>& indexBuffer;
     vector<D3DBuffer>& vertexBuffer;
@@ -43,7 +43,7 @@ public:
         DeviceResourcesInterface* deviceResources,
         vector<int>& meshOffsets,
         vector<int>& meshSizes,
-        UINT geoOffset,
+        UINT& geoOffset,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
         vector<D3DBuffer>& indexBuffer,
         vector<D3DBuffer>& vertexBuffer,
