@@ -25,52 +25,52 @@ using namespace Microsoft::WRL;
 
 export class ShaderTableComponent {
     DeviceResourcesInterface* deviceResources;
-    const wchar_t** c_hitGroupNames_TriangleGeometry;
-    const wchar_t** c_missShaderNames;
+    vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
+    vector<const wchar_t*>& c_missShaderNames;
     const wchar_t* c_closestHitShaderName;
     const wchar_t* c_raygenShaderName;
-    ComPtr<ID3D12Resource> hitGroupShaderTable;
+    ComPtr<ID3D12Resource>& hitGroupShaderTable;
     ComPtr<ID3D12StateObject> dxrStateObject;
-    UINT missShaderTableStrideInBytes;
-    vector<int>* meshOffsets;
-    D3DBuffer* indexBuffer;
-    D3DBuffer* vertexBuffer;
-    unordered_map<string, unique_ptr<MeshGeometry>>* geometries;
-    vector<int>* meshSizes;
-    D3DTexture* templeTextures;
-    D3DTexture* templeNormalTextures;
-    D3DTexture* templeSpecularTextures;
-    D3DTexture* templeEmittanceTextures;
+    UINT& missShaderTableStrideInBytes;
+    vector<int>& meshOffsets;
+    vector<D3DBuffer>& indexBuffer;
+    vector<D3DBuffer>& vertexBuffer;
+    unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
+    vector<int>& meshSizes;
+    vector<D3DTexture>& templeTextures;
+    vector<D3DTexture>& templeNormalTextures;
+    vector<D3DTexture>& templeSpecularTextures;
+    vector<D3DTexture>& templeEmittanceTextures;
     UINT NUM_BLAS;
-    UINT hitGroupShaderTableStrideInBytes;
-    PrimitiveConstantBuffer* triangleMaterialCB;
-    ComPtr<ID3D12Resource> rayGenShaderTable;
-    ComPtr<ID3D12Resource> missShaderTable;
+    UINT& hitGroupShaderTableStrideInBytes;
+    vector<PrimitiveConstantBuffer>& triangleMaterialCB;
+    ComPtr<ID3D12Resource>& rayGenShaderTable;
+    ComPtr<ID3D12Resource>& missShaderTable;
 
 public:
     ShaderTableComponent(
         DeviceResourcesInterface* deviceResources,
-        const wchar_t** c_hitGroupNames_TriangleGeometry,
-        const wchar_t** c_missShaderNames,
+        vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry,
+        vector<const wchar_t*>& c_missShaderNames,
         const wchar_t* c_closestHitShaderName,
         const wchar_t* c_raygenShaderName,
-        ComPtr<ID3D12Resource> hitGroupShaderTable,
+        ComPtr<ID3D12Resource>& hitGroupShaderTable,
         ComPtr<ID3D12StateObject> dxrStateObject,
-        UINT missShaderTableStrideInBytes,
-        vector<int>* meshOffsets,
-        D3DBuffer* indexBuffer,
-        D3DBuffer* vertexBuffer,
-        unordered_map<string, unique_ptr<MeshGeometry>>* geometries,
-        vector<int>* meshSizes,
-        D3DTexture* templeTextures,
-        D3DTexture* templeNormalTextures,
-        D3DTexture* templeSpecularTextures,
-        D3DTexture* templeEmittanceTextures,
+        UINT& missShaderTableStrideInBytes,
+        vector<int>& meshOffsets,
+        vector<D3DBuffer>& indexBuffer,
+        vector<D3DBuffer>& vertexBuffer,
+        unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
+        vector<int>& meshSizes,
+        vector<D3DTexture>& templeTextures,
+        vector<D3DTexture>& templeNormalTextures,
+        vector<D3DTexture>& templeSpecularTextures,
+        vector<D3DTexture>& templeEmittanceTextures,
         UINT NUM_BLAS,
-        UINT hitGroupShaderTableStrideInBytes,
-        PrimitiveConstantBuffer* triangleMaterialCB,
-        ComPtr<ID3D12Resource> rayGenShaderTable,
-        ComPtr<ID3D12Resource> missShaderTable
+        UINT& hitGroupShaderTableStrideInBytes,
+        vector<PrimitiveConstantBuffer>& triangleMaterialCB,
+        ComPtr<ID3D12Resource>& rayGenShaderTable,
+        ComPtr<ID3D12Resource>& missShaderTable
     ) :
         deviceResources{ deviceResources },
         c_hitGroupNames_TriangleGeometry{ c_hitGroupNames_TriangleGeometry },
@@ -170,15 +170,15 @@ public:
                 LocalRootSignature::Triangle::RootArguments rootArgs;
 
                 // Create a shader record for each primitive.
-                for (UINT instanceIndex = 0; instanceIndex < (UINT)(*meshSizes)[i]; instanceIndex++)
+                for (UINT instanceIndex = 0; instanceIndex < (UINT)meshSizes[i]; instanceIndex++)
                 {
-                    rootArgs.materialCb = triangleMaterialCB[instanceIndex + (*meshOffsets)[i]];
-                    rootArgs.triangleCB.instanceIndex = instanceIndex + (*meshOffsets)[i];
-                    auto ib = indexBuffer[instanceIndex + (*meshOffsets)[i]].gpuDescriptorHandle;
-                    auto vb = vertexBuffer[instanceIndex + (*meshOffsets)[i]].gpuDescriptorHandle;
-                    string geoName = "geo" + to_string(instanceIndex + (*meshOffsets)[i]);
-                    string meshName = "mesh" + to_string(instanceIndex + (*meshOffsets)[i]);
-                    Material m = (*geometries)[geoName]->DrawArgs[meshName].Material;
+                    rootArgs.materialCb = triangleMaterialCB[instanceIndex + meshOffsets[i]];
+                    rootArgs.triangleCB.instanceIndex = instanceIndex + meshOffsets[i];
+                    auto ib = indexBuffer[instanceIndex + meshOffsets[i]].gpuDescriptorHandle;
+                    auto vb = vertexBuffer[instanceIndex + meshOffsets[i]].gpuDescriptorHandle;
+                    string geoName = "geo" + to_string(instanceIndex + meshOffsets[i]);
+                    string meshName = "mesh" + to_string(instanceIndex + meshOffsets[i]);
+                    Material m = geometries[geoName]->DrawArgs[meshName].Material;
                     auto texture = templeTextures[m.id].gpuDescriptorHandle;
                     auto normalTexture = templeNormalTextures[m.id].gpuDescriptorHandle;
                     auto specularTexture = templeSpecularTextures[m.id].gpuDescriptorHandle;
@@ -205,16 +205,5 @@ public:
         }
     }
 
-    void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
-        for (UINT rayType = 0; rayType < RayType::Count; rayType++)
-        {
-            auto hitGroup = raytracingPipeline->CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
-            if (rayType == RayType::Radiance)
-            {
-                hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
-            }
-            hitGroup->SetHitGroupExport(c_hitGroupNames_TriangleGeometry[rayType]);
-            hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES);
-        }
-    }
+   
 };

@@ -8,7 +8,7 @@ module;
 #include "PerformanceTimers.h"
 export module PerformanceComponent;
 
-import DeviceResources;
+import DeviceResourcesInterface;
 import StepTimer;
 
 
@@ -17,19 +17,31 @@ import Helper;
 using namespace std;
 
 export class PerformanceComponent {
-    DeviceResources* deviceResources;
-    UINT width;
-    UINT height;
-    StepTimer* timer;
-    vector<DX::GPUTimer>* gpuTimers;
+    DeviceResourcesInterface* deviceResources;
+    UINT& width;
+    UINT& height;
+    StepTimer& timer;
+    vector<DX::GPUTimer>& gpuTimers;
 
 public:
-    PerformanceComponent() {}
+    PerformanceComponent(
+        DeviceResourcesInterface* deviceResources,
+        UINT& width,
+        UINT& height,
+        StepTimer& timer,
+        vector<DX::GPUTimer>& gpuTimers
+    ) :
+        deviceResources{ deviceResources },
+        width{ width },
+        height{ height },
+        timer{ timer },
+        gpuTimers{ gpuTimers }
+    {}
 
     void CalculateFrameStats() {
         static int frameCnt = 0;
         static double prevTime = 0.0f;
-        double totalTime = timer->GetTotalSeconds();
+        double totalTime = timer.GetTotalSeconds();
 
         frameCnt++;
 
@@ -41,7 +53,7 @@ public:
 
             frameCnt = 0;
             prevTime = totalTime;
-            float raytracingTime = static_cast<float>((*gpuTimers)[GpuTimers::Raytracing].GetElapsedMS());
+            float raytracingTime = static_cast<float>(gpuTimers[GpuTimers::Raytracing].GetElapsedMS());
             float MRaysPerSecond = NumMRaysPerSecond(width, height, raytracingTime);
 
             wstringstream windowText;

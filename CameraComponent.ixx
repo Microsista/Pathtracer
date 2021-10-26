@@ -12,28 +12,24 @@ using namespace DirectX;
 
 export class CameraComponent {
     DeviceResourcesInterface* deviceResources;
-    ConstantBuffer<SceneConstantBuffer>* sceneCB;
-    bool orbitalCamera;
-    XMVECTOR* eye;
-    XMVECTOR* at;
-    XMVECTOR* up;
-    float aspectRatio;
-    XMMATRIX* projectionToWorld;
-    XMFLOAT3* cameraPosition;
-    Camera* camera;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    bool& orbitalCamera;
+    XMVECTOR& eye;
+    XMVECTOR& at;
+    XMVECTOR& up;
+    float& aspectRatio;
+    Camera& camera;
 
 public:
     CameraComponent(
         DeviceResourcesInterface* deviceResources,
-        ConstantBuffer<SceneConstantBuffer>* sceneCB,
-        bool orbitalCamera,
-        XMVECTOR* eye,
-        XMVECTOR* at,
-        XMVECTOR* up,
-        float aspectRatio,
-        XMMATRIX* projectionToWorld,
-        XMFLOAT3* cameraPosition,
-        Camera* camera
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        bool& orbitalCamera,
+        XMVECTOR& eye,
+        XMVECTOR& at,
+        XMVECTOR& up,
+        float& aspectRatio,
+        Camera& camera
     ) :
         deviceResources{ deviceResources },
         sceneCB{ sceneCB },
@@ -42,8 +38,6 @@ public:
         at{ at },
         up{ up },
         aspectRatio{ aspectRatio },
-        projectionToWorld{ projectionToWorld },
-        cameraPosition{ cameraPosition },
         camera{ camera }
     {}
 
@@ -51,22 +45,22 @@ public:
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
 
         if (orbitalCamera) {
-            (*sceneCB)->cameraPosition = *eye;
+            sceneCB->cameraPosition = eye;
 
             float fovAngleY = 45.0f;
 
-            XMMATRIX view = XMMatrixLookAtLH(*eye, *at, *up);
+            XMMATRIX view = XMMatrixLookAtLH(eye, at, up);
             XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), aspectRatio, 0.01f, 125.0f);
             XMMATRIX viewProj = view * proj;
-            (*sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+            sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
         }
         else {
-            (*sceneCB)->cameraPosition = camera->GetPosition();
+            sceneCB->cameraPosition = camera.GetPosition();
             float fovAngleY = 45.0f;
-            XMMATRIX view = camera->GetView();
-            XMMATRIX proj = camera->GetProj();
+            XMMATRIX view = camera.GetView();
+            XMMATRIX proj = camera.GetProj();
             XMMATRIX viewProj = view * proj;
-            (*sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, XMMatrixMultiply(camera->GetView(), camera->GetProj()));
+            sceneCB->projectionToWorld = XMMatrixInverse(nullptr, XMMatrixMultiply(camera.GetView(), camera.GetProj()));
         }
     }
 };

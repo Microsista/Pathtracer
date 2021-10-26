@@ -23,93 +23,85 @@ import ResourceComponent;
 import CameraComponent;
 import DescriptorHeap;
 import CoreInterface;
+import Camera;
 
 using namespace std;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
 export class InitComponent : public InitInterface {
-    shared_ptr<DeviceResourcesInterface> deviceResources;
-    UINT FrameCount;
-    UINT adapterIDoverride;
-    UINT width;
-    UINT height;
-    RenderingComponent* renderingComponent;
-    ConstantBuffer<SceneConstantBuffer>* sceneCB;
-    PrimitiveConstantBuffer* triangleMaterialCB;
-    Camera camera;
+    DeviceResourcesInterface*   deviceResources;
+    const UINT&                 FrameCount;
+    UINT&                       adapterIDoverride;
+    UINT&                       width;
+    UINT&                       height;
+    RenderingComponent*&        renderingComponent;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    vector<PrimitiveConstantBuffer>& triangleMaterialCB;
+    Camera&                     camera;
+    CameraComponent*&           cameraComponent;
+    XMVECTOR&                   at;
+    XMVECTOR&                   up;
+    XMVECTOR&                   eye;
 
-    CameraComponent* cameraComponent;
-
-    XMVECTOR at;
-    XMVECTOR up;
-    XMVECTOR eye;
-
-    XMFLOAT4 lightAmbientColor;
-    XMFLOAT4 lightDiffuseColor;
-
-    ID3D12Device5** dxrDevice;
-    CoreInterface* core;
-
-    ResourceComponent* resourceComponent;
-
-    ComPtr<ID3D12Resource> rayGenShaderTable;
-    ComPtr<ID3D12Resource> hitGroupShaderTable;
-    ComPtr<ID3D12Resource> missShaderTable;
-
-    UINT hitGroupShaderTableStrideInBytes;
-    UINT missShaderTableStrideInBytes;
-
-    vector<DX::GPUTimer>* gpuTimers;
-    D3D12_GPU_DESCRIPTOR_HANDLE* descriptors;
-    DescriptorHeap* descriptorHeap;
-
-    ID3D12RootSignature* raytracingGlobalRootSignature;
-    ID3D12Resource* topLevelAS;
+    XMFLOAT4                    lightAmbientColor;
+    XMFLOAT4                    lightDiffuseColor;
+    ID3D12Device5**             dxrDevice;
     ID3D12GraphicsCommandList5** dxrCommandList;
-    ID3D12StateObject* dxrStateObject;
+    XMFLOAT4                    lightPosition;
+    XMMATRIX*                   projectionToWorld;
 
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
+    CoreInterface*              core;
+    ResourceComponent*&         resourceComponent;
+    ComPtr<ID3D12Resource>&     rayGenShaderTable;
+    ComPtr<ID3D12Resource>&     hitGroupShaderTable;
+    ComPtr<ID3D12Resource>&     missShaderTable;
+    UINT&                       hitGroupShaderTableStrideInBytes;
+    UINT&                       missShaderTableStrideInBytes;
+    vector<DX::GPUTimer>&      gpuTimers;
+    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    DescriptorHeap*&            descriptorHeap;
+    ID3D12RootSignature*       raytracingGlobalRootSignature;
+    ID3D12Resource*            topLevelAS;
+    ID3D12StateObject*         dxrStateObject;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
 
-    XMFLOAT4 lightPosition;
-
-    bool orbitalCamera;
-    float aspectRatio;
-    XMMATRIX* projectionToWorld;
-    XMFLOAT3* cameraPosition;
+    bool&                       orbitalCamera;
+    float&                      aspectRatio;
+    XMFLOAT3&                   cameraPosition;
 
 public:
     InitComponent(
         DeviceResourcesInterface* deviceResources,
-        PrimitiveConstantBuffer* triangleMaterialCB,
-        XMFLOAT3* cameraPosition,
-        UINT FrameCount,
-        UINT adapterIDoverride,
-        UINT width,
-        UINT height,
-        RenderingComponent* renderingComponent,
-        ConstantBuffer<SceneConstantBuffer>* sceneCB,
-        Camera camera,
-        CameraComponent* cameraComponent,
-        XMVECTOR at,
-        XMVECTOR up,
-        XMVECTOR eye,
+        vector<PrimitiveConstantBuffer>& triangleMaterialCB,
+        XMFLOAT3& cameraPosition,
+        const UINT& FrameCount,
+        UINT& adapterIDoverride,
+        UINT& width,
+        UINT& height,
+        RenderingComponent*& renderingComponent,
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        Camera& camera,
+        CameraComponent*& cameraComponent,
+        XMVECTOR& at,
+        XMVECTOR& up,
+        XMVECTOR& eye,
         CoreInterface* core,
-        ResourceComponent* resourceComponent,
-        ComPtr<ID3D12Resource> rayGenShaderTable,
-        ComPtr<ID3D12Resource> hitGroupShaderTable,
-        ComPtr<ID3D12Resource> missShaderTable,
-        UINT hitGroupShaderTableStrideInBytes,
-        UINT missShaderTableStrideInBytes,
-        vector<DX::GPUTimer>* gpuTimers,
-        D3D12_GPU_DESCRIPTOR_HANDLE* descriptors,
-        DescriptorHeap* descriptorHeap,
+        ResourceComponent*& resourceComponent,
+        ComPtr<ID3D12Resource>& rayGenShaderTable,
+        ComPtr<ID3D12Resource>& hitGroupShaderTable,
+        ComPtr<ID3D12Resource>& missShaderTable,
+        UINT& hitGroupShaderTableStrideInBytes,
+        UINT& missShaderTableStrideInBytes,
+        vector<DX::GPUTimer>& gpuTimers,
+        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
+        DescriptorHeap*& descriptorHeap,
         ID3D12RootSignature* raytracingGlobalRootSignature,
         ID3D12Resource* topLevelAS,
         ID3D12StateObject* dxrStateObject,
-        StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer,
-        bool orbitalCamera,
-        float aspectRatio
+        StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
+        bool& orbitalCamera,
+        float& aspectRatio
     ) :
         deviceResources{ deviceResources },
         triangleMaterialCB{ triangleMaterialCB },
@@ -202,18 +194,6 @@ public:
             eye = XMVector3Transform(eye, rotate);
             up = XMVector3Transform(up, rotate);
             camera.UpdateViewMatrix();
-            cameraComponent = new CameraComponent(
-                deviceResources.get(),
-                sceneCB,
-                orbitalCamera,
-                &eye,
-                &at,
-                &up,
-                aspectRatio,
-                projectionToWorld,
-                cameraPosition,
-                &camera
-            );
             cameraComponent->UpdateCameraMatrices();
         }
 
@@ -224,14 +204,14 @@ public:
             XMFLOAT4 ldc;
 
             lightPosition = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-            (*sceneCB)->lightPosition = XMLoadFloat4(&lp);
+            sceneCB->lightPosition = XMLoadFloat4(&lp);
 
             lightAmbientColor = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
-            (*sceneCB)->lightAmbientColor = XMLoadFloat4(&lac);
+            sceneCB->lightAmbientColor = XMLoadFloat4(&lac);
 
             float d = 0.6f;
             lightDiffuseColor = XMFLOAT4(d, d, d, 1.0f);
-            (*sceneCB)->lightDiffuseColor = XMLoadFloat4(&ldc);
+            sceneCB->lightDiffuseColor = XMLoadFloat4(&ldc);
         }
     }
 };

@@ -9,7 +9,7 @@ module;
 export module SrvComponent;
 
 import DescriptorHeap;
-import DeviceResources;
+import DeviceResourcesInterface;
 import D3DBuffer;
 import Texture;
 import DXSampleHelper;
@@ -21,12 +21,22 @@ using namespace std;
 
 export class SrvComponent {
     UINT descriptorSize;
-    DeviceResources* deviceResources;
-    unordered_map<string, unique_ptr<Texture>>* textures;
+    DeviceResourcesInterface* deviceResources;
+    unordered_map<string, unique_ptr<Texture>>& textures;
     DescriptorHeap* descriptorHeap;
 
 public:
-    SrvComponent() {}
+    SrvComponent(
+        UINT descriptorSize,
+        DeviceResourcesInterface* deviceResources,
+        unordered_map<string, unique_ptr<Texture>>& textures,
+        DescriptorHeap* descriptorHeap
+    ) :
+        descriptorSize{ descriptorSize },
+        deviceResources{ deviceResources },
+        textures{ textures },
+        descriptorHeap{ descriptorHeap }
+    {}
 
     UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize) {
         auto device = deviceResources->GetD3DDevice();
@@ -61,7 +71,7 @@ public:
 
         auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         ThrowIfFailed(device->CreateCommittedResource(
-            &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &srvDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&(*textures)["stoneTex"].get()->Resource)));
+            &defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &srvDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&textures["stoneTex"].get()->Resource)));
 
         D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
         SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -75,7 +85,7 @@ public:
         CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
         UINT descriptorIndex = descriptorHeap->AllocateDescriptor(&hDescriptor);
-        device->CreateShaderResourceView((*textures)["stoneTex"].get()->Resource.Get(), &SRVDesc, hDescriptor);
+        device->CreateShaderResourceView(textures["stoneTex"].get()->Resource.Get(), &SRVDesc, hDescriptor);
         //texture->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, descriptorSize);
         return descriptorIndex;
     }

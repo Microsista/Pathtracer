@@ -47,8 +47,12 @@ import OutputComponent;
 import GeometryComponent;
 import AccelerationStructureComponent;
 import DescriptorComponent;
-import BufferComponent;
 import ShaderTableComponent;
+import SrvComponent;
+import BottomLevelASComponent;
+import TopLevelASComponent;
+import UpdateComponent;
+import PerformanceComponent;
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -65,15 +69,15 @@ export class Core : public DXCore, public CoreInterface {
     ComPtr<ID3D12Device5> m_dxrDevice;
     ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
     ComPtr<ID3D12StateObject> m_dxrStateObject;
-    ComPtr<ID3D12PipelineState> m_composePSO[1];
-    ComPtr<ID3D12PipelineState> m_blurPSO[1];
+    vector<ComPtr<ID3D12PipelineState>> m_composePSO;
+    vector<ComPtr<ID3D12PipelineState>> m_blurPSO;
 
     ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
     vector<ComPtr<ID3D12RootSignature>> m_raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature> m_composeRootSig;
     ComPtr<ID3D12RootSignature> m_blurRootSig;
 
-    shared_ptr<DescriptorHeap> m_descriptorHeap;
+    DescriptorHeap* m_descriptorHeap;
     UINT m_descriptorsAllocated;
     UINT m_descriptorSize;
 
@@ -83,25 +87,25 @@ export class Core : public DXCore, public CoreInterface {
     StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_trianglePrimitiveAttributeBuffer;
     std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
 
-    PrimitiveConstantBuffer m_triangleMaterialCB[NUM_BLAS];
+    vector<PrimitiveConstantBuffer> m_triangleMaterialCB;
 
     std::vector<Vertex> m_vertices;
     std::vector<Index> m_indices;
-    D3DBuffer m_indexBuffer[NUM_BLAS];
-    D3DBuffer m_vertexBuffer[NUM_BLAS];
+    vector<D3DBuffer> m_indexBuffer;
+    vector<D3DBuffer> m_vertexBuffer;
     D3DBuffer m_aabbBuffer;
     std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
 
-    ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
+    vector<ComPtr<ID3D12Resource>> m_bottomLevelAS;
     ComPtr<ID3D12Resource> m_topLevelAS;
 
-    ComPtr<ID3D12Resource> buffers[Descriptors::COUNT];
-    D3D12_GPU_DESCRIPTOR_HANDLE descriptors[Descriptors::COUNT];
+    vector<ComPtr<ID3D12Resource>> buffers;
+    vector<D3D12_GPU_DESCRIPTOR_HANDLE> descriptors;
 
     static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
     static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
-    static inline const wchar_t* c_missShaderNames[] = { L"MyMissShader", L"MyMissShader_ShadowRay" };
-    static inline const wchar_t* c_hitGroupNames_TriangleGeometry[] = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
+    vector<static inline const wchar_t*> c_missShaderNames = { L"MyMissShader", L"MyMissShader_ShadowRay" };
+    vector<static inline const wchar_t*> c_hitGroupNames_TriangleGeometry = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
 
     ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
@@ -127,11 +131,11 @@ export class Core : public DXCore, public CoreInterface {
     std::shared_ptr<DescriptorHeap> m_blurHeap;
 
     std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
-    D3DTexture m_stoneTexture[3];
-    D3DTexture m_templeTextures[500];
-    D3DTexture m_templeNormalTextures[500];
-    D3DTexture m_templeSpecularTextures[500];
-    D3DTexture m_templeEmittanceTextures[500];
+    vector<D3DTexture> m_stoneTexture;
+    vector<D3DTexture> m_templeTextures;
+    vector<D3DTexture> m_templeNormalTextures;
+    vector<D3DTexture> m_templeSpecularTextures;
+    vector<D3DTexture> m_templeEmittanceTextures;
 
     std::unordered_map<int, Material> m_materials;
 
@@ -150,7 +154,10 @@ export class Core : public DXCore, public CoreInterface {
     GeometryComponent* geometryComponent;
     AccelerationStructureComponent* accelerationStructureComponent;
     DescriptorComponent* descriptorComponent;
-    BufferComponent* bufferComponent;
+    SrvComponent* srvComponent;
+    BottomLevelASComponent* bottomLevelASComponent;
+    TopLevelASComponent* topLevelASComponent;
+    PerformanceComponent* performanceComponent;
 
 public:
     Core(UINT width, UINT height) :
@@ -162,7 +169,21 @@ public:
         m_descriptorsAllocated(0),
         m_descriptorSize(0),
         m_missShaderTableStrideInBytes(UINT_MAX),
-        m_hitGroupShaderTableStrideInBytes(UINT_MAX)
+        m_hitGroupShaderTableStrideInBytes(UINT_MAX),
+        descriptors(Descriptors::COUNT),
+        m_bottomLevelAS(BottomLevelASType::Count),
+        m_gpuTimers(GpuTimers::Count),
+        m_composePSO(1),
+        m_blurPSO(1),
+        buffers(Descriptors::COUNT),
+        m_triangleMaterialCB(NUM_BLAS),
+        m_indexBuffer(NUM_BLAS),
+        m_vertexBuffer(NUM_BLAS),
+        m_stoneTexture(3),
+        m_templeTextures(500),
+        m_templeNormalTextures(500),
+        m_templeSpecularTextures(500),
+        m_templeEmittanceTextures(500)
     {
         m_raytracingLocalRootSignature.resize(LocalRootSignature::Type::Count);
         UpdateForSizeChange(width, height);
@@ -186,18 +207,30 @@ public:
             c_hitGroupNames_TriangleGeometry
         );
         m_deviceResources->CreateDeviceResources();
+        cameraComponent = new CameraComponent(
+            m_deviceResources.get(),
+            m_sceneCB,
+            m_orbitalCamera,
+            m_eye,
+            m_at,
+            m_up,
+            m_aspectRatio,
+            m_camera
+        );
+
         m_deviceResources->CreateWindowSizeDependentResources();
         initComponent = new InitComponent(
             m_deviceResources.get(),
             m_triangleMaterialCB,
-            &pos,
+            pos,
             FrameCount,
             m_adapterIDoverride,
             m_width,
             m_height,
             renderingComponent,
-            &m_sceneCB,
+            m_sceneCB,
             m_camera,
+
             cameraComponent,
             m_at,
             m_up,
@@ -208,52 +241,32 @@ public:
             m_hitGroupShaderTable,
             m_missShaderTable,
             m_hitGroupShaderTableStrideInBytes,
+
             m_missShaderTableStrideInBytes,
-            &m_gpuTimers,
+            m_gpuTimers,
             descriptors,
-            m_descriptorHeap.get(),
+            m_descriptorHeap,
             m_raytracingGlobalRootSignature.Get(),
             m_topLevelAS.Get(),
             m_dxrStateObject.Get(),
-            &m_trianglePrimitiveAttributeBuffer,
+            m_trianglePrimitiveAttributeBuffer,
             m_orbitalCamera,
             m_aspectRatio
         );
-        shaderTableComponent = new ShaderTableComponent(
-            m_deviceResources.get(),
-            c_hitGroupNames_TriangleGeometry,
-            c_missShaderNames,
-            c_closestHitShaderName,
-            c_raygenShaderName,
-            m_hitGroupShaderTable,
-            m_dxrStateObject,
-            m_missShaderTableStrideInBytes,
-            &m_meshOffsets,
-            m_indexBuffer,
-            m_vertexBuffer,
-            &m_geometries,
-            &m_meshSizes,
-            m_templeTextures,
-            m_templeNormalTextures,
-            m_templeSpecularTextures,
-            m_templeEmittanceTextures,
-            NUM_BLAS,
-            m_hitGroupShaderTableStrideInBytes,
-            m_triangleMaterialCB,
-            m_rayGenShaderTable,
-            m_missShaderTable
-        );
+
+  
         resourceComponent = new ResourceComponent(
             m_triangleMaterialCB,
             FrameCount,
-            &m_gpuTimers,
+            m_gpuTimers,
             shaderTableComponent,
             initComponent,
             rootSignatureComponent,
             m_deviceResources.get(),
-            &m_geometries,
+            m_geometries,
             cameraComponent,
             m_raytracingGlobalRootSignature,
+
             m_raytracingLocalRootSignature,
             m_dxrDevice,
             m_dxrCommandList,
@@ -264,21 +277,79 @@ public:
             m_trianglePrimitiveAttributeBuffer,
             m_bottomLevelAS,
             m_topLevelAS,
+
             buffers,
             m_rayGenShaderTable,
             m_missShaderTable,
             m_hitGroupShaderTable,
             outputComponent,
             geometryComponent,
-            bufferComponent,
             accelerationStructureComponent,
-            descriptorComponent
+            m_meshOffsets,
+            m_meshSizes,
+            m_geoOffset,
+
+            m_indexBuffer,
+            m_vertexBuffer,
+            srvComponent,
+            m_descriptorSize,
+            m_textures,
+            NUM_BLAS,
+            m_materials,
+            m_stoneTexture,
+            m_templeTextures,
+            m_templeNormalTextures,
+
+            m_templeSpecularTextures,
+            m_templeEmittanceTextures,
+            bottomLevelASComponent,
+            topLevelASComponent,
+            m_filterCB,
+            c_hitGroupNames_TriangleGeometry,
+            c_missShaderNames,
+            c_closestHitShaderName,
+            c_raygenShaderName,
+
+            m_missShaderTableStrideInBytes,
+            m_hitGroupShaderTableStrideInBytes,
+            m_width,
+            m_height,
+            descriptors
         );
+
+        performanceComponent = new PerformanceComponent(
+            m_deviceResources.get(),
+            m_width,
+            m_height,
+            m_timer,
+            m_gpuTimers
+        );
+
+        
         
         initComponent->InitializeScene();
+     
         resourceComponent->CreateDeviceDependentResources();
 
         resourceComponent->CreateWindowSizeDependentResources();
+
+        updateComponent = new UpdateComponent(
+            &m_timer,
+            m_deviceResources.get(),
+            m_orbitalCamera,
+            m_eye,
+            m_up,
+            m_at,
+            m_animateLight,
+            m_animateGeometry,
+            m_animateGeometryTime,
+            &m_sceneCB,
+            &m_filterCB,
+            performanceComponent,
+            cameraComponent,
+            resourceComponent,
+            this
+        );
 
         renderingComponent = new RenderingComponent{
            m_deviceResources.get(),
@@ -289,17 +360,32 @@ public:
            m_missShaderTableStrideInBytes,
            m_width,
            m_height,
-           &m_gpuTimers,
+           m_gpuTimers,
            descriptors,
-           m_descriptorHeap.get(),
-           &m_camera,
+
+           m_descriptorHeap,
+           m_camera,
            m_raytracingGlobalRootSignature.Get(),
-           m_topLevelAS.Get(),
-           m_dxrCommandList.Get(),
-           m_dxrStateObject.Get(),
-           &m_sceneCB,
-           &m_trianglePrimitiveAttributeBuffer
+           m_topLevelAS,
+           m_dxrCommandList,
+           m_dxrStateObject,
+           m_sceneCB,
+           m_trianglePrimitiveAttributeBuffer,
+           m_composePSO,
+           m_blurPSO,
+           m_filterCB,
+           buffers,
+           outputComponent
         };
+
+        inputComponent = new InputComponent(
+            m_camera,
+            m_timer,
+            m_sceneCB,
+            m_orbitalCamera,
+            m_lastMousePosition,
+            cameraComponent
+        );
     }
 
     virtual void OnUpdate() {

@@ -6,7 +6,7 @@ module;
 export module TopLevelASComponent;
 
 import AccelerationStructureBuffers;
-import DeviceResources;
+import DeviceResourcesInterface;
 import DXSampleHelper;
 import Helper;
 import BottomLevelASComponent;
@@ -14,14 +14,26 @@ import BottomLevelASComponent;
 using namespace Microsoft::WRL;
 
 export class TopLevelASComponent {
-    DeviceResources* deviceResources;
+    DeviceResourcesInterface* deviceResources;
     UINT NUM_BLAS;
     ID3D12Device5* dxrDevice;
     BottomLevelASComponent* bottomLevelASComponent;
-    ID3D12GraphicsCommandList5* dxrCommandList;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
 
 public:
-    TopLevelASComponent() {}
+    TopLevelASComponent(
+        DeviceResourcesInterface* deviceResources,
+        UINT NUM_BLAS,
+        ID3D12Device5* dxrDevice,
+        BottomLevelASComponent* bottomLevelASComponent,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
+    ) :
+        deviceResources{ deviceResources },
+        NUM_BLAS{ NUM_BLAS },
+        dxrDevice{ dxrDevice },
+        bottomLevelASComponent{ bottomLevelASComponent },
+        dxrCommandList{ dxrCommandList }
+    {}
 
     AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE)
     {

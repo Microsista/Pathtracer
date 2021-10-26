@@ -35,7 +35,7 @@ export struct MeshData
 		return mIndices16;
 	}
 
-	vector<Vertex> getVertices() {
+	vector<Vertex>& getVertices() {
 		return Vertices;
 	}
 

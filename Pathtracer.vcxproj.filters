@@ -52,9 +52,6 @@
     <ClCompile Include="AccelerationStructureComponent.ixx">
       <Filter>Modules\Components</Filter>
     </ClCompile>
-    <ClCompile Include="BufferComponent.ixx">
-      <Filter>Modules\Components</Filter>
-    </ClCompile>
     <ClCompile Include="CameraComponent.ixx">
       <Filter>Modules\Components</Filter>
     </ClCompile>

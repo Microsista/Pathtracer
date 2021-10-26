@@ -11,7 +11,7 @@ module;
 export module BottomLevelASComponent;
 
 import AccelerationStructureBuffers;
-import DeviceResources;
+import DeviceResourcesInterface;
 import DXSampleHelper;
 import Helper;
 import D3DBuffer;
@@ -22,18 +22,38 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class BottomLevelASComponent {
-    DeviceResources* deviceResources;
+    DeviceResourcesInterface* deviceResources;
     ID3D12Device5* dxrDevice;
-    ID3D12GraphicsCommandList5* dxrCommandList;
-    vector<int>* meshSizes;
-    D3DBuffer* indexBuffer;
-    D3DBuffer* vertexBuffer;
-    unordered_map<string, unique_ptr<MeshGeometry>>* geometries;
-    UINT* meshOffsets;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    vector<int>& meshSizes;
+    vector<D3DBuffer>& indexBuffer;
+    vector<D3DBuffer>& vertexBuffer;
+    unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
+    vector<int>& meshOffsets;
     UINT NUM_BLAS;
 
 public:
-    BottomLevelASComponent() {}
+    BottomLevelASComponent(
+        DeviceResourcesInterface* deviceResources,
+        ID3D12Device5* dxrDevice,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        vector<int>& meshSizes,
+        vector<D3DBuffer>& indexBuffer,
+        vector<D3DBuffer>& vertexBuffer,
+        unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
+        vector<int>& meshOffsets,
+        UINT NUM_BLAS
+    ) :
+        deviceResources{ deviceResources },
+        dxrDevice{ dxrDevice },
+        dxrCommandList{ dxrCommandList },
+        meshSizes{ meshSizes },
+        indexBuffer{ indexBuffer },
+        vertexBuffer{ vertexBuffer },
+        geometries{ geometries },
+        meshOffsets{ meshOffsets },
+        NUM_BLAS{ NUM_BLAS }
+    {}
 
     AccelerationStructureBuffers BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags =
@@ -90,15 +110,15 @@ public:
         triangleDescTemplate.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
         for (auto i = 2; i < 6; ++i) {
-            geometryDescs[i].resize((*meshSizes)[i], triangleDescTemplate);
-            for (auto j = 0; j < (*meshSizes)[i]; ++j) {
+            geometryDescs[i].resize(meshSizes[i], triangleDescTemplate);
+            for (auto j = 0; j < meshSizes[i]; ++j) {
                 string geoName = "geo" + to_string(meshOffsets[i] + j);
                 string meshName = "mesh" + to_string(meshOffsets[i] + j);
                 geometryDescs[i][j].Triangles.IndexBuffer = indexBuffer[meshOffsets[i] + j].resource->GetGPUVirtualAddress();
                 geometryDescs[i][j].Triangles.VertexBuffer.StartAddress =
                     vertexBuffer[meshOffsets[i] + j].resource->GetGPUVirtualAddress();
-                geometryDescs[i][j].Triangles.IndexCount = (*geometries)[geoName]->DrawArgs[meshName].IndexCount;
-                geometryDescs[i][j].Triangles.VertexCount = (*geometries)[geoName]->DrawArgs[meshName].VertexCount;
+                geometryDescs[i][j].Triangles.IndexCount = geometries[geoName]->DrawArgs[meshName].IndexCount;
+                geometryDescs[i][j].Triangles.VertexCount = geometries[geoName]->DrawArgs[meshName].VertexCount;
             }
         }
     }

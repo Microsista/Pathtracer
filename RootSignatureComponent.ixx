@@ -18,14 +18,14 @@ export class RootSignatureComponent {
     DeviceResourcesInterface* deviceResources;
     vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    const wchar_t** c_hitGroupNames_TriangleGeometry;
+    vector<const wchar_t*> c_hitGroupNames_TriangleGeometry;
 
 public:
     RootSignatureComponent(
         DeviceResourcesInterface* deviceResources,
         vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
         ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        const wchar_t** c_hitGroupNames_TriangleGeometry
+        vector<const wchar_t*> c_hitGroupNames_TriangleGeometry
     ) :
         deviceResources{ deviceResources },
         raytracingLocalRootSignature{ raytracingLocalRootSignature },
@@ -33,7 +33,7 @@ public:
         c_hitGroupNames_TriangleGeometry{ c_hitGroupNames_TriangleGeometry }
     {}
 
-    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ID3D12RootSignature* rootSig, LPCWSTR resourceName = nullptr) {
+    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>& rootSig, LPCWSTR resourceName = nullptr) {
         ComPtr<ID3DBlob> blob;
         ComPtr<ID3DBlob> error;
 
@@ -76,7 +76,7 @@ public:
         CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = { CD3DX12_STATIC_SAMPLER_DESC(0, SAMPLER_FILTER) };
 
         CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters, ARRAYSIZE(staticSamplers), staticSamplers);
-        SerializeAndCreateRaytracingRootSignature(device, globalRootSignatureDesc, raytracingGlobalRootSignature.Get(), L"Global root signature");
+        SerializeAndCreateRaytracingRootSignature(device, globalRootSignatureDesc, raytracingGlobalRootSignature, L"Global root signature");
     }
 
     void createLocalRootSignature() {
@@ -106,7 +106,7 @@ public:
 
         CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-        SerializeAndCreateRaytracingRootSignature(device, localRootSignatureDesc, raytracingLocalRootSignature[LocalRootSignature::Type::Triangle].Get(), L"Local root signature");
+        SerializeAndCreateRaytracingRootSignature(device, localRootSignatureDesc, raytracingLocalRootSignature[LocalRootSignature::Type::Triangle], L"Local root signature");
     }
 
     void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
@@ -116,6 +116,6 @@ public:
         // Shader association
         auto rootSignatureAssociation = raytracingPipeline->CreateSubobject<CD3DX12_SUBOBJECT_TO_EXPORTS_ASSOCIATION_SUBOBJECT>();
         rootSignatureAssociation->SetSubobjectToAssociate(*localRootSignature);
-        rootSignatureAssociation->AddExports(c_hitGroupNames_TriangleGeometry, 2);
+        rootSignatureAssociation->AddExports(c_hitGroupNames_TriangleGeometry.data(), 2);
     }
 };

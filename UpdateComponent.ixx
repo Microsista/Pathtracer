@@ -11,7 +11,7 @@ import ConstantBuffer;
 import DXCore;
 import ResourceComponent;
 import UpdateInterface;
-import DeviceResources;
+import DeviceResourcesInterface;
 import CameraComponent;
 import DXSampleHelper;
 import DXCoreInterface;
@@ -20,7 +20,7 @@ using namespace DirectX;
 
 export class UpdateComponent : public UpdateInterface {
     StepTimer* timer;
-    DeviceResources* deviceResources;
+    DeviceResourcesInterface* deviceResources;
     bool orbitalCamera;
     XMVECTOR eye;
     XMVECTOR up;
@@ -38,7 +38,39 @@ export class UpdateComponent : public UpdateInterface {
     DXCoreInterface* dxCore;
 
 public:
-    UpdateComponent() {}
+    UpdateComponent(
+        StepTimer* timer,
+        DeviceResourcesInterface* deviceResources,
+        bool orbitalCamera,
+        XMVECTOR eye,
+        XMVECTOR up,
+        XMVECTOR at,
+        bool animateLight,
+        bool animateGeometry,
+        float animateGeometryTime,
+        ConstantBuffer<SceneConstantBuffer>* sceneCB,
+        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>* filterCB,
+        PerformanceComponent* performanceComponent,
+        CameraComponent* cameraComponent,
+        ResourceComponent* resourceComponent,
+        DXCoreInterface* dxCore
+    ) :
+        timer{ timer },
+        deviceResources{ deviceResources },
+        orbitalCamera{ orbitalCamera },
+        eye{ eye },
+        up{ up },
+        at{ at },
+        animateLight{ animateLight },
+        animateGeometry{ animateGeometry },
+        animateGeometryTime{ animateGeometryTime },
+        sceneCB{ sceneCB },
+        filterCB{ filterCB },
+        performanceComponent{ performanceComponent },
+        cameraComponent{ cameraComponent },
+        resourceComponent{ resourceComponent },
+        dxCore{ dxCore }
+    {}
 
     virtual void OnUpdate() {
         timer->Tick();

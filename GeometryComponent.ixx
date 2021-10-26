@@ -11,16 +11,11 @@ module;
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "RayTracingHlslCompat.hlsli"
+#include "Lua542/include/lua.hpp"
 export module GeometryComponent;
 
-export extern "C" {
-#include "Lua542/include/lua.h"
-#include "Lua542/include/lauxlib.h"
-#include "Lua542/include/lualib.h"
-}
-
 import Geometry;
-import DeviceResources;
+import DeviceResourcesInterface;
 import MeshData;
 import Mesh;
 import SrvComponent;
@@ -33,18 +28,36 @@ using namespace std;
 using namespace DirectX;
 
 export class GeometryComponent {
-    DeviceResources* deviceResources;
-    vector<int>* meshOffsets;
-    vector<int>* meshSizes;
+    DeviceResourcesInterface* deviceResources;
+    vector<int>& meshOffsets;
+    vector<int>& meshSizes;
     UINT geoOffset;
-    unordered_map<string, unique_ptr<MeshGeometry>>* geometries;
-    D3DBuffer* indexBuffer;
-    D3DBuffer* vertexBuffer;
+    unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
+    vector<D3DBuffer>& indexBuffer;
+    vector<D3DBuffer>& vertexBuffer;
     SrvComponent* srvComponent;
 
 
 public:
-    GeometryComponent() {}
+    GeometryComponent(
+        DeviceResourcesInterface* deviceResources,
+        vector<int>& meshOffsets,
+        vector<int>& meshSizes,
+        UINT geoOffset,
+        unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
+        vector<D3DBuffer>& indexBuffer,
+        vector<D3DBuffer>& vertexBuffer,
+        SrvComponent* srvComponent
+    ) :
+        deviceResources{ deviceResources },
+        meshOffsets{ meshOffsets },
+        meshSizes{ meshSizes },
+        geoOffset{ geoOffset },
+        geometries{ geometries },
+        indexBuffer{ indexBuffer },
+        vertexBuffer{ vertexBuffer },
+        srvComponent{ srvComponent }
+    {}
 
     void BuildModel(std::string path, UINT flags, bool usesTextures = false) {
         auto device = deviceResources->GetD3DDevice();
@@ -52,8 +65,8 @@ public:
         GeometryGenerator geoGen;
         vector<MeshData> meshes = geoGen.LoadModel(path, flags);
 
-        (*meshOffsets).push_back((*meshOffsets).back() + (*meshSizes).back());
-        (*meshSizes).push_back((int)meshes.size());
+        meshOffsets.push_back(meshOffsets.back() + meshSizes.back());
+        meshSizes.push_back((int)meshes.size());
 
         for (auto j = 0; j < meshes.size(); j++) {
             MeshGeometry::Submesh submesh{};
@@ -89,7 +102,7 @@ public:
             geo->IndexBufferByteSize = (UINT)indices.size() * sizeof(Index);
             tmp = "mesh" + to_string(j + geoOffset);
             geo->DrawArgs[tmp] = submesh;
-            (*geometries)[geo->Name] = move(geo);
+            geometries[geo->Name] = move(geo);
         }
 
         geoOffset += (UINT)meshes.size();
@@ -137,7 +150,7 @@ public:
         }*/
         lua_close(L);
 
-        MeshData(GeometryGenerator:: * createGeo[3])(float width, float height, float depth) = {
+        MeshData (GeometryGenerator::*createGeo[3])(float width, float height, float depth) = {
             &GeometryGenerator::CreateRoom, &GeometryGenerator::CreateCoordinates, &GeometryGenerator::CreateSkull
         };
 
@@ -180,16 +193,16 @@ public:
             roomGeo->VertexBufferByteSize = roomvbByteSize;
             roomGeo->IndexBufferByteSize = roomibByteSize;
             roomGeo->DrawArgs[meshName] = roomSubmesh;
-            (*geometries)[roomGeo->Name] = std::move(roomGeo);
+            geometries[roomGeo->Name] = std::move(roomGeo);
             geoOffset++;
         }
 
-        (*meshOffsets).push_back(0);
-        (*meshSizes).push_back(1);
-        (*meshOffsets).push_back((*meshOffsets).back() + (*meshSizes).back());
-        (*meshSizes).push_back(1);
-        (*meshOffsets).push_back((*meshOffsets).back() + (*meshSizes).back());
-        (*meshSizes).push_back(1);
+        meshOffsets.push_back(0);
+        meshSizes.push_back(1);
+        meshOffsets.push_back(meshOffsets.back() + meshSizes.back());
+        meshSizes.push_back(1);
+        meshOffsets.push_back(meshOffsets.back() + meshSizes.back());
+        meshSizes.push_back(1);
 
         char dir[200];
         GetCurrentDirectoryA(sizeof(dir), dir);

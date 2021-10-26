@@ -30,7 +30,6 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="BottomLevelASComponent.ixx" />
-    <ClCompile Include="BufferComponent.ixx" />
     <ClCompile Include="CameraComponent.ixx" />
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>

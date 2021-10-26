@@ -34,37 +34,31 @@ using namespace Microsoft::WRL;
 
 export class RenderingComponent {
     DeviceResourcesInterface* deviceResources;
-
     ID3D12Resource* rayGenShaderTable;
     ID3D12Resource* hitGroupShaderTable;
     ID3D12Resource* missShaderTable;
-
-    UINT hitGroupShaderTableStrideInBytes;
-    UINT missShaderTableStrideInBytes;
-
-    UINT width;
-    UINT height;
-
-    vector<DX::GPUTimer>* gpuTimers;
-    D3D12_GPU_DESCRIPTOR_HANDLE* descriptors;
-    DescriptorHeap* descriptorHeap;
-    Camera* camera;
+    UINT& hitGroupShaderTableStrideInBytes;
+    UINT& missShaderTableStrideInBytes;
+    UINT& width;
+    UINT& height;
+    vector<DX::GPUTimer>& gpuTimers;
+    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    DescriptorHeap*& descriptorHeap;
+    Camera& camera;
     ID3D12RootSignature* raytracingGlobalRootSignature;
-    ID3D12Resource* topLevelAS;
-    ID3D12GraphicsCommandList5* dxrCommandList;
-    ID3D12StateObject* dxrStateObject;
-    ConstantBuffer<SceneConstantBuffer>* sceneCB;
-    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>* filterCB;
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer;
-    ComPtr<ID3D12Resource>* buffers;
+    ComPtr<ID3D12Resource>& topLevelAS;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    ComPtr<ID3D12StateObject>& dxrStateObject;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
 
+    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
+    vector<ComPtr<ID3D12Resource>>& buffers;
     OutputComponent* outputComponent;
     ComPtr<ID3D12RootSignature> blurRootSig;
     ComPtr<ID3D12RootSignature> composeRootSig;
-
-    ComPtr<ID3D12PipelineState>* composePSO;
-    ComPtr<ID3D12PipelineState>* blurPSO;
-
+    vector<ComPtr<ID3D12PipelineState>>& composePSO;
+    vector<ComPtr<ID3D12PipelineState>>& blurPSO;
     RootSignatureComponent* rootSignatureComponent;
 
 public:
@@ -73,20 +67,27 @@ public:
         ID3D12Resource* hitGroupShaderTable,
         ID3D12Resource* missShaderTable,
         ID3D12Resource* rayGenShaderTable,
-        UINT hitGroupShaderTableStrideInBytes,
-        UINT missShaderTableStrideInBytes,
-        UINT width,
-        UINT height,
-        vector<DX::GPUTimer>* gpuTimers,
-        D3D12_GPU_DESCRIPTOR_HANDLE* descriptors,
-        DescriptorHeap* descriptorHeap,
-        Camera* camera,
+        UINT& hitGroupShaderTableStrideInBytes,
+        UINT& missShaderTableStrideInBytes,
+        UINT& width,
+        UINT& height,
+        vector<DX::GPUTimer>& gpuTimers,
+        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
+
+        DescriptorHeap*& descriptorHeap,
+        Camera& camera,
         ID3D12RootSignature* raytracingGlobalRootSignature,
-        ID3D12Resource* topLevelAS,
-        ID3D12GraphicsCommandList5* dxrCommandList,
-        ID3D12StateObject* dxrStateObject,
-        ConstantBuffer<SceneConstantBuffer>* sceneCB,
-        StructuredBuffer<PrimitiveInstancePerFrameBuffer>* trianglePrimitiveAttributeBuffer
+        ComPtr<ID3D12Resource>& topLevelAS,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        ComPtr<ID3D12StateObject>& dxrStateObject,
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
+
+        vector<ComPtr<ID3D12PipelineState>>& composePSO,
+        vector<ComPtr<ID3D12PipelineState>>& blurPSO,
+        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
+        vector<ComPtr<ID3D12Resource>>& buffers,
+        OutputComponent* outputComponent
     ) :
         deviceResources{ deviceResources },
         hitGroupShaderTable{ hitGroupShaderTable },
@@ -105,7 +106,12 @@ public:
         dxrCommandList{ dxrCommandList },
         dxrStateObject{ dxrStateObject },
         sceneCB{ sceneCB },
-        trianglePrimitiveAttributeBuffer{ trianglePrimitiveAttributeBuffer }
+        trianglePrimitiveAttributeBuffer{ trianglePrimitiveAttributeBuffer },
+        composePSO{ composePSO },
+        blurPSO{ blurPSO },
+        filterCB{filterCB},
+        buffers{buffers},
+            outputComponent{ outputComponent }
     {}
 
     void DoRaytracing() {
@@ -114,34 +120,39 @@ public:
         commandList->SetComputeRootSignature(raytracingGlobalRootSignature);
 
         XMFLOAT3 tempEye;
-        XMStoreFloat3(&tempEye, camera->GetPosition());
+        XMStoreFloat3(&tempEye, camera.GetPosition());
 
         copyDynamicBuffersToGpu(commandList);
 
         // Bind the heaps, acceleration structure and dispatch rays.  
         D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
         SetCommonPipelineState(commandList);
-        commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, topLevelAS->GetGPUVirtualAddress());
-        DispatchRays(dxrCommandList, dxrStateObject, &dispatchDesc, commandList);
-        (*sceneCB)->frameIndex = ((*sceneCB)->frameIndex + 1) % 16;
+        commandList->SetComputeRootShaderResourceView(GlobalRootSignature::
+            Slot::AccelerationStructure, topLevelAS->GetGPUVirtualAddress());
+        DispatchRays(dxrCommandList.Get(), dxrStateObject.Get(), &dispatchDesc, commandList);
+        sceneCB->frameIndex = (sceneCB->frameIndex + 1) % 16;
 
-        XMStoreFloat3(&(*sceneCB)->prevFrameCameraPosition, camera->GetPosition());
-        XMMATRIX prevViewCameraAtOrigin = XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 1), XMVectorSetW(camera->GetLook() - camera->GetPosition(), 1), camera->GetUp());
+        XMStoreFloat3(&sceneCB->prevFrameCameraPosition, camera.GetPosition());
+        XMMATRIX prevViewCameraAtOrigin = XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 1),
+            XMVectorSetW(camera.GetLook() - camera.GetPosition(), 1), camera.GetUp());
         XMMATRIX prevView, prevProj;
-        prevView = camera->GetView();
-        prevProj = camera->GetProj();
+        prevView = camera.GetView();
+        prevProj = camera.GetProj();
         XMMATRIX viewProjCameraAtOrigin = prevViewCameraAtOrigin * prevProj;
-        (*sceneCB)->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr, viewProjCameraAtOrigin);
+        sceneCB->prevFrameProjToViewCameraAtOrigin = XMMatrixInverse(nullptr,
+            viewProjCameraAtOrigin);
     }
 
     void copyDynamicBuffersToGpu(auto commandList) {
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
 
-        sceneCB->CopyStagingToGpu(frameIndex);
-        commandList->SetComputeRootConstantBufferView(GlobalRootSignature::Slot::SceneConstant, sceneCB->GpuVirtualAddress(frameIndex));
+        sceneCB.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootConstantBufferView(GlobalRootSignature::Slot::SceneConstant, sceneCB.GpuVirtualAddress(frameIndex));
 
-        trianglePrimitiveAttributeBuffer->CopyStagingToGpu(frameIndex);
-        commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::TriangleAttributeBuffer, trianglePrimitiveAttributeBuffer->GpuVirtualAddress(frameIndex));
+        trianglePrimitiveAttributeBuffer.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootShaderResourceView(GlobalRootSignature
+            ::Slot::TriangleAttributeBuffer,
+            trianglePrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
     }
 
     void DispatchRays(auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc, auto* commandList) {
@@ -158,9 +169,9 @@ public:
         dispatchDesc->Depth = 1;
         raytracingCommandList->SetPipelineState1(stateObject);
 
-        (*gpuTimers)[GpuTimers::Raytracing].Start(commandList);
+        gpuTimers[GpuTimers::Raytracing].Start(commandList);
         raytracingCommandList->DispatchRays(dispatchDesc);
-        (*gpuTimers)[GpuTimers::Raytracing].Stop(commandList);
+        gpuTimers[GpuTimers::Raytracing].Stop(commandList);
     };
 
     void SetCommonPipelineState(auto* descriptorSetCommandList) {
@@ -185,7 +196,7 @@ public:
         auto commandList = deviceResources->GetCommandList();
 
         deviceResources->Prepare(D3D12_RESOURCE_STATE_PRESENT);
-        for (auto& gpuTimer : *gpuTimers)
+        for (auto& gpuTimer : gpuTimers)
         {
             gpuTimer.BeginFrame(commandList);
         }
@@ -199,7 +210,7 @@ public:
       
         outputComponent->CopyRaytracingOutputToBackbuffer();
 
-        for (auto& gpuTimer : *gpuTimers)
+        for (auto& gpuTimer : gpuTimers)
         {
             gpuTimer.EndFrame(commandList);
         }
@@ -235,7 +246,7 @@ public:
         rootParameters[9].InitAsConstantBufferView(1);
 
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-        rootSignatureComponent->SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, blurRootSig.Get(), L"Root signature: BlurCS");
+        rootSignatureComponent->SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, blurRootSig, L"Root signature: BlurCS");
 
         // create pso
         D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
@@ -256,23 +267,23 @@ public:
 
 
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
-        filterCB->CopyStagingToGpu(frameIndex);
-        commandList->SetComputeRootConstantBufferView(3, filterCB->GpuVirtualAddress(frameIndex));
+        filterCB.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootConstantBufferView(3, filterCB.GpuVirtualAddress(frameIndex));
         commandList->SetComputeRootDescriptorTable(4, descriptors[Descriptors::NORMAL_DEPTH]);
         commandList->SetComputeRootDescriptorTable(5, descriptors[Descriptors::PREV_FRAME]);
         commandList->SetComputeRootDescriptorTable(6, descriptors[Descriptors::PREV_REFLECTION]);
         commandList->SetComputeRootDescriptorTable(7, descriptors[Descriptors::PREV_SHADOW]);
         commandList->SetComputeRootDescriptorTable(8, descriptors[Descriptors::MOTION_VECTOR]);
 
-        commandList->SetComputeRootConstantBufferView(9, sceneCB->GpuVirtualAddress(frameIndex));
+        commandList->SetComputeRootConstantBufferView(9, sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = deviceResources->GetOutputSize();
         commandList->Dispatch(outputSize.right / 8, outputSize.bottom / 8, 1);
 
         XMMATRIX prevView, prevProj;
-        prevView = camera->GetView();
-        prevProj = camera->GetProj();
-        (*sceneCB)->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+        prevView = camera.GetView();
+        prevProj = camera.GetProj();
+        sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
     }
 
     virtual void Compose() {
@@ -302,7 +313,7 @@ public:
         rootParameters[9].InitAsConstantBufferView(1);
 
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-        rootSignatureComponent->SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, composeRootSig.Get(), L"Root signature: CompositionCS");
+        rootSignatureComponent->SerializeAndCreateRaytracingRootSignature(device, rootSignatureDesc, composeRootSig, L"Root signature: CompositionCS");
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC descComputePSO = {};
         descComputePSO.pRootSignature = composeRootSig.Get();
@@ -321,22 +332,22 @@ public:
         commandList->SetComputeRootDescriptorTable(2, descriptors[Descriptors::SHADOW]);
 
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
-        filterCB->CopyStagingToGpu(frameIndex);
-        commandList->SetComputeRootConstantBufferView(3, filterCB->GpuVirtualAddress(frameIndex));
+        filterCB.CopyStagingToGpu(frameIndex);
+        commandList->SetComputeRootConstantBufferView(3, filterCB.GpuVirtualAddress(frameIndex));
         commandList->SetComputeRootDescriptorTable(4, descriptors[Descriptors::NORMAL_DEPTH]);
         commandList->SetComputeRootDescriptorTable(5, descriptors[Descriptors::PREV_FRAME]);
         commandList->SetComputeRootDescriptorTable(6, descriptors[Descriptors::PREV_REFLECTION]);
         commandList->SetComputeRootDescriptorTable(7, descriptors[Descriptors::PREV_SHADOW]);
         commandList->SetComputeRootDescriptorTable(8, descriptors[Descriptors::MOTION_VECTOR]);
-        commandList->SetComputeRootConstantBufferView(9, sceneCB->GpuVirtualAddress(frameIndex));
+        commandList->SetComputeRootConstantBufferView(9, sceneCB.GpuVirtualAddress(frameIndex));
 
         auto outputSize = deviceResources->GetOutputSize();
         commandList->Dispatch(outputSize.right / 8, outputSize.bottom / 8, 1);
 
         XMMATRIX prevView, prevProj;
-        prevView = camera->GetView();
-        prevProj = camera->GetProj();
-        (*sceneCB)->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
+        prevView = camera.GetView();
+        prevProj = camera.GetProj();
+        sceneCB->prevFrameViewProj = XMMatrixMultiply(prevView, prevProj);
     }
 
 };
