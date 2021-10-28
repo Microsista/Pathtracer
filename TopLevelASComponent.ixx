@@ -1,7 +1,7 @@
 module;
 #include <d3d12.h>
 #include <wrl/client.h>
-
+#include <memory>
 #include "RaytracingSceneDefines.h"
 export module TopLevelASComponent;
 
@@ -12,21 +12,22 @@ import Helper;
 import BottomLevelASComponent;
 
 using namespace Microsoft::WRL;
+using namespace std;
 
 export class TopLevelASComponent {
-    DeviceResourcesInterface* deviceResources;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
     const UINT& NUM_BLAS;
-    ComPtr<ID3D12Device5>& dxrDevice;
-    BottomLevelASComponent* bottomLevelASComponent;
-    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    const ComPtr<ID3D12Device5>& dxrDevice;
+    BottomLevelASComponent*& bottomLevelASComponent;
+    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
 
 public:
     TopLevelASComponent(
-        DeviceResourcesInterface* deviceResources,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
         const UINT& NUM_BLAS,
-        ComPtr<ID3D12Device5>& dxrDevice,
-        BottomLevelASComponent* bottomLevelASComponent,
-        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
+        const ComPtr<ID3D12Device5>& dxrDevice,
+        BottomLevelASComponent*& bottomLevelASComponent,
+        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
     ) :
         deviceResources{ deviceResources },
         NUM_BLAS{ NUM_BLAS },

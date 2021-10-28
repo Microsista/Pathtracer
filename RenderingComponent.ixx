@@ -33,61 +33,64 @@ using namespace std;
 using namespace Microsoft::WRL;
 
 export class RenderingComponent {
-    DeviceResourcesInterface* deviceResources;
-    ComPtr<ID3D12Resource>& rayGenShaderTable;
-    ComPtr<ID3D12Resource>& hitGroupShaderTable;
-    ComPtr<ID3D12Resource>& missShaderTable;
-    UINT& hitGroupShaderTableStrideInBytes;
-    UINT& missShaderTableStrideInBytes;
-    UINT& width;
-    UINT& height;
+    DeviceResourcesInterface*& deviceResources;
+    const ComPtr<ID3D12Resource>& rayGenShaderTable;
+    const ComPtr<ID3D12Resource>& hitGroupShaderTable;
+    const ComPtr<ID3D12Resource>& missShaderTable;
+    const UINT& hitGroupShaderTableStrideInBytes;
+    const UINT& missShaderTableStrideInBytes;
+    const UINT& width;
+    const UINT& height;
     vector<DX::GPUTimer>& gpuTimers;
-    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
     DescriptorHeap*& descriptorHeap;
-    Camera& camera;
-    ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    ComPtr<ID3D12Resource>& topLevelAS;
-    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    ComPtr<ID3D12StateObject>& dxrStateObject;
+    const Camera& camera;
+    const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
+    const ComPtr<ID3D12Resource>& topLevelAS;
+    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    const ComPtr<ID3D12StateObject>& dxrStateObject;
     ConstantBuffer<SceneConstantBuffer>& sceneCB;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
 
     ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
-    vector<ComPtr<ID3D12Resource>>& buffers;
-    OutputComponent* outputComponent;
-    ComPtr<ID3D12RootSignature> blurRootSig;
-    ComPtr<ID3D12RootSignature> composeRootSig;
+    const vector<ComPtr<ID3D12Resource>>& buffers;
+    OutputComponent*& outputComponent;
+    ComPtr<ID3D12RootSignature>& blurRootSig;
+    ComPtr<ID3D12RootSignature>& composeRootSig;
     vector<ComPtr<ID3D12PipelineState>>& composePSO;
     vector<ComPtr<ID3D12PipelineState>>& blurPSO;
-    RootSignatureComponent* rootSignatureComponent;
+    RootSignatureComponent*& rootSignatureComponent;
 
 public:
     RenderingComponent(
-        DeviceResourcesInterface* deviceResources,
-        ComPtr<ID3D12Resource>& hitGroupShaderTable,
-        ComPtr<ID3D12Resource>& missShaderTable,
-        ComPtr<ID3D12Resource>& rayGenShaderTable,
-        UINT& hitGroupShaderTableStrideInBytes,
-        UINT& missShaderTableStrideInBytes,
-        UINT& width,
-        UINT& height,
+        DeviceResourcesInterface*& deviceResources,
+        const ComPtr<ID3D12Resource>& hitGroupShaderTable,
+        const ComPtr<ID3D12Resource>& missShaderTable,
+        const ComPtr<ID3D12Resource>& rayGenShaderTable,
+        const UINT& hitGroupShaderTableStrideInBytes,
+        const UINT& missShaderTableStrideInBytes,
+        const UINT& width,
+        const UINT& height,
         vector<DX::GPUTimer>& gpuTimers,
-        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
+        const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
 
         DescriptorHeap*& descriptorHeap,
-        Camera& camera,
-        ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        ComPtr<ID3D12Resource>& topLevelAS,
-        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
-        ComPtr<ID3D12StateObject>& dxrStateObject,
+        const Camera& camera,
+        const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
+        const ComPtr<ID3D12Resource>& topLevelAS,
+        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        const ComPtr<ID3D12StateObject>& dxrStateObject,
         ConstantBuffer<SceneConstantBuffer>& sceneCB,
         StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
 
         vector<ComPtr<ID3D12PipelineState>>& composePSO,
         vector<ComPtr<ID3D12PipelineState>>& blurPSO,
         ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
-        vector<ComPtr<ID3D12Resource>>& buffers,
-        OutputComponent* outputComponent
+        const vector<ComPtr<ID3D12Resource>>& buffers,
+        OutputComponent*& outputComponent,
+        ComPtr<ID3D12RootSignature>& blurRootSig,
+        ComPtr<ID3D12RootSignature>& composeRootSig,
+        RootSignatureComponent*& rootSignatureComponent
     ) :
         deviceResources{ deviceResources },
         hitGroupShaderTable{ hitGroupShaderTable },
@@ -111,7 +114,10 @@ public:
         blurPSO{ blurPSO },
         filterCB{filterCB},
         buffers{buffers},
-            outputComponent{ outputComponent }
+        outputComponent{ outputComponent },
+        blurRootSig{ blurRootSig },
+        composeRootSig{ composeRootSig },
+        rootSignatureComponent{ rootSignatureComponent }
     {}
 
     void DoRaytracing() {

@@ -28,47 +28,46 @@ using namespace DirectX;
 using namespace Microsoft::WRL;
 
 export class AccelerationStructureComponent {
-    DeviceResourcesInterface* deviceResources;
-    ComPtr<ID3D12Device5>& dxrDevice;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    const ComPtr<ID3D12Device5>& dxrDevice;
     const UINT& NUM_BLAS;
-    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
     vector<ComPtr<ID3D12Resource>>& bottomLevelAS;
     ComPtr<ID3D12Resource>& topLevelAS;
     vector<D3DTexture>& stoneTexture;
     unordered_map<int, Material>& materials;
-    vector<int>& meshOffsets;
+    const vector<int>& meshOffsets;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
-    DescriptorHeap* descriptorHeap;
-    vector<int>& meshSizes;
+    DescriptorHeap*& descriptorHeap;
+    const vector<int>& meshSizes;
     vector<D3DTexture>& templeTextures;
     vector<D3DTexture>& templeNormalTextures;
     vector<D3DTexture>& templeSpecularTextures;
     vector<D3DTexture>& templeEmittanceTextures;
-
-    BottomLevelASComponent* bottomLevelAsComponent;
-    TopLevelASComponent* topLevelAsComponent;
+    BottomLevelASComponent*& bottomLevelAsComponent;
+    TopLevelASComponent*& topLevelAsComponent;
     
 public:
     AccelerationStructureComponent(
-        DeviceResourcesInterface* deviceResources,
-        ComPtr<ID3D12Device5>& dxrDevice,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        const ComPtr<ID3D12Device5>& dxrDevice,
         const UINT& NUM_BLAS,
-        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
         vector<ComPtr<ID3D12Resource>>& bottomLevelAS,
         ComPtr<ID3D12Resource>& topLevelAS,
         vector<D3DTexture>& stoneTexture,
         unordered_map<int, Material>& materials,
-        vector<int>& meshOffsets,
+        const vector<int>& meshOffsets,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
 
-        DescriptorHeap* descriptorHeap,
-        vector<int>& meshSizes,
+        DescriptorHeap*& descriptorHeap,
+        const vector<int>& meshSizes,
         vector<D3DTexture>& templeTextures,
         vector<D3DTexture>& templeNormalTextures,
         vector<D3DTexture>& templeSpecularTextures,
         vector<D3DTexture>& templeEmittanceTextures,
-        BottomLevelASComponent* bottomLevelAsComponent,
-        TopLevelASComponent* topLevelAsComponent
+        BottomLevelASComponent*& bottomLevelAsComponent,
+        TopLevelASComponent*& topLevelAsComponent
     ) :
         deviceResources{ deviceResources },
         dxrDevice{ dxrDevice },

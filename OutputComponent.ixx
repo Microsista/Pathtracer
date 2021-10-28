@@ -4,6 +4,7 @@ module;
 #include <algorithm>
 #include <wrl/client.h>
 #include <vector>
+#include <memory>
 
 export module OutputComponent;
 
@@ -17,23 +18,23 @@ using namespace Microsoft::WRL;
 
 
 export class OutputComponent {
-    DeviceResourcesInterface* deviceResources;
-    UINT& width;
-    UINT& height;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    const UINT& width;
+    const UINT& height;
     DescriptorHeap*& descriptorHeap;
     vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
     vector<ComPtr<ID3D12Resource>>& buffers;
-    UINT& descriptorSize;
+    const UINT& descriptorSize;
 
 public:
     OutputComponent(
-        DeviceResourcesInterface* deviceResources,
-        UINT& width,
-        UINT& height,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        const UINT& width,
+        const UINT& height,
         DescriptorHeap*& descriptorHeap,
         vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
         vector<ComPtr<ID3D12Resource>>& buffers,
-        UINT& descriptorSize
+        const UINT& descriptorSize
     ) :
         deviceResources{ deviceResources },
         width{ width },

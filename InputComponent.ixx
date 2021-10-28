@@ -8,33 +8,33 @@ import Camera;
 import Directions;
 import StepTimer;
 import ConstantBuffer;
-import CameraComponent;
+import InitComponent;
 
 using namespace DirectX;
 
 export class InputComponent {
     Camera& camera;
-    StepTimer& timer;
+    const StepTimer& timer;
     ConstantBuffer<SceneConstantBuffer>& sceneCB;
     bool& orbitalCamera;
     POINT& lastMousePosition;
-    CameraComponent* cameraComponent;
+    const InitComponent initcomponent;
 
 public:
     InputComponent(
         Camera& camera,
-        StepTimer& timer,
+        const StepTimer& timer,
         ConstantBuffer<SceneConstantBuffer>& sceneCB,
         bool& orbitalCamera,
         POINT& lastMousePosition,
-        CameraComponent* cameraComponent
+        const InitComponent initcomponent
     ) :
         camera{ camera },
         timer{ timer },
         sceneCB{ sceneCB },
         orbitalCamera{ orbitalCamera },
         lastMousePosition{ lastMousePosition },
-        cameraComponent{ cameraComponent }
+        initComponent{ initComponent }
     {}
 
     virtual void OnKeyDown(UINT8 key)
@@ -73,7 +73,7 @@ public:
         case '2': orbitalCamera = !orbitalCamera; break;
         }
         camera.UpdateViewMatrix();
-        cameraComponent->UpdateCameraMatrices();
+        initComponent->UpdateCameraMatrices();
     }
 
     virtual void OnMouseMove(int x, int y) 
@@ -86,7 +86,7 @@ public:
 
 
         camera.UpdateViewMatrix();
-        cameraComponent->UpdateCameraMatrices();
+        initComponent->UpdateCameraMatrices();
 
         lastMousePosition.x = x;
         lastMousePosition.y = y;

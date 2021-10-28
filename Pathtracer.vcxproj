@@ -30,7 +30,6 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="BottomLevelASComponent.ixx" />
-    <ClCompile Include="CameraComponent.ixx" />
     <ClCompile Include="ConstantBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -66,11 +65,9 @@
     </ClCompile>
     <ClCompile Include="MeshData.ixx" />
     <ClCompile Include="OutputComponent.ixx" />
-    <ClCompile Include="PerformanceComponent.ixx" />
     <ClCompile Include="RenderingComponent.ixx" />
     <ClCompile Include="ResourceComponent.ixx" />
     <ClCompile Include="RootSignatureComponent.ixx" />
-    <ClCompile Include="ShaderComponent.ixx" />
     <ClCompile Include="ShaderTableComponent.ixx" />
     <ClCompile Include="SrvComponent.ixx" />
     <ClCompile Include="TopLevelASComponent.ixx" />

@@ -22,26 +22,26 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class BottomLevelASComponent {
-    DeviceResourcesInterface* deviceResources;
-    ComPtr<ID3D12Device5>& dxrDevice;
-    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    vector<int>& meshSizes;
-    vector<D3DBuffer>& indexBuffer;
-    vector<D3DBuffer>& vertexBuffer;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    const ComPtr<ID3D12Device5>& dxrDevice;
+    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    const vector<int>& meshSizes;
+    const vector<D3DBuffer>& indexBuffer;
+    const vector<D3DBuffer>& vertexBuffer;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
-    vector<int>& meshOffsets;
+    const vector<int>& meshOffsets;
     const UINT& NUM_BLAS;
 
 public:
     BottomLevelASComponent(
-        DeviceResourcesInterface* deviceResources,
-        ComPtr<ID3D12Device5>& dxrDevice,
-        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
-        vector<int>& meshSizes,
-        vector<D3DBuffer>& indexBuffer,
-        vector<D3DBuffer>& vertexBuffer,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        const ComPtr<ID3D12Device5>& dxrDevice,
+        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        const vector<int>& meshSizes,
+        const vector<D3DBuffer>& indexBuffer,
+        const vector<D3DBuffer>& vertexBuffer,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
-        vector<int>& meshOffsets,
+        const vector<int>& meshOffsets,
         const UINT& NUM_BLAS
     ) :
         deviceResources{ deviceResources },

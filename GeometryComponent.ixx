@@ -28,26 +28,26 @@ using namespace std;
 using namespace DirectX;
 
 export class GeometryComponent {
-    DeviceResourcesInterface* deviceResources;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
     vector<int>& meshOffsets;
     vector<int>& meshSizes;
     UINT& geoOffset;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
     vector<D3DBuffer>& indexBuffer;
     vector<D3DBuffer>& vertexBuffer;
-    SrvComponent* srvComponent;
+    SrvComponent*& srvComponent;
 
 
 public:
     GeometryComponent(
-        DeviceResourcesInterface* deviceResources,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
         vector<int>& meshOffsets,
         vector<int>& meshSizes,
         UINT& geoOffset,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
         vector<D3DBuffer>& indexBuffer,
         vector<D3DBuffer>& vertexBuffer,
-        SrvComponent* srvComponent
+        SrvComponent*& srvComponent
     ) :
         deviceResources{ deviceResources },
         meshOffsets{ meshOffsets },

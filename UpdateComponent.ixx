@@ -19,41 +19,41 @@ import DXCoreInterface;
 using namespace DirectX;
 
 export class UpdateComponent : public UpdateInterface {
-    StepTimer& timer;
-    DeviceResourcesInterface* deviceResources;
-    bool& orbitalCamera;
-    XMVECTOR& eye;
-    XMVECTOR& up;
-    XMVECTOR& at;
-    bool& animateLight;
-    bool& animateGeometry;
-    float& animateGeometryTime;
-    ConstantBuffer<SceneConstantBuffer>& sceneCB;
-    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
+    const StepTimer& timer;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    const bool& orbitalCamera;
+    const XMVECTOR& eye;
+    const XMVECTOR& up;
+    const XMVECTOR& at;
+    const bool& animateLight;
+    const bool& animateGeometry;
+    const float& animateGeometryTime;
+    const ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
 
-    PerformanceComponent* performanceComponent;
-    CameraComponent* cameraComponent;
-    ResourceComponent* resourceComponent;
+    const PerformanceComponent*& performanceComponent;
+    const CameraComponent*& cameraComponent;
+    const ResourceComponent*& resourceComponent;
 
-    DXCoreInterface* dxCore;
+    const DXCoreInterface*& dxCore;
 
 public:
     UpdateComponent(
-        StepTimer& timer,
-        DeviceResourcesInterface* deviceResources,
-        bool& orbitalCamera,
-        XMVECTOR& eye,
-        XMVECTOR& up,
-        XMVECTOR& at,
-        bool& animateLight,
-        bool& animateGeometry,
-        float& animateGeometryTime,
-        ConstantBuffer<SceneConstantBuffer>& sceneCB,
-        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
-        PerformanceComponent* performanceComponent,
-        CameraComponent* cameraComponent,
-        ResourceComponent* resourceComponent,
-        DXCoreInterface* dxCore
+        const StepTimer& timer,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        const bool& orbitalCamera,
+        const XMVECTOR& eye,
+        const XMVECTOR& up,
+        const XMVECTOR& at,
+        const bool& animateLight,
+        const bool& animateGeometry,
+        const float& animateGeometryTime,
+        const ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
+        const PerformanceComponent*& performanceComponent,
+        const CameraComponent*& cameraComponent,
+        const ResourceComponent*& resourceComponent,
+        const DXCoreInterface*& dxCore
     ) :
         timer{ timer },
         deviceResources{ deviceResources },
@@ -74,7 +74,7 @@ public:
 
     virtual void OnUpdate() {
         timer.Tick();
-        performanceComponent->CalculateFrameStats();
+        CalculateFrameStats();
         float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
         auto prevFrameIndex = deviceResources->GetPreviousFrameIndex();
@@ -146,5 +146,33 @@ public:
 
     void UpdateForSizeChange(UINT width, UINT height) {
         dxCore->UpdateForSizeChange(width, height);
+    }
+
+    void CalculateFrameStats() {
+        static int frameCnt = 0;
+        static double prevTime = 0.0f;
+        double totalTime = timer.GetTotalSeconds();
+
+        frameCnt++;
+
+        // Compute averages over one second period.
+        if ((totalTime - prevTime) >= 1.0f)
+        {
+            float diff = static_cast<float>(totalTime - prevTime);
+            float fps = static_cast<float>(frameCnt) / diff; // Normalize to an exact second.
+
+            frameCnt = 0;
+            prevTime = totalTime;
+            float raytracingTime = static_cast<float>(gpuTimers[GpuTimers::Raytracing].GetElapsedMS());
+            float MRaysPerSecond = NumMRaysPerSecond(width, height, raytracingTime);
+
+            wstringstream windowText;
+            windowText << setprecision(2) << fixed
+                << L"    FPS: " << fps
+                << L"    Raytracing time: " << raytracingTime << " ms"
+                << L"    Ray throughput: " << MRaysPerSecond << " MRPS"
+                << L"    GPU[" << deviceResources->GetAdapterID() << L"]: " << deviceResources->GetAdapterDescription();
+            /*SetCustomWindowText(windowText.str().c_str(), hwnd);*/
+        }
     }
 };

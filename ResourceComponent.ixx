@@ -26,13 +26,11 @@ import InitInterface;
 import Descriptors;
 import Helper;
 
-import CameraComponent;
 import Mesh;
 import DescriptorHeap;
 import ConstantBuffer;
 import StructuredBuffer;
 import Material;
-import ShaderComponent;
 import SrvComponent;
 import BottomLevelASComponent;
 import TopLevelASComponent;
@@ -44,25 +42,24 @@ using namespace Microsoft::WRL;
 export class ResourceComponent {
     vector<PrimitiveConstantBuffer>& triangleMaterialCB;
     const UINT& FrameCount;
-    vector<DX::GPUTimer>& gpuTimers;
-    ShaderTableComponent*& shaderTableComponent;
-    InitInterface*& initComponent;
+    const vector<DX::GPUTimer>& gpuTimers;
+    const ShaderTableComponent*& shaderTableComponent;
+    const InitInterface*& initComponent;
     RootSignatureComponent*& rootSignatureComponent;
-    DeviceResourcesInterface* deviceResources;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
-    CameraComponent*& cameraComponent;
-    ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
-    ComPtr<ID3D12Device5>& dxrDevice;
-    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    ComPtr<ID3D12StateObject>& dxrStateObject;
+    const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
+    const vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
+    const ComPtr<ID3D12Device5>& dxrDevice;
+    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    const ComPtr<ID3D12StateObject>& dxrStateObject;
     DescriptorHeap*& descriptorHeap;
-    UINT& descriptorsAllocated;
-    ConstantBuffer<SceneConstantBuffer>& sceneCB;
-    StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
-    vector<ComPtr<ID3D12Resource>>& bottomLevelAS;
-    ComPtr<ID3D12Resource>& topLevelAS;
-    vector<ComPtr<ID3D12Resource>>& buffers;
+    const UINT& descriptorsAllocated;
+    const ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    const StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
+    const vector<ComPtr<ID3D12Resource>>& bottomLevelAS;
+    const ComPtr<ID3D12Resource>& topLevelAS;
+    const vector<ComPtr<ID3D12Resource>>& buffers;
     ComPtr<ID3D12Resource>& rayGenShaderTable;
     ComPtr<ID3D12Resource>& missShaderTable;
     ComPtr<ID3D12Resource>& hitGroupShaderTable;
@@ -72,69 +69,67 @@ export class ResourceComponent {
     vector<D3DBuffer>& indexBuffer;
     vector<D3DBuffer>& vertexBuffer;
     SrvComponent*& srvComponent;
-    UINT& descriptorSize;
+    const UINT& descriptorSize;
     unordered_map<string, unique_ptr<Texture>>& textures;
     const UINT& NUM_BLAS;
-    vector<D3DTexture>& stoneTexture;
-    unordered_map<int, Material>& materials;
-    vector<D3DTexture>& templeTextures;
-    vector<D3DTexture>& templeNormalTextures;
-    vector<D3DTexture>& templeSpecularTextures;
-    vector<D3DTexture>& templeEmittanceTextures;
+    const vector<D3DTexture>& stoneTexture;
+    const unordered_map<int, Material>& materials;
+    const vector<D3DTexture>& templeTextures;
+    const vector<D3DTexture>& templeNormalTextures;
+    const vector<D3DTexture>& templeSpecularTextures;
+    const vector<D3DTexture>& templeEmittanceTextures;
     BottomLevelASComponent*& bottomLevelAsComponent;
-    TopLevelASComponent*& topLevelAsComponent;
+    const TopLevelASComponent*& topLevelAsComponent;
 
-    OutputComponent*& outputComponent;
+    const OutputComponent*& outputComponent;
     GeometryComponent*& geometryComponent;
-    AccelerationStructureComponent*& asComponent;
-    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
+    const AccelerationStructureComponent*& asComponent;
+    const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
 
-    vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
-    vector<const wchar_t*>& c_missShaderNames;
+    const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
+    const vector<const wchar_t*>& c_missShaderNames;
     const wchar_t*& c_closestHitShaderName;
     const wchar_t*& c_raygenShaderName;
     UINT& missShaderTableStrideInBytes;
     UINT& hitGroupShaderTableStrideInBytes;
 
-    UINT& width;
-    UINT& height;
-    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    const UINT& width;
+    const UINT& height;
+    const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
 
 
-    ShaderComponent* shaderComponent;
 
 
 public:
     ResourceComponent(
         vector<PrimitiveConstantBuffer>& triangleMaterialCB,
         const UINT& FrameCount,
-        vector<DX::GPUTimer>& gpuTimers,
-        ShaderTableComponent*& shaderTableComponent,
-        InitInterface*& initComponent,
+        const vector<DX::GPUTimer>& gpuTimers,
+        const ShaderTableComponent*& shaderTableComponent,
+        const InitInterface*& initComponent,
         RootSignatureComponent*& rootSignatureComponent,
-        DeviceResourcesInterface* deviceResources,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
-        CameraComponent*& cameraComponent,
-        ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
+        const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
 
-        vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
-        ComPtr<ID3D12Device5>& dxrDevice,
-        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
-        ComPtr<ID3D12StateObject>& dxrStateObject,
+        const vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
+        const ComPtr<ID3D12Device5>& dxrDevice,
+        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        const ComPtr<ID3D12StateObject>& dxrStateObject,
         DescriptorHeap*& descriptorHeap,
-        UINT& descriptorsAllocated,
-        ConstantBuffer<SceneConstantBuffer>& sceneCB,
-        StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
-        vector<ComPtr<ID3D12Resource>>& bottomLevelAS,
-        ComPtr<ID3D12Resource>& topLevelAS,
+        const UINT& descriptorsAllocated,
+        const ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        const StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
+        const vector<ComPtr<ID3D12Resource>>& bottomLevelAS,
+        const ComPtr<ID3D12Resource>& topLevelAS,
 
-        vector<ComPtr<ID3D12Resource>>& buffers,
+        const vector<ComPtr<ID3D12Resource>>& buffers,
         ComPtr<ID3D12Resource>& rayGenShaderTable,
         ComPtr<ID3D12Resource>& missShaderTable,
         ComPtr<ID3D12Resource>& hitGroupShaderTable,
-        OutputComponent*& outputComponent,
+        const OutputComponent*& outputComponent,
         GeometryComponent*& geometryComponent,
-        AccelerationStructureComponent*& asComponent,
+        const AccelerationStructureComponent*& asComponent,
         vector<int>& meshOffsets,
         vector<int>& meshSizes,
 
@@ -142,30 +137,30 @@ public:
         vector<D3DBuffer>& indexBuffer,
         vector<D3DBuffer>& vertexBuffer,
         SrvComponent*& srvComponent,
-        UINT& descriptorSize,
+        const UINT& descriptorSize,
         unordered_map<string, unique_ptr<Texture>>& textures,
         const UINT& NUM_BLAS,
-        unordered_map<int, Material>& materials,
-        vector<D3DTexture>& stoneTexture,
-        vector<D3DTexture>& templeTextures,
+        const unordered_map<int, Material>& materials,
+        const vector<D3DTexture>& stoneTexture,
+        const vector<D3DTexture>& templeTextures,
 
-        vector<D3DTexture>& templeNormalTextures,
-        vector<D3DTexture>& templeSpecularTextures,
-        vector<D3DTexture>& templeEmittanceTextures,
+        const vector<D3DTexture>& templeNormalTextures,
+        const vector<D3DTexture>& templeSpecularTextures,
+        const vector<D3DTexture>& templeEmittanceTextures,
         BottomLevelASComponent*& bottomLevelAsComponent,
-        TopLevelASComponent*& topLevelAsComponent,
-        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
+        const TopLevelASComponent*& topLevelAsComponent,
+        const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
 
-        vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry,
-        vector<const wchar_t*>& c_missShaderNames,
+        const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry,
+        const vector<const wchar_t*>& c_missShaderNames,
         const wchar_t*& c_closestHitShaderName,
         const wchar_t*& c_raygenShaderName,
         UINT& missShaderTableStrideInBytes,
         UINT& hitGroupShaderTableStrideInBytes,
 
-        UINT& width,
-        UINT& height,
-        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors
+        const UINT& width,
+        const UINT& height,
+        const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors
     ) :
         triangleMaterialCB{ triangleMaterialCB },
         FrameCount{ FrameCount },
@@ -175,7 +170,6 @@ public:
         rootSignatureComponent{ rootSignatureComponent },
         deviceResources{ deviceResources },
         geometries{ geometries },
-        cameraComponent{ cameraComponent },
         raytracingGlobalRootSignature{ raytracingGlobalRootSignature },
         raytracingLocalRootSignature{ raytracingLocalRootSignature },
         dxrDevice{ dxrDevice },
@@ -218,10 +212,10 @@ public:
         c_raygenShaderName{ c_raygenShaderName },
         missShaderTableStrideInBytes{ missShaderTableStrideInBytes },
         hitGroupShaderTableStrideInBytes{ hitGroupShaderTableStrideInBytes },
-
         width{ width },
         height{ height },
         descriptors{ descriptors }
+
     {}
 
     void CreateDeviceDependentResources() {
@@ -419,7 +413,7 @@ public:
     void CreateRaytracingPipelineStateObject() {
         CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
         shaderComponent = new ShaderComponent();
-        shaderComponent->CreateDxilLibrarySubobjects(&raytracingPipeline);
+        CreateDxilLibrarySubobjects(&raytracingPipeline);
         CreateHitGroupSubobjects(&raytracingPipeline);
 
         auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
@@ -478,5 +472,18 @@ public:
         auto frameCount = deviceResources->GetBackBufferCount();
 
         trianglePrimitiveAttributeBuffer.Create(device, NUM_BLAS, frameCount, L"Triangle primitive attributes");
+    }
+
+    void CreateDxilLibrarySubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {
+        const unsigned char* compiledShaderByteCode[] = { g_pViewRG, g_pRadianceCH, g_pRadianceMS, g_pShadowMS };
+        const unsigned int compiledShaderByteCodeSizes[] = { ARRAYSIZE(g_pViewRG), ARRAYSIZE(g_pRadianceCH), ARRAYSIZE(g_pRadianceMS), ARRAYSIZE(g_pShadowMS) };
+        auto size = sizeof(compiledShaderByteCode) / sizeof(compiledShaderByteCode[0]);
+        for (int i = 0; i < size; i++) {
+            auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
+            auto libDXIL = CD3DX12_SHADER_BYTECODE((void*)compiledShaderByteCode[i], compiledShaderByteCodeSizes[i]);
+            lib->SetDXILLibrary(&libDXIL);
+        };
+
+        // Use default shader exports for a DXIL library/collection subobject ~ surface all shaders.
     }
 };

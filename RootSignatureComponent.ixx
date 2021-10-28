@@ -6,6 +6,8 @@ module;
 #include "RayTracingHlslCompat.hlsli"
 #include <vector>
 #include "RaytracingSceneDefines.h"
+#include <memory>
+#include <string>
 export module RootSignatureComponent;
 
 import DXSampleHelper;
@@ -15,36 +17,23 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class RootSignatureComponent {
-    DeviceResourcesInterface* deviceResources;
+    const shared_ptr<DeviceResourcesInterface>& deviceResources;
     vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
+    const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
 
 public:
     RootSignatureComponent(
-        DeviceResourcesInterface* deviceResources,
+        const shared_ptr<DeviceResourcesInterface>& deviceResources,
         vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
         ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry
+        const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry
     ) :
         deviceResources{ deviceResources },
         raytracingLocalRootSignature{ raytracingLocalRootSignature },
         raytracingGlobalRootSignature{ raytracingGlobalRootSignature },
         c_hitGroupNames_TriangleGeometry{ c_hitGroupNames_TriangleGeometry }
     {}
-
-    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>& rootSig, LPCWSTR resourceName = nullptr) {
-        ComPtr<ID3DBlob> blob;
-        ComPtr<ID3DBlob> error;
-
-        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<const wchar_t*>(error->GetBufferPointer()) : nullptr);
-        ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSig)));
-
-        if (resourceName)
-        {
-            rootSig->SetName(resourceName);
-        }
-    }
 
     void CreateRootSignatures() {
         createGlobalRootSignature();
@@ -107,6 +96,19 @@ public:
         CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
         SerializeAndCreateRaytracingRootSignature(device, localRootSignatureDesc, raytracingLocalRootSignature[LocalRootSignature::Type::Triangle], L"Local root signature");
+    }
+
+    void SerializeAndCreateRaytracingRootSignature(ID3D12Device5* device, D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>& rootSig, LPCWSTR resourceName = nullptr) {
+        ComPtr<ID3DBlob> blob;
+        ComPtr<ID3DBlob> error;
+
+        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<const wchar_t*>(error->GetBufferPointer()) : nullptr);
+        ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSig)));
+
+        if (resourceName)
+        {
+            rootSig->SetName(resourceName);
+        }
     }
 
     void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline) {

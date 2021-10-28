@@ -52,6 +52,7 @@ import BottomLevelASComponent;
 import TopLevelASComponent;
 import UpdateComponent;
 import PerformanceComponent;
+import ShaderComponent;
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -101,10 +102,10 @@ export class Core : public DXCore, public CoreInterface {
     vector<ComPtr<ID3D12Resource>> buffers;
     vector<D3D12_GPU_DESCRIPTOR_HANDLE> descriptors;
 
-    static inline const wchar_t* c_raygenShaderName = L"MyRaygenShader";
-    static inline const wchar_t* c_closestHitShaderName = L"MyClosestHitShader_Triangle";
-    vector<static inline const wchar_t*> c_missShaderNames = { L"MyMissShader", L"MyMissShader_ShadowRay" };
-    vector<static inline const wchar_t*> c_hitGroupNames_TriangleGeometry = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
+    inline static const wchar_t* c_raygenShaderName =L"MyRaygenShader";
+    inline static const wchar_t* c_closestHitShaderName =L"MyClosestHitShader_Triangle";
+    vector<const wchar_t*> c_missShaderNames = { L"MyMissShader", L"MyMissShader_ShadowRay" };
+    vector<const wchar_t*> c_hitGroupNames_TriangleGeometry = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
 
     ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
@@ -156,6 +157,7 @@ export class Core : public DXCore, public CoreInterface {
     BottomLevelASComponent* bottomLevelASComponent;
     TopLevelASComponent* topLevelASComponent;
     PerformanceComponent* performanceComponent;
+    ShaderComponent* shaderComponent;
 
 public:
     Core(UINT width, UINT height) :
@@ -199,14 +201,14 @@ public:
         XMFLOAT3 pos;
         XMStoreFloat3(&pos, m_camera.GetPosition());
         rootSignatureComponent = new RootSignatureComponent(
-            m_deviceResources.get(),
+            m_deviceResources,
             m_raytracingLocalRootSignature,
             m_raytracingGlobalRootSignature,
             c_hitGroupNames_TriangleGeometry
         );
         m_deviceResources->CreateDeviceResources();
         cameraComponent = new CameraComponent(
-            m_deviceResources.get(),
+            m_deviceResources,
             m_sceneCB,
             m_orbitalCamera,
             m_eye,
@@ -218,7 +220,7 @@ public:
 
         m_deviceResources->CreateWindowSizeDependentResources();
         initComponent = new InitComponent(
-            m_deviceResources.get(),
+            m_deviceResources,
             m_triangleMaterialCB,
             pos,
             FrameCount,
@@ -312,7 +314,8 @@ public:
             m_hitGroupShaderTableStrideInBytes,
             m_width,
             m_height,
-            descriptors
+            descriptors,
+            shaderComponent
         );
 
         performanceComponent = new PerformanceComponent(
@@ -373,7 +376,10 @@ public:
            m_blurPSO,
            m_filterCB,
            buffers,
-           outputComponent
+           outputComponent,
+           m_blurRootSig,
+           m_composeRootSig,
+           rootSignatureComponent
         };
 
         inputComponent = new InputComponent(
