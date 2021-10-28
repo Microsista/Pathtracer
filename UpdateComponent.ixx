@@ -2,58 +2,69 @@ module;
 #include <stdint.h>
 #include <DirectXMath.h>
 #include "RayTracingHlslCompat.hlsli"
+#include <memory>
+#include <vector>
+#include "RaytracingSceneDefines.h"
+#include <sstream>
+#include <iomanip>
 export module UpdateComponent;
 
 import StepTimer;
-import PerformanceComponent;
 import Camera;
 import ConstantBuffer;
 import DXCore;
 import ResourceComponent;
 import UpdateInterface;
 import DeviceResourcesInterface;
-import CameraComponent;
 import DXSampleHelper;
 import DXCoreInterface;
+import InitInterface;
+import Helper;
 
 using namespace DirectX;
+using namespace std;
 
 export class UpdateComponent : public UpdateInterface {
-    const StepTimer& timer;
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
-    const bool& orbitalCamera;
-    const XMVECTOR& eye;
-    const XMVECTOR& up;
-    const XMVECTOR& at;
-    const bool& animateLight;
-    const bool& animateGeometry;
-    const float& animateGeometryTime;
-    const ConstantBuffer<SceneConstantBuffer>& sceneCB;
-    const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
+    StepTimer& timer;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    bool& orbitalCamera;
+    XMVECTOR& eye;
+    XMVECTOR& up;
+    XMVECTOR& at;
+    bool& animateLight;
+    bool& animateGeometry;
+    float& animateGeometryTime;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
 
-    const PerformanceComponent*& performanceComponent;
-    const CameraComponent*& cameraComponent;
-    const ResourceComponent*& resourceComponent;
+    ResourceComponent*& resourceComponent;
 
-    const DXCoreInterface*& dxCore;
+    DXCoreInterface* dxCore;
+    InitInterface*& initComponent;
+    vector<DX::GPUTimer>& gpuTimers;
+
+    UINT& width;
+    UINT& height;
 
 public:
     UpdateComponent(
-        const StepTimer& timer,
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const bool& orbitalCamera,
-        const XMVECTOR& eye,
-        const XMVECTOR& up,
-        const XMVECTOR& at,
-        const bool& animateLight,
-        const bool& animateGeometry,
-        const float& animateGeometryTime,
-        const ConstantBuffer<SceneConstantBuffer>& sceneCB,
-        const ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
-        const PerformanceComponent*& performanceComponent,
-        const CameraComponent*& cameraComponent,
-        const ResourceComponent*& resourceComponent,
-        const DXCoreInterface*& dxCore
+        StepTimer& timer,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        bool& orbitalCamera,
+        XMVECTOR& eye,
+        XMVECTOR& up,
+        XMVECTOR& at,
+        bool& animateLight,
+        bool& animateGeometry,
+        float& animateGeometryTime,
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
+        ResourceComponent*& resourceComponent,
+        DXCoreInterface* dxCore,
+        InitInterface*& initComponent,
+        vector<DX::GPUTimer>& gpuTimers,
+        UINT& width,
+        UINT& height
     ) :
         timer{ timer },
         deviceResources{ deviceResources },
@@ -66,10 +77,12 @@ public:
         animateGeometryTime{ animateGeometryTime },
         sceneCB{ sceneCB },
         filterCB{ filterCB },
-        performanceComponent{ performanceComponent },
-        cameraComponent{ cameraComponent },
         resourceComponent{ resourceComponent },
-        dxCore{ dxCore }
+        dxCore{ dxCore },
+        initComponent{ initComponent },
+        gpuTimers{ gpuTimers },
+        width{ width },
+        height{ height }
     {}
 
     virtual void OnUpdate() {
@@ -87,7 +100,7 @@ public:
             eye = XMVector3Transform(eye, rotate);
             up = XMVector3Transform(up, rotate);
             at = XMVector3Transform(at, rotate);
-            cameraComponent->UpdateCameraMatrices();
+            initComponent->UpdateCameraMatrices();
         }
 
         if (animateLight)
@@ -95,7 +108,7 @@ public:
             float secondsToRotateAround = 8.0f;
             float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
             XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-            const XMVECTOR& prevLightPosition = sceneCB->lightPosition;
+            XMVECTOR& prevLightPosition = sceneCB->lightPosition;
             sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
         }
 

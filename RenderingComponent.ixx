@@ -33,27 +33,27 @@ using namespace std;
 using namespace Microsoft::WRL;
 
 export class RenderingComponent {
-    DeviceResourcesInterface*& deviceResources;
-    const ComPtr<ID3D12Resource>& rayGenShaderTable;
-    const ComPtr<ID3D12Resource>& hitGroupShaderTable;
-    const ComPtr<ID3D12Resource>& missShaderTable;
-    const UINT& hitGroupShaderTableStrideInBytes;
-    const UINT& missShaderTableStrideInBytes;
-    const UINT& width;
-    const UINT& height;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    ComPtr<ID3D12Resource>& rayGenShaderTable;
+    ComPtr<ID3D12Resource>& hitGroupShaderTable;
+    ComPtr<ID3D12Resource>& missShaderTable;
+    UINT& hitGroupShaderTableStrideInBytes;
+    UINT& missShaderTableStrideInBytes;
+    UINT& width;
+    UINT& height;
     vector<DX::GPUTimer>& gpuTimers;
-    const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
     DescriptorHeap*& descriptorHeap;
-    const Camera& camera;
-    const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    const ComPtr<ID3D12Resource>& topLevelAS;
-    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    const ComPtr<ID3D12StateObject>& dxrStateObject;
+    Camera& camera;
+    ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
+    ComPtr<ID3D12Resource>& topLevelAS;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    ComPtr<ID3D12StateObject>& dxrStateObject;
     ConstantBuffer<SceneConstantBuffer>& sceneCB;
     StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
 
     ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB;
-    const vector<ComPtr<ID3D12Resource>>& buffers;
+    vector<ComPtr<ID3D12Resource>>& buffers;
     OutputComponent*& outputComponent;
     ComPtr<ID3D12RootSignature>& blurRootSig;
     ComPtr<ID3D12RootSignature>& composeRootSig;
@@ -63,30 +63,30 @@ export class RenderingComponent {
 
 public:
     RenderingComponent(
-        DeviceResourcesInterface*& deviceResources,
-        const ComPtr<ID3D12Resource>& hitGroupShaderTable,
-        const ComPtr<ID3D12Resource>& missShaderTable,
-        const ComPtr<ID3D12Resource>& rayGenShaderTable,
-        const UINT& hitGroupShaderTableStrideInBytes,
-        const UINT& missShaderTableStrideInBytes,
-        const UINT& width,
-        const UINT& height,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        ComPtr<ID3D12Resource>& hitGroupShaderTable,
+        ComPtr<ID3D12Resource>& missShaderTable,
+        ComPtr<ID3D12Resource>& rayGenShaderTable,
+        UINT& hitGroupShaderTableStrideInBytes,
+        UINT& missShaderTableStrideInBytes,
+        UINT& width,
+        UINT& height,
         vector<DX::GPUTimer>& gpuTimers,
-        const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
+        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
 
         DescriptorHeap*& descriptorHeap,
-        const Camera& camera,
-        const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        const ComPtr<ID3D12Resource>& topLevelAS,
-        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
-        const ComPtr<ID3D12StateObject>& dxrStateObject,
+        Camera& camera,
+        ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
+        ComPtr<ID3D12Resource>& topLevelAS,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        ComPtr<ID3D12StateObject>& dxrStateObject,
         ConstantBuffer<SceneConstantBuffer>& sceneCB,
         StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
-
         vector<ComPtr<ID3D12PipelineState>>& composePSO,
         vector<ComPtr<ID3D12PipelineState>>& blurPSO,
+
         ConstantBuffer<AtrousWaveletTransformFilterConstantBuffer>& filterCB,
-        const vector<ComPtr<ID3D12Resource>>& buffers,
+        vector<ComPtr<ID3D12Resource>>& buffers,
         OutputComponent*& outputComponent,
         ComPtr<ID3D12RootSignature>& blurRootSig,
         ComPtr<ID3D12RootSignature>& composeRootSig,

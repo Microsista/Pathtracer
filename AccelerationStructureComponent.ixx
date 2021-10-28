@@ -29,17 +29,17 @@ using namespace Microsoft::WRL;
 
 export class AccelerationStructureComponent {
     shared_ptr<DeviceResourcesInterface>& deviceResources;
-    const ComPtr<ID3D12Device5>& dxrDevice;
+    ComPtr<ID3D12Device5>& dxrDevice;
     const UINT& NUM_BLAS;
-    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
     vector<ComPtr<ID3D12Resource>>& bottomLevelAS;
     ComPtr<ID3D12Resource>& topLevelAS;
     vector<D3DTexture>& stoneTexture;
     unordered_map<int, Material>& materials;
-    const vector<int>& meshOffsets;
+    vector<int>& meshOffsets;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
     DescriptorHeap*& descriptorHeap;
-    const vector<int>& meshSizes;
+    vector<int>& meshSizes;
     vector<D3DTexture>& templeTextures;
     vector<D3DTexture>& templeNormalTextures;
     vector<D3DTexture>& templeSpecularTextures;
@@ -50,18 +50,18 @@ export class AccelerationStructureComponent {
 public:
     AccelerationStructureComponent(
         shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const ComPtr<ID3D12Device5>& dxrDevice,
+        ComPtr<ID3D12Device5>& dxrDevice,
         const UINT& NUM_BLAS,
-        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
         vector<ComPtr<ID3D12Resource>>& bottomLevelAS,
         ComPtr<ID3D12Resource>& topLevelAS,
         vector<D3DTexture>& stoneTexture,
         unordered_map<int, Material>& materials,
-        const vector<int>& meshOffsets,
+        vector<int>& meshOffsets,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
 
         DescriptorHeap*& descriptorHeap,
-        const vector<int>& meshSizes,
+        vector<int>& meshSizes,
         vector<D3DTexture>& templeTextures,
         vector<D3DTexture>& templeNormalTextures,
         vector<D3DTexture>& templeSpecularTextures,

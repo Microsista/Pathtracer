@@ -28,7 +28,7 @@ using namespace std;
 using namespace DirectX;
 
 export class GeometryComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
     vector<int>& meshOffsets;
     vector<int>& meshSizes;
     UINT& geoOffset;
@@ -40,7 +40,7 @@ export class GeometryComponent {
 
 public:
     GeometryComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
         vector<int>& meshOffsets,
         vector<int>& meshSizes,
         UINT& geoOffset,
@@ -175,8 +175,8 @@ public:
             }
             std::vector<std::uint32_t> roomIndices;
             roomIndices.insert(roomIndices.end(), begin(geo.Indices32), end(geo.Indices32));
-            const UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
-            const UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
+            UINT roomibByteSize = (UINT)roomIndices.size() * sizeof(std::uint32_t);
+            UINT roomvbByteSize = (UINT)roomVertices.size() * sizeof(VertexPositionNormalTextureTangent);
             AllocateUploadBuffer(device, &roomIndices[0], roomibByteSize, &indexBuffer[i].resource);
             AllocateUploadBuffer(device, &roomVertices[0], roomvbByteSize, &vertexBuffer[i].resource);
             srvComponent->CreateBufferSRV(&indexBuffer[i], (UINT)roomIndices.size(), (UINT)sizeof(uint32_t));

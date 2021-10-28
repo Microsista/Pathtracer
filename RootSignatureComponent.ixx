@@ -17,17 +17,17 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class RootSignatureComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
     vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature;
     ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
+    vector<inline static const wchar_t*>& c_hitGroupNames_TriangleGeometry;
 
 public:
     RootSignatureComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
         vector<ComPtr<ID3D12RootSignature>>& raytracingLocalRootSignature,
         ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry
+        vector<inline static const wchar_t*>& c_hitGroupNames_TriangleGeometry
     ) :
         deviceResources{ deviceResources },
         raytracingLocalRootSignature{ raytracingLocalRootSignature },
@@ -102,7 +102,7 @@ public:
         ComPtr<ID3DBlob> blob;
         ComPtr<ID3DBlob> error;
 
-        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<const wchar_t*>(error->GetBufferPointer()) : nullptr);
+        ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
         ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSig)));
 
         if (resourceName)

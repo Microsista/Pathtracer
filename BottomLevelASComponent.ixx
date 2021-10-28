@@ -22,26 +22,26 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class BottomLevelASComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
-    const ComPtr<ID3D12Device5>& dxrDevice;
-    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    const vector<int>& meshSizes;
-    const vector<D3DBuffer>& indexBuffer;
-    const vector<D3DBuffer>& vertexBuffer;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    ComPtr<ID3D12Device5>& dxrDevice;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    vector<int>& meshSizes;
+    vector<D3DBuffer>& indexBuffer;
+    vector<D3DBuffer>& vertexBuffer;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
-    const vector<int>& meshOffsets;
+    vector<int>& meshOffsets;
     const UINT& NUM_BLAS;
 
 public:
     BottomLevelASComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const ComPtr<ID3D12Device5>& dxrDevice,
-        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
-        const vector<int>& meshSizes,
-        const vector<D3DBuffer>& indexBuffer,
-        const vector<D3DBuffer>& vertexBuffer,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        ComPtr<ID3D12Device5>& dxrDevice,
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList,
+        vector<int>& meshSizes,
+        vector<D3DBuffer>& indexBuffer,
+        vector<D3DBuffer>& vertexBuffer,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
-        const vector<int>& meshOffsets,
+        vector<int>& meshOffsets,
         const UINT& NUM_BLAS
     ) :
         deviceResources{ deviceResources },
@@ -55,7 +55,7 @@ public:
         NUM_BLAS{ NUM_BLAS }
     {}
 
-    AccelerationStructureBuffers BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs,
+    AccelerationStructureBuffers BuildBottomLevelAS(vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs,
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags =
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE)
     {

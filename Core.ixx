@@ -39,7 +39,6 @@ import UpdateInterface;
 import InitComponent;
 import InitInterface;
 import ResourceComponent;
-import CameraComponent;
 import CoreInterface;
 import ShaderTableComponent;
 import RootSignatureComponent;
@@ -51,8 +50,6 @@ import SrvComponent;
 import BottomLevelASComponent;
 import TopLevelASComponent;
 import UpdateComponent;
-import PerformanceComponent;
-import ShaderComponent;
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -104,8 +101,8 @@ export class Core : public DXCore, public CoreInterface {
 
     inline static const wchar_t* c_raygenShaderName =L"MyRaygenShader";
     inline static const wchar_t* c_closestHitShaderName =L"MyClosestHitShader_Triangle";
-    vector<const wchar_t*> c_missShaderNames = { L"MyMissShader", L"MyMissShader_ShadowRay" };
-    vector<const wchar_t*> c_hitGroupNames_TriangleGeometry = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
+    vector<inline static const wchar_t*> c_missShaderNames = { L"MyMissShader", L"MyMissShader_ShadowRay" };
+    vector<inline static const wchar_t*> c_hitGroupNames_TriangleGeometry = { L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" };
 
     ComPtr<ID3D12Resource> m_missShaderTable;
     UINT m_missShaderTableStrideInBytes;
@@ -147,7 +144,6 @@ export class Core : public DXCore, public CoreInterface {
     InitInterface* initComponent;
     UpdateInterface* updateComponent;
     ResourceComponent* resourceComponent;
-    CameraComponent* cameraComponent;
     ShaderTableComponent* shaderTableComponent;
     RootSignatureComponent* rootSignatureComponent;
     OutputComponent* outputComponent;
@@ -156,8 +152,6 @@ export class Core : public DXCore, public CoreInterface {
     SrvComponent* srvComponent;
     BottomLevelASComponent* bottomLevelASComponent;
     TopLevelASComponent* topLevelASComponent;
-    PerformanceComponent* performanceComponent;
-    ShaderComponent* shaderComponent;
 
 public:
     Core(UINT width, UINT height) :
@@ -207,17 +201,7 @@ public:
             c_hitGroupNames_TriangleGeometry
         );
         m_deviceResources->CreateDeviceResources();
-        cameraComponent = new CameraComponent(
-            m_deviceResources,
-            m_sceneCB,
-            m_orbitalCamera,
-            m_eye,
-            m_at,
-            m_up,
-            m_aspectRatio,
-            m_camera
-        );
-
+        
         m_deviceResources->CreateWindowSizeDependentResources();
         initComponent = new InitComponent(
             m_deviceResources,
@@ -231,7 +215,6 @@ public:
             m_sceneCB,
             m_camera,
 
-            cameraComponent,
             m_at,
             m_up,
             m_eye,
@@ -246,9 +229,9 @@ public:
             m_gpuTimers,
             descriptors,
             m_descriptorHeap,
-            m_raytracingGlobalRootSignature.Get(),
-            m_topLevelAS.Get(),
-            m_dxrStateObject.Get(),
+            m_raytracingGlobalRootSignature,
+            m_topLevelAS,
+            m_dxrStateObject,
             m_trianglePrimitiveAttributeBuffer,
             m_orbitalCamera,
             m_aspectRatio
@@ -262,9 +245,8 @@ public:
             shaderTableComponent,
             initComponent,
             rootSignatureComponent,
-            m_deviceResources.get(),
+            m_deviceResources,
             m_geometries,
-            cameraComponent,
             m_raytracingGlobalRootSignature,
 
             m_raytracingLocalRootSignature,
@@ -314,17 +296,10 @@ public:
             m_hitGroupShaderTableStrideInBytes,
             m_width,
             m_height,
-            descriptors,
-            shaderComponent
+            descriptors
         );
 
-        performanceComponent = new PerformanceComponent(
-            m_deviceResources.get(),
-            m_width,
-            m_height,
-            m_timer,
-            m_gpuTimers
-        );
+       
 
         
         
@@ -336,7 +311,7 @@ public:
 
         updateComponent = new UpdateComponent(
             m_timer,
-            m_deviceResources.get(),
+            m_deviceResources,
             m_orbitalCamera,
             m_eye,
             m_up,
@@ -346,14 +321,16 @@ public:
             m_animateGeometryTime,
             m_sceneCB,
             m_filterCB,
-            performanceComponent,
-            cameraComponent,
             resourceComponent,
-            this
+            this,
+            initComponent,
+            m_gpuTimers,
+            m_width,
+            m_height
         );
 
         renderingComponent = new RenderingComponent{
-           m_deviceResources.get(),
+           m_deviceResources,
            m_hitGroupShaderTable,
            m_missShaderTable,
            m_rayGenShaderTable,
@@ -374,6 +351,7 @@ public:
            m_trianglePrimitiveAttributeBuffer,
            m_composePSO,
            m_blurPSO,
+
            m_filterCB,
            buffers,
            outputComponent,
@@ -388,7 +366,7 @@ public:
             m_sceneCB,
             m_orbitalCamera,
             m_lastMousePosition,
-            cameraComponent
+            initComponent
         );
     }
 

@@ -8,26 +8,26 @@ import Camera;
 import Directions;
 import StepTimer;
 import ConstantBuffer;
-import InitComponent;
+import InitInterface;
 
 using namespace DirectX;
 
 export class InputComponent {
     Camera& camera;
-    const StepTimer& timer;
+    StepTimer& timer;
     ConstantBuffer<SceneConstantBuffer>& sceneCB;
     bool& orbitalCamera;
     POINT& lastMousePosition;
-    const InitComponent initcomponent;
+    InitInterface*& initComponent;
 
 public:
     InputComponent(
         Camera& camera,
-        const StepTimer& timer,
+        StepTimer& timer,
         ConstantBuffer<SceneConstantBuffer>& sceneCB,
         bool& orbitalCamera,
         POINT& lastMousePosition,
-        const InitComponent initcomponent
+        InitInterface*& initComponent
     ) :
         camera{ camera },
         timer{ timer },
@@ -43,7 +43,7 @@ public:
         float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
         float secondsToRotateAround = 0.1f;
         float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
-        const XMVECTOR& prevLightPosition = sceneCB->lightPosition;
+        XMVECTOR& prevLightPosition = sceneCB->lightPosition;
         XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
         XMMATRIX rotateClockwise = XMMatrixRotationY(XMConvertToRadians(-angleToRotateBy));
 

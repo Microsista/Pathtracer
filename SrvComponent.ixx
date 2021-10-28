@@ -19,15 +19,15 @@ import DescriptorHeapInterface;
 using namespace std;
 
 export class SrvComponent {
-    const UINT& descriptorSize;
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    UINT& descriptorSize;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
     unordered_map<string, unique_ptr<Texture>>& textures;
     DescriptorHeap*& descriptorHeap;
 
 public:
     SrvComponent(
-        const UINT& descriptorSize,
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        UINT& descriptorSize,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
         unordered_map<string, unique_ptr<Texture>>& textures,
         DescriptorHeap*& descriptorHeap
     ) :

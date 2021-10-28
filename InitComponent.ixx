@@ -20,7 +20,6 @@ import StructuredBuffer;
 import Helper;
 import InitInterface;
 import ResourceComponent;
-import CameraComponent;
 import DescriptorHeap;
 import CoreInterface;
 import Camera;
@@ -30,78 +29,69 @@ using namespace DirectX;
 using namespace Microsoft::WRL;
 
 export class InitComponent : public InitInterface {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
     const UINT& FrameCount;
-    const UINT& adapterIDoverride;
-    const UINT& width;
-    const UINT& height;
-    const RenderingComponent*& renderingComponent;
-    const ConstantBuffer<SceneConstantBuffer>& sceneCB;
-    const vector<PrimitiveConstantBuffer>& triangleMaterialCB;
-    const Camera& camera;
-    const CameraComponent*& cameraComponent;
-    const XMVECTOR& at;
-    const XMVECTOR& up;
-    const XMVECTOR& eye;
+    UINT& adapterIDoverride;
+    UINT& width;
+    UINT& height;
+    RenderingComponent*& renderingComponent;
+    ConstantBuffer<SceneConstantBuffer>& sceneCB;
+    vector<PrimitiveConstantBuffer>& triangleMaterialCB;
+    Camera& camera;
+    XMVECTOR& at;
+    XMVECTOR& up;
+    XMVECTOR& eye;
 
-    const XMFLOAT4& lightAmbientColor;
-    const XMFLOAT4& lightDiffuseColor;
-    const ComPtr<ID3D12Device5>& dxrDevice;
-    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
-    const XMFLOAT4& lightPosition;
-    const XMMATRIX& projectionToWorld;
+    CoreInterface* core;
+    ResourceComponent*& resourceComponent;
+    ComPtr<ID3D12Resource>& rayGenShaderTable;
+    ComPtr<ID3D12Resource>& hitGroupShaderTable;
+    ComPtr<ID3D12Resource>& missShaderTable;
+    UINT& hitGroupShaderTableStrideInBytes;
+    UINT& missShaderTableStrideInBytes;
+    vector<DX::GPUTimer>& gpuTimers;
+    vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
+    DescriptorHeap*& descriptorHeap;
+    ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
+    ComPtr<ID3D12Resource>& topLevelAS;
+    ComPtr<ID3D12StateObject>& dxrStateObject;
+    StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
 
-    const CoreInterface*& core;
-    const ResourceComponent*& resourceComponent;
-    const ComPtr<ID3D12Resource>& rayGenShaderTable;
-    const ComPtr<ID3D12Resource>& hitGroupShaderTable;
-    const ComPtr<ID3D12Resource>& missShaderTable;
-    const UINT& hitGroupShaderTableStrideInBytes;
-    const UINT& missShaderTableStrideInBytes;
-    const vector<DX::GPUTimer>& gpuTimers;
-    const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
-    const DescriptorHeap*& descriptorHeap;
-    const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature;
-    const ComPtr<ID3D12Resource>& topLevelAS;
-    const ComPtr<ID3D12StateObject>& dxrStateObject;
-    const StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer;
-
-    const bool& orbitalCamera;
-    const float& aspectRatio;
-    const XMFLOAT3& cameraPosition;
+    bool& orbitalCamera;
+    float& aspectRatio;
+    XMFLOAT3& cameraPosition;
 
 public:
     InitComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const vector<PrimitiveConstantBuffer>& triangleMaterialCB,
-        const XMFLOAT3& cameraPosition,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        vector<PrimitiveConstantBuffer>& triangleMaterialCB,
+        XMFLOAT3& cameraPosition,
         const UINT& FrameCount,
-        const UINT& adapterIDoverride,
-        const UINT& width,
-        const UINT& height,
-        const RenderingComponent*& renderingComponent,
-        const ConstantBuffer<SceneConstantBuffer>& sceneCB,
-        const Camera& camera,
-        const CameraComponent*& cameraComponent,
-        const XMVECTOR& at,
-        const XMVECTOR& up,
-        const XMVECTOR& eye,
-        const CoreInterface*& core,
-        const ResourceComponent*& resourceComponent,
-        const ComPtr<ID3D12Resource>& rayGenShaderTable,
-        const ComPtr<ID3D12Resource>& hitGroupShaderTable,
-        const ComPtr<ID3D12Resource>& missShaderTable,
-        const UINT& hitGroupShaderTableStrideInBytes,
-        const UINT& missShaderTableStrideInBytes,
-        const vector<DX::GPUTimer>& gpuTimers,
-        const vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
-        const DescriptorHeap*& descriptorHeap,
-        const ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
-        const ComPtr<ID3D12Resource>& topLevelAS,
-        const ComPtr<ID3D12StateObject>& dxrStateObject,
-        const StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
-        const bool& orbitalCamera,
-        const float& aspectRatio
+        UINT& adapterIDoverride,
+        UINT& width,
+        UINT& height,
+        RenderingComponent*& renderingComponent,
+        ConstantBuffer<SceneConstantBuffer>& sceneCB,
+        Camera& camera,
+        XMVECTOR& at,
+        XMVECTOR& up,
+        XMVECTOR& eye,
+        CoreInterface* core,
+        ResourceComponent*& resourceComponent,
+        ComPtr<ID3D12Resource>& rayGenShaderTable,
+        ComPtr<ID3D12Resource>& hitGroupShaderTable,
+        ComPtr<ID3D12Resource>& missShaderTable,
+        UINT& hitGroupShaderTableStrideInBytes,
+        UINT& missShaderTableStrideInBytes,
+        vector<DX::GPUTimer>& gpuTimers,
+        vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
+        DescriptorHeap*& descriptorHeap,
+        ComPtr<ID3D12RootSignature>& raytracingGlobalRootSignature,
+        ComPtr<ID3D12Resource>& topLevelAS,
+        ComPtr<ID3D12StateObject>& dxrStateObject,
+        StructuredBuffer<PrimitiveInstancePerFrameBuffer>& trianglePrimitiveAttributeBuffer,
+        bool& orbitalCamera,
+        float& aspectRatio
     ) :
         deviceResources{ deviceResources },
         triangleMaterialCB{ triangleMaterialCB },
@@ -113,7 +103,6 @@ public:
         renderingComponent{ renderingComponent },
         sceneCB{ sceneCB },
         camera{ camera },
-        cameraComponent{ cameraComponent },
         at{ at },
         up{ up },
         eye{ eye },
@@ -142,7 +131,7 @@ public:
         {
             auto SetAttributes2 = [&](
                 UINT primitiveIndex,
-                const XMFLOAT4& albedo,
+                XMFLOAT4&& albedo,
                 float metalness = 0.7f,
                 float roughness = 0.0f,
                 float stepScale = 1.0f,
@@ -202,10 +191,11 @@ public:
             XMFLOAT4 lp;
             XMFLOAT4 lac;
             XMFLOAT4 ldc;
-
+            XMFLOAT4 lightPosition;
             lightPosition = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
             sceneCB->lightPosition = XMLoadFloat4(&lp);
-
+            XMFLOAT4 lightAmbientColor;
+            XMFLOAT4 lightDiffuseColor;
             lightAmbientColor = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
             sceneCB->lightAmbientColor = XMLoadFloat4(&lac);
 
@@ -215,7 +205,7 @@ public:
         }
     }
 
-    void UpdateCameraMatrices() {
+    void UpdateCameraMatrices() override{
         auto frameIndex = deviceResources->GetCurrentFrameIndex();
 
         if (orbitalCamera) {

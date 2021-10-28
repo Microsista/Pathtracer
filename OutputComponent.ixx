@@ -18,23 +18,23 @@ using namespace Microsoft::WRL;
 
 
 export class OutputComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
-    const UINT& width;
-    const UINT& height;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    UINT& width;
+    UINT& height;
     DescriptorHeap*& descriptorHeap;
     vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors;
     vector<ComPtr<ID3D12Resource>>& buffers;
-    const UINT& descriptorSize;
+    UINT& descriptorSize;
 
 public:
     OutputComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const UINT& width,
-        const UINT& height,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        UINT& width,
+        UINT& height,
         DescriptorHeap*& descriptorHeap,
         vector<D3D12_GPU_DESCRIPTOR_HANDLE>& descriptors,
         vector<ComPtr<ID3D12Resource>>& buffers,
-        const UINT& descriptorSize
+        UINT& descriptorSize
     ) :
         deviceResources{ deviceResources },
         width{ width },

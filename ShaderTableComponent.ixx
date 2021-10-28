@@ -24,51 +24,51 @@ using namespace std;
 using namespace Microsoft::WRL;
 
 export class ShaderTableComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
-    const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
-    const vector<const wchar_t*>& c_missShaderNames;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
+    vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry;
+    vector<const wchar_t*>& c_missShaderNames;
     const wchar_t*& c_closestHitShaderName;
     const wchar_t*& c_raygenShaderName;
     ComPtr<ID3D12Resource>& hitGroupShaderTable;
-    const ComPtr<ID3D12StateObject>& dxrStateObject;
+    ComPtr<ID3D12StateObject>& dxrStateObject;
     UINT& missShaderTableStrideInBytes;
-    const vector<int>& meshOffsets;
-    const vector<D3DBuffer>& indexBuffer;
-    const vector<D3DBuffer>& vertexBuffer;
+    vector<int>& meshOffsets;
+    vector<D3DBuffer>& indexBuffer;
+    vector<D3DBuffer>& vertexBuffer;
     unordered_map<string, unique_ptr<MeshGeometry>>& geometries;
-    const vector<int>& meshSizes;
-    const vector<D3DTexture>& templeTextures;
-    const vector<D3DTexture>& templeNormalTextures;
-    const vector<D3DTexture>& templeSpecularTextures;
-    const vector<D3DTexture>& templeEmittanceTextures;
+    vector<int>& meshSizes;
+    vector<D3DTexture>& templeTextures;
+    vector<D3DTexture>& templeNormalTextures;
+    vector<D3DTexture>& templeSpecularTextures;
+    vector<D3DTexture>& templeEmittanceTextures;
     const UINT& NUM_BLAS;
     UINT& hitGroupShaderTableStrideInBytes;
-    const vector<PrimitiveConstantBuffer>& triangleMaterialCB;
+    vector<PrimitiveConstantBuffer>& triangleMaterialCB;
     ComPtr<ID3D12Resource>& rayGenShaderTable;
     ComPtr<ID3D12Resource>& missShaderTable;
 
 public:
     ShaderTableComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
-        const vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry,
-        const vector<const wchar_t*>& c_missShaderNames,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
+        vector<const wchar_t*>& c_hitGroupNames_TriangleGeometry,
+        vector<const wchar_t*>& c_missShaderNames,
         const wchar_t*& c_closestHitShaderName,
         const wchar_t*& c_raygenShaderName,
         ComPtr<ID3D12Resource>& hitGroupShaderTable,
-        const ComPtr<ID3D12StateObject>& dxrStateObject,
+        ComPtr<ID3D12StateObject>& dxrStateObject,
         UINT& missShaderTableStrideInBytes,
-        const vector<int>& meshOffsets,
-        const vector<D3DBuffer>& indexBuffer,
-        const vector<D3DBuffer>& vertexBuffer,
+        vector<int>& meshOffsets,
+        vector<D3DBuffer>& indexBuffer,
+        vector<D3DBuffer>& vertexBuffer,
         unordered_map<string, unique_ptr<MeshGeometry>>& geometries,
-        const vector<int>& meshSizes,
-        const vector<D3DTexture>& templeTextures,
-        const vector<D3DTexture>& templeNormalTextures,
-        const vector<D3DTexture>& templeSpecularTextures,
-        const vector<D3DTexture>& templeEmittanceTextures,
+        vector<int>& meshSizes,
+        vector<D3DTexture>& templeTextures,
+        vector<D3DTexture>& templeNormalTextures,
+        vector<D3DTexture>& templeSpecularTextures,
+        vector<D3DTexture>& templeEmittanceTextures,
         const UINT& NUM_BLAS,
         UINT& hitGroupShaderTableStrideInBytes,
-        const vector<PrimitiveConstantBuffer>& triangleMaterialCB,
+        vector<PrimitiveConstantBuffer>& triangleMaterialCB,
         ComPtr<ID3D12Resource>& rayGenShaderTable,
         ComPtr<ID3D12Resource>& missShaderTable
     ) :

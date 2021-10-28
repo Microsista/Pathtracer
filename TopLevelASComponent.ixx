@@ -15,19 +15,19 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 export class TopLevelASComponent {
-    const shared_ptr<DeviceResourcesInterface>& deviceResources;
+    shared_ptr<DeviceResourcesInterface>& deviceResources;
     const UINT& NUM_BLAS;
-    const ComPtr<ID3D12Device5>& dxrDevice;
+    ComPtr<ID3D12Device5>& dxrDevice;
     BottomLevelASComponent*& bottomLevelASComponent;
-    const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
+    ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList;
 
 public:
     TopLevelASComponent(
-        const shared_ptr<DeviceResourcesInterface>& deviceResources,
+        shared_ptr<DeviceResourcesInterface>& deviceResources,
         const UINT& NUM_BLAS,
-        const ComPtr<ID3D12Device5>& dxrDevice,
+        ComPtr<ID3D12Device5>& dxrDevice,
         BottomLevelASComponent*& bottomLevelASComponent,
-        const ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
+        ComPtr<ID3D12GraphicsCommandList5>& dxrCommandList
     ) :
         deviceResources{ deviceResources },
         NUM_BLAS{ NUM_BLAS },
