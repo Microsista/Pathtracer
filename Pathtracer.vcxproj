@@ -22,6 +22,7 @@
     <ClCompile Include="AccelerationStructureBuffers.ixx">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="AccelerationStructureComponent.ixx" />
     <ClCompile Include="Application.ixx">
       <FileType>Document</FileType>
     </ClCompile>
@@ -32,6 +33,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="Core.ixx" />
+    <ClCompile Include="CoreInterface.ixx" />
     <ClCompile Include="D3DBuffer.ixx">
       <FileType>Document</FileType>
     </ClCompile>

@@ -129,6 +129,12 @@
     <ClCompile Include="Core.ixx">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="AccelerationStructureComponent.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreInterface.ixx">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LuaScripts\MyScript.lua">
