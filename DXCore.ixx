@@ -109,11 +109,11 @@ public:
 
 protected:
     // Helper function for setting the window's title text.
-    /*void SetCustomWindowText(LPCWSTR text, HWND hwnd)
+    void SetCustomWindowText(LPCWSTR text, HWND hwnd)
     {
         std::wstring windowText = m_title + L": " + text;
         SetWindowText(hwnd, windowText.c_str());
-    }*/
+    }
 
     // Viewport dimensions.
     UINT m_width;

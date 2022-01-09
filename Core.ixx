@@ -1364,7 +1364,7 @@ private:
                 << L"    Raytracing time: " << raytracingTime << " ms"
                 << L"    Ray throughput: " << MRaysPerSecond << " MRPS"
                 << L"    GPU[" << m_deviceResources->GetAdapterID() << L"]: " << m_deviceResources->GetAdapterDescription();
-            /*SetCustomWindowText(windowText.str().c_str(), hwnd);*/
+            SetCustomWindowText(windowText.str().c_str(), Application::GetHwnd());
         }
     }
 
