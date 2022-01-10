@@ -252,7 +252,7 @@ public:
             XMStoreFloat4(&equal, XMVectorEqual(m_sceneCB->lightPosition, XMVECTOR{ 0.0f, 0.0f, 0.0f }));
             equal.x ? m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 18.0f, -20.0f, 0.0f } : m_sceneCB->lightPosition = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
             break;
-        case '2': m_orbitalCamera = !m_orbitalCamera; break;
+        /*case '2': m_orbitalCamera = !m_orbitalCamera; break;*/
         }
         m_camera.UpdateViewMatrix();
         UpdateCameraMatrices();
